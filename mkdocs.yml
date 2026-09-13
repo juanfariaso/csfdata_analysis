@@ -1,0 +1,7 @@
+site_name: CSFData Analysis
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+
