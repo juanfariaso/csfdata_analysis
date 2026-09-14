@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import find_simulations, is_lite_catalogue
+from csfdata.catalogue import find_simulations
 from csfdata_analysis.checks import test_diagnostics
 from csfdata_analysis.collection import compute_collection
 from csfdata_analysis.derived import import_derived
@@ -51,6 +51,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
     )
     compute_parser.add_argument("--workers", type=int, default=1)
     compute_parser.add_argument("--dry-run", action="store_true")
+    compute_parser.add_argument(
+        "--no-prompt",
+        action="store_true",
+        help="Start immediately without showing the selection and asking for confirmation.",
+    )
     simulation_parser = subcommands.add_parser(
         "compute-simulation",
         help="Compute one diagnostic for one imported simulation directory.",
@@ -86,8 +91,6 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if options.command == "compute":
         try:
             collection_id, filters = parse_filters(options.filter or ())
-            if not is_lite_catalogue(options.catalogue) and collection_id is None:
-                raise ValueError("A full catalogue compute requires --filter collection=COLLECTION_ID.")
             simulations = find_simulations(
                 options.catalogue,
                 collection_id=collection_id,
@@ -96,6 +99,23 @@ def main(arguments: Sequence[str] | None = None) -> int:
             if not simulations:
                 print("No simulations matched the supplied filters.")
                 return 0
+            counts_by_collection: dict[str, int] = {}
+            for simulation in simulations:
+                counts_by_collection[simulation.collection_id] = (
+                    counts_by_collection.get(simulation.collection_id, 0) + 1
+                )
+            print("Selected collections:")
+            for selected_collection, count in counts_by_collection.items():
+                print(f"  {selected_collection}: {count} simulations")
+            print(f"Total simulations: {len(simulations)}")
+            if not options.no_prompt:
+                try:
+                    answer = input("Compute this diagnostic? [y/N] ").strip().lower()
+                except EOFError as error:
+                    raise ValueError("No confirmation input available. Re-run with --no-prompt.") from error
+                if answer not in {"y", "yes"}:
+                    print("Cancelled.")
+                    return 0
             completed = 0
 
             def show_result(result) -> None:
