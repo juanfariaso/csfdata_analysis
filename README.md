@@ -8,8 +8,8 @@ The core `csfdata` package remains responsible for importing, validating, and
 preserving raw simulation data. This package will read an imported simulation
 and write reproducible, versioned products under its `derived/` directory.
 
-Analysis dependencies such as AMUSE are intentionally not installed yet. They
-will be added only when we implement an analysis product that requires them.
+AMUSE is a required runtime dependency, provided by the `amuse-framework`
+package.
 
 ## Development
 

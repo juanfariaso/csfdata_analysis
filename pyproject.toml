@@ -17,16 +17,22 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
+  "amuse-framework",
   "csfdata>=0.1.0",
 ]
 
+[project.scripts]
+csfdata-analysis = "csfdata_analysis.cli:main"
+
 [project.entry-points."csfdata.analysis"]
-csfdata_analysis = "csfdata_analysis"
+csfdata_analysis = "csfdata_analysis.cli:main"
 
 [project.optional-dependencies]
 dev = [
   "pytest>=8",
   "mkdocs>=1.6",
+  "mkdocstrings[python]",
+  "mkdocs-api-autonav",
   "mkdocs-material",
 ]
 

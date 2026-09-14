@@ -1,7 +1,53 @@
-site_name: CSFData Analysis
+site_name: Clustererd Star Formation Database Analysis
+
 theme:
   name: material
+
+plugins:
+  - search
+
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - .
+          options:
+            members: null
+            docstring_style: google
+            members_order: source
+            show_source: true
+            show_submodules: false
+            show_if_no_docstring: false
+            show_root_heading: true
+            show_symbol_type_heading: true
+            filters:
+              - public
+              - "!^__version__$"
+              - "!^__all__$"
+              - "!^_"
+            summary:
+              modules: true
+              functions: true
+
+  - api-autonav:
+      modules:
+        - csfdata_analysis
+      nav_section_title: API Reference
+      api_root_uri: reference
+      nav_item_prefix: ""
+      show_full_namespace: true
+
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Diagnostics: diagnostics.md
+  - Adding A Diagnostic: adding-a-diagnostic.md
+  - Command Line: command-line.md
+  - Readers: readers.md
+  - Runner: runner.md
+  - Time-Series Format: time-series-format.md
+  - Tutorials:
+      - Parameters And Versions: tutorials/parameters-and-versions.md
 
+extra_css:
+  - stylesheets/api-reference.css
