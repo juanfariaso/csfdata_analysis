@@ -5,9 +5,11 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
+from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import CatalogueSimulation
+from csfdata.catalogue import CatalogueSimulation, file_sha256, is_lite_catalogue, read_lite_source
+from csfdata.catalogue.metadata import read_simulation_metadata
 from csfdata_analysis.diagnostics import DIAGNOSTICS
 from csfdata_analysis.readers import read_stars
 from csfdata_analysis.runner import SimulationReport, compute_time_series, time_series_path
@@ -32,6 +34,48 @@ class SimulationResult:
     status: str
     report: SimulationReport | None = None
     error: str | None = None
+
+
+def source_simulation(simulation: CatalogueSimulation) -> Path:
+    """Return the raw-data-owning simulation for one analysis selection.
+
+    Args:
+        simulation: Simulation selected from either a full or lite catalogue.
+
+    Returns:
+        The simulation directory containing the raw snapshots to analyse.
+
+    Raises:
+        FileNotFoundError: If a recorded lite source simulation is unavailable.
+        ValueError: If lite metadata, collection identity, or configuration
+            fingerprints do not match the recorded source catalogue.
+
+    Notes:
+        A full catalogue simulation is its own source. A lite catalogue stores
+        only metadata and configuration, so its ``lite.yaml`` points to the
+        full catalogue that owns the raw snapshots.
+    """
+    catalogue_root = simulation.path.parents[3]
+    if not is_lite_catalogue(catalogue_root):
+        return simulation.path
+    source = read_lite_source(catalogue_root)
+    if source.collection_id != simulation.collection_id:
+        raise ValueError("Lite catalogue collection does not match selected simulation.")
+    source_collection = source.catalogue_root / "collections" / source.collection_id
+    if file_sha256(source_collection / "collection.yaml") != source.collection_sha256:
+        raise ValueError("Source collection configuration differs from the lite export.")
+    source_simulation_root = source_collection / "simulations" / simulation.simulation_id
+    if not source_simulation_root.is_dir():
+        raise FileNotFoundError(f"Source simulation is unavailable: {source_simulation_root}")
+    if read_simulation_metadata(source_simulation_root / "metadata.yaml") != read_simulation_metadata(
+        simulation.path / "metadata.yaml"
+    ):
+        raise ValueError("Source simulation metadata differs from the lite export.")
+    if file_sha256(source_simulation_root / "config.yaml") != file_sha256(
+        simulation.path / "config.yaml"
+    ):
+        raise ValueError("Source simulation configuration differs from the lite export.")
+    return source_simulation_root
 
 
 def compute_catalogue_simulation(
@@ -68,15 +112,23 @@ def compute_catalogue_simulation(
             "failed",
             error=f"Unsupported catalogue importer: {simulation.importer}",
         )
-    if time_series_path(simulation.path, diagnostic).exists():
+    destination = time_series_path(simulation.path, diagnostic)
+    if destination.exists():
         return SimulationResult(simulation, "skipped")
     try:
+        input_simulation = source_simulation(simulation)
         report = compute_time_series(
-            simulation.path,
+            input_simulation,
             diagnostic,
-            DcafAdapter(simulation.path / "raw"),
+            DcafAdapter(input_simulation / "raw"),
             read_stars,
             dry_run=dry_run,
+            output_path=destination,
+            identity={
+                "collection_id": simulation.collection_id,
+                "simulation_id": simulation.simulation_id,
+                "config_sha256": file_sha256(simulation.path / "config.yaml"),
+            },
         )
     except Exception as error:
         return SimulationResult(

@@ -7,9 +7,10 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import find_simulations
+from csfdata.catalogue import find_simulations, is_lite_catalogue
 from csfdata_analysis.checks import test_diagnostics
 from csfdata_analysis.collection import compute_collection
+from csfdata_analysis.derived import import_derived
 from csfdata_analysis.diagnostics import DIAGNOSTICS
 from csfdata_analysis.readers import read_stars
 from csfdata_analysis.runner import compute_time_series
@@ -46,7 +47,6 @@ def main(arguments: Sequence[str] | None = None) -> int:
     compute_parser.add_argument(
         "--filter",
         action="append",
-        required=True,
         help="Selection filter such as collection=dcaf-grid-v1 or tff=0.5:3.0.",
     )
     compute_parser.add_argument("--workers", type=int, default=1)
@@ -58,6 +58,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
     simulation_parser.add_argument("simulation_root", type=Path)
     simulation_parser.add_argument("diagnostic", choices=sorted(DIAGNOSTICS))
     simulation_parser.add_argument("--dry-run", action="store_true")
+    import_parser = subcommands.add_parser(
+        "import-derived",
+        help="Safely import completed derived results from one lite catalogue.",
+    )
+    import_parser.add_argument("lite_catalogue", type=Path)
+    import_parser.add_argument("--catalogue", type=Path, required=True)
+    import_parser.add_argument("--overwrite", action="store_true")
+    import_parser.add_argument("--dry-run", action="store_true")
     options = parser.parse_args(arguments)
 
     if options.command == "diagnostics":
@@ -77,7 +85,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
 
     if options.command == "compute":
         try:
-            collection_id, filters = parse_filters(options.filter)
+            collection_id, filters = parse_filters(options.filter or ())
+            if not is_lite_catalogue(options.catalogue) and collection_id is None:
+                raise ValueError("A full catalogue compute requires --filter collection=COLLECTION_ID.")
             simulations = find_simulations(
                 options.catalogue,
                 collection_id=collection_id,
@@ -117,6 +127,15 @@ def main(arguments: Sequence[str] | None = None) -> int:
         print(f"Failed: {counts['failed']}")
         return 1 if counts["failed"] else 0
 
+    if options.command == "import-derived":
+        return import_derived_command(
+            options.lite_catalogue,
+            options.catalogue,
+            overwrite=options.overwrite,
+            dry_run=options.dry_run,
+            parser=import_parser,
+        )
+
     simulation_root = options.simulation_root.resolve()
     adapter = DcafAdapter(simulation_root / "raw")
     if not adapter.is_simulation():
@@ -132,6 +151,44 @@ def main(arguments: Sequence[str] | None = None) -> int:
     print(f"Output: {report.output_path}")
     if report.dry_run:
         print("Dry run: no particle data was read and no output was created.")
+    return 0
+
+
+def import_derived_command(
+    lite_catalogue: Path,
+    destination_catalogue: Path,
+    overwrite: bool = False,
+    dry_run: bool = False,
+    parser: argparse.ArgumentParser | None = None,
+) -> int:
+    """Import complete results from one lite catalogue into its full source.
+
+    Args:
+        lite_catalogue: Working lite catalogue containing derived HDF5 files.
+        destination_catalogue: Recorded full source catalogue to receive results.
+        overwrite: Whether existing destination files may be replaced.
+        dry_run: Whether to report actions without copying results.
+        parser: Optional CLI parser used to present validation errors.
+
+    Returns:
+        Zero after reporting copied, skipped, and unsafe results.
+    """
+    try:
+        report = import_derived(
+            lite_catalogue,
+            destination_catalogue,
+            overwrite=overwrite,
+            dry_run=dry_run,
+        )
+    except (FileNotFoundError, OSError, ValueError) as error:
+        if parser is None:
+            raise
+        parser.error(str(error))
+    print(f"Copied: {len(report.copied_paths)}")
+    print(f"Skipped existing: {len(report.skipped_paths)}")
+    print(f"Issues: {len(report.issues)}")
+    for issue in report.issues:
+        print(f"  - {issue}")
     return 0
 
 

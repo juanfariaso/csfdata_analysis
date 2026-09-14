@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
@@ -62,6 +62,8 @@ def compute_time_series(
     adapter: SimulationAdapter,
     read_snapshot: Callable[[Path], Particles],
     dry_run: bool = False,
+    output_path: Path | None = None,
+    identity: Mapping[str, str | int] | None = None,
 ) -> SimulationReport:
     """Compute one diagnostic time series for one imported simulation.
 
@@ -75,6 +77,10 @@ def compute_time_series(
             AMUSE particles.
         dry_run: Whether to validate the snapshot plan without reading AMUSE
             particles or creating output.
+        output_path: Optional alternate final HDF5 destination. This allows a
+            lite catalogue to store results while raw inputs remain elsewhere.
+        identity: Optional immutable simulation identity written as HDF5
+            attributes for a later derived-data import.
 
     Returns:
         SimulationReport: Location, time range, and snapshot count of the
@@ -97,7 +103,7 @@ def compute_time_series(
     if adapter.run_root != raw_root:
         raise ValueError("The adapter must be initialized with the simulation raw directory.")
 
-    destination = time_series_path(simulation_root, diagnostic)
+    destination = output_path or time_series_path(simulation_root, diagnostic)
     if destination.exists():
         raise FileExistsError(f"Diagnostic output already exists: {destination}")
 
@@ -193,6 +199,8 @@ def compute_time_series(
         output_file.attrs["format_schema_version"] = 1
         output_file.attrs["diagnostic_name"] = diagnostic.name
         output_file.attrs["diagnostic_version"] = diagnostic.version
+        for name, value in (identity or {}).items():
+            output_file.attrs[name] = value
         output_file.create_dataset("time_myr", data=times_myr)
         output_file.create_dataset(
             "snapshot_id",
@@ -207,6 +215,7 @@ def compute_time_series(
             for name, unit_name in choice.outputs.items():
                 dataset = output_choice_group.create_dataset(name, data=values[choice.name][name])
                 dataset.attrs["unit"] = unit_name
+        output_file.attrs["complete"] = True
 
     staging_path.replace(destination)
     return SimulationReport(
