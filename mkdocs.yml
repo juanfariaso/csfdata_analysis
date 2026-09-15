@@ -1,4 +1,4 @@
-site_name: Clustererd Star Formation Database Analysis
+site_name: Clustererd Star Formation Database - Analysis
 
 theme:
   name: material
@@ -39,10 +39,10 @@ plugins:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
   - Diagnostics: diagnostics.md
   - Adding A Diagnostic: adding-a-diagnostic.md
   - Command Line: command-line.md
+  - Data Interfaces: data.md
   - Readers: readers.md
   - Runner: runner.md
   - Time-Series Format: time-series-format.md
