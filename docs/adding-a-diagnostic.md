@@ -1,4 +1,4 @@
-# Adding A Diagnostic
+# Adding A Time-Series Diagnostic
 
 This guide describes the standard workflow for adding a snapshot-based,
 time-evolution diagnostic to `csfdata_analysis`.
@@ -16,18 +16,18 @@ Before writing code, decide and document:
 Do not put model time, source paths, HDF5 handling, parallelism, or progress
 reporting in the scientific function. The runner owns those responsibilities.
 
-## 2. Create One Diagnostic Module
+## 2. Create One Time-Series Diagnostic Module
 
 Create a module below `csfdata_analysis/diagnostics/`, for example:
 
 ```text
-csfdata_analysis/diagnostics/lagrangian_radii.py
+csfdata_analysis/diagnostics/time_series/lagrangian_radii.py
 ```
 
 It contains two public items:
 
 - One function that evaluates all choices for one AMUSE `Particles` set.
-- One versioned `Diagnostic` instance that declares the choices and schemas.
+- One versioned `TimeSeriesDiagnostic` instance that declares choices and schemas.
 
 ## 3. Write The Measurement Function
 
@@ -43,49 +43,50 @@ def measure_example(particles: Particles) -> dict[str, dict[str, Quantity]]:
     }
 ```
 
-Returned choice names and output names must exactly match the `Diagnostic`
+Returned choice names and output names must exactly match the `TimeSeriesDiagnostic`
 definition. Use AMUSE quantities, not bare floats, so the runner can validate
 and convert each value to its declared canonical unit.
 
 ## 4. Declare The Versioned Schema
 
 ```python
-EXAMPLE_V1 = Diagnostic(
+EXAMPLE_V1 = TimeSeriesDiagnostic(
     name="example",
     version=1,
+    description="Scientific purpose of this diagnostic.",
     evaluate=measure_example,
-    choices=(
-        DiagnosticChoice(
+    evaluation_choices=(
+        EvaluationChoice(
             name="choice_name",
             metadata={"method": "documented_method"},
             outputs={"measurement": "pc"},
         ),
     ),
+    field_descriptions={"measurement": "Meaning of the measured value."},
+    choice_names=("center",),
 )
 ```
 
-`metadata` becomes HDF5 attributes on the choice group. Record enough detail
+`metadata` becomes HDF5 attributes on the evaluation group. Record enough detail
 there to identify the scientific method and particle selection.
+
+`choice_names` declares the global scientific choices that affect the result.
+Their allowed values and defaults come from `csfdata_analysis.choices` and are
+published to the collection's `diagnostics.yaml` after a successful run.
 
 ## 5. Test The Calculation
 
-Every diagnostic registered in `DIAGNOSTICS` is automatically run by the
-generic readiness test against a standard temporary AMUSE particle snapshot.
-It checks that the diagnostic can read representative stellar data and write
-every declared output through the normal HDF5 runner:
+Create a focused test file for the diagnostic, such as
+`tests/test_example.py`. Define only the AMUSE particles required by that
+calculation, then assert its scientifically meaningful outputs and units. This
+keeps the test data and expected results beside the diagnostic they verify,
+instead of forcing every diagnostic through one artificial generic snapshot.
+
+Run the diagnostic test directly while developing:
 
 ```bash
-csfdata analysis test-diagnostics
+python -m pytest tests/test_example.py
 ```
-
-Run this test whenever a diagnostic is added or its descriptor changes. A pass
-means the function is technically ready for collection execution: its particle
-requirements are satisfied by the standard test snapshot, its output matches
-its declared schema, and the runner can write it successfully.
-
-This general test does not independently prove a scientific formula is correct.
-Add a focused numerical test later when a diagnostic needs a scientific
-regression check.
 
 ## 6. Run And Inspect One Simulation
 
@@ -93,7 +94,9 @@ For a direct Python inspection, import the diagnostic and run it explicitly:
 
 ```python
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata_analysis.diagnostics.lagrangian_radii import LAGRANGIAN_RADII_V1
+from csfdata_analysis.diagnostics.time_series.lagrangian_radii import (
+    LAGRANGIAN_RADII_V1,
+)
 from csfdata_analysis.readers import read_stars
 from csfdata_analysis.runner import compute_time_series
 

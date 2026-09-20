@@ -42,3 +42,35 @@ def test_compute_lists_unfiltered_collections_before_confirmation(
     assert "second: 2 simulations" in output
     assert "Total simulations: 3" in output
     assert "Cancelled." in output
+
+
+def test_clear_derived_requires_confirmation_before_removing(
+    monkeypatch: MonkeyPatch,
+    capsys: CaptureFixture[str],
+) -> None:
+    """Derived clearing shows its selection before it can remove files."""
+    monkeypatch.setattr(
+        cli,
+        "find_simulations",
+        lambda *args, **kwargs: (
+            CatalogueSimulation("first", "0001", Path("/tmp/first"), "dcaf"),
+        ),
+    )
+    monkeypatch.setattr("builtins.input", lambda prompt: "n")
+
+    assert (
+        cli.main(
+            [
+                "clear-derived",
+                "lagrangian_radii",
+                "--catalogue",
+                "/tmp/catalogue",
+            ]
+        )
+        == 0
+    )
+
+    output = capsys.readouterr().out
+    assert "Diagnostic: lagrangian_radii" in output
+    assert "Selected simulations: 1" in output
+    assert "Cancelled." in output

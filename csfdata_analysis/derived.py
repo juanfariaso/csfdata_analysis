@@ -37,7 +37,7 @@ def import_derived(
     """Import completed HDF5 diagnostics from one lite catalogue.
 
     Args:
-        lite_catalogue: Lite collection created by ``csfdata export-lite``.
+        lite_catalogue: Lite collection created by ``csfdata import-lite``.
         destination_catalogue: Full catalogue that owns the matching collection.
         overwrite: Whether completed destination results may be replaced.
         dry_run: Whether to report actions without copying files.
@@ -47,7 +47,7 @@ def import_derived(
 
     Raises:
         ValueError: If the destination is not the source catalogue recorded by
-            the lite export or its collection definition has changed.
+            the lite import or its collection definition has changed.
         FileNotFoundError: If required lite or destination collection files are absent.
 
     Notes:
@@ -60,12 +60,12 @@ def import_derived(
     source = read_lite_source(lite_catalogue)
     if destination_catalogue != source.catalogue_root:
         raise ValueError(
-            "Destination catalogue does not match the source recorded by the lite export."
+            "Destination catalogue does not match the source recorded by the lite import."
         )
     lite_collection = lite_catalogue / "collections" / source.collection_id
     destination_collection = destination_catalogue / "collections" / source.collection_id
     if file_sha256(destination_collection / "collection.yaml") != source.collection_sha256:
-        raise ValueError("Destination collection configuration differs from the lite export.")
+        raise ValueError("Destination collection configuration differs from the lite import.")
 
     copied_paths: list[Path] = []
     skipped_paths: list[Path] = []

@@ -13,7 +13,7 @@ The output name is `r_l99`; its canonical unit remains `pc` in the diagnostic
 schema and HDF5 attribute, not in the name.
 
 1. Add `"r_l99": "pc"` to the `outputs` mapping of every relevant
-   `DiagnosticChoice`.
+   `EvaluationChoice`.
 2. Update `measure_lagrangian_radii` so every choice returns an AMUSE quantity
    named `r_l99`.
 3. Add a focused test for the new value.
@@ -30,11 +30,14 @@ Do not edit `LAGRANGIAN_RADII_V1` after it has produced catalogue results.
 Instead, retain it and add a version-2 definition:
 
 ```python
-LAGRANGIAN_RADII_V2 = Diagnostic(
+LAGRANGIAN_RADII_V2 = TimeSeriesDiagnostic(
     name="lagrangian_radii",
     version=2,
+    description="Updated scientific definition of stellar Lagrangian radii.",
     evaluate=measure_lagrangian_radii_v2,
-    choices=(...),
+    evaluation_choices=(...),
+    field_descriptions={...},
+    choice_names=("center",),
 )
 ```
 
@@ -64,4 +67,3 @@ or stored values:
 
 Refactoring that provably leaves results and the HDF5 schema unchanged can stay
 within the existing diagnostic version.
-

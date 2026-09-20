@@ -1,19 +1,6 @@
 # Command Line
 
-## Test Diagnostics
-
-Run the built-in readiness check for every registered diagnostic:
-
-```bash
-csfdata analysis test-diagnostics
-```
-
-It creates one temporary representative AMUSE stellar snapshot, runs every
-registered diagnostic through the normal reader and HDF5 writer, and checks the
-declared outputs and versioned destination. It prints one `OK` or `FAILED` line
-per diagnostic and exits with a failure status when any diagnostic fails.
-
-## Catalogue Diagnostic
+## Catalogue Time-Series Diagnostic
 
 Run a standard diagnostic for every indexed simulation selected by filters:
 
@@ -27,8 +14,8 @@ csfdata analysis compute lagrangian_radii \
 The catalogue must first have a current `registry.sqlite`, built with
 `csfdata index-catalogue`. The runner uses one worker per simulation, writes
 each successful result to that simulation's versioned `derived/` directory,
-and never replaces a completed `series.h5` file. Re-running the command skips
-completed simulations and retries only missing or failed work.
+and skips a completed `series.h5` file by default. Re-running the command
+therefore retries only missing or failed work.
 
 Before starting, the command lists each selected collection and its number of
 selected simulations, then asks for confirmation. Omit `--filter` to select
@@ -58,9 +45,37 @@ csfdata analysis compute lagrangian_radii \
 write analysis files. The parent process prints one final result per
 simulation, followed by complete, ready, skipped, and failed totals.
 
-## Lite Catalogue Diagnostic
+To replace an earlier result with the same diagnostic version, use
+`--overwrite`. Every replacement is first written to a temporary HDF5 file and
+atomically installed only after the full calculation succeeds:
 
-For a lite catalogue created by `csfdata export-lite`, omit the collection
+```bash
+csfdata analysis compute lagrangian_radii \
+  --catalogue /path/to/lite-catalogue \
+  --filter collection=dcaf-grid-v1 \
+  --workers 12 \
+  --overwrite
+```
+
+## Clear Derived Results
+
+Remove a time-series diagnostic without recomputing it immediately:
+
+```bash
+csfdata analysis clear-derived lagrangian_radii \
+  --catalogue /path/to/lite-catalogue \
+  --filter collection=dcaf-grid-v1
+```
+
+This command is intentionally restricted to lite catalogues. It removes only
+the selected diagnostic's versioned `series.h5` file for matching simulations;
+other diagnostics and all raw data are preserved. The command shows the number
+of selected simulations and asks for confirmation. Use `--no-prompt` only in a
+non-interactive job after checking the selection.
+
+## Lite Catalogue Time-Series Diagnostic
+
+For a lite catalogue created by `csfdata import-lite`, omit the collection
 filter. The lite catalogue contains exactly one collection and records the
 full catalogue that owns its raw snapshots:
 

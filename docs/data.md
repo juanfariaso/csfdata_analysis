@@ -12,7 +12,7 @@ catalogue, it contains the copied index, metadata, configuration, and derived
 products, but no raw snapshots.
 
 A lite catalogue's `lite.yaml` records the absolute path of the full source
-catalogue used when it was exported. You do not provide that source path again:
+catalogue used when it was imported. You do not provide that source path again:
 
 ```python
 simulations = load_simulations("/path/to/lite-catalogue")
@@ -111,3 +111,24 @@ With `normalization="tff"`, each simulation's physical target is
 `1.5 * tff`. The returned DataFrame records the requested physical time, the
 chosen snapshot path and time, and the signed time offset. This makes the
 nearest-snapshot approximation visible before any later particle analysis.
+
+## Create A Transfer Manifest
+
+The repository stores a script that turns one collection selection and slice
+rule into a portable YAML manifest plus an exact rsync file list:
+
+```bash
+python scripts/create_slice_manifest.py \
+  --catalogue /path/to/source-or-lite-catalogue \
+  --collection dcaf-tff-grid-v1 \
+  --filter tff=1.0 \
+  --time 1.5 \
+  --normalization tff \
+  /path/to/manifest-directory
+```
+
+It writes `selection.yaml`, which records the selected simulations and actual
+nearest snapshot times, and `rsync-files.txt`, which contains the exact paths
+below the full source catalogue. Use the latter with `rsync --files-from` to
+copy only the selected metadata, configurations, and raw snapshots while
+preserving the standard catalogue layout.

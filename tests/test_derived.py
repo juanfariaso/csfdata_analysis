@@ -9,8 +9,10 @@ from csfdata.catalogue.configuration import (
     SimulationConfiguration,
     write_simulation_configuration,
 )
-from csfdata.catalogue.lite import export_lite_collection, file_sha256
+from csfdata.catalogue.lite import file_sha256, import_lite_collection
 from csfdata.catalogue.metadata import SimulationMetadata, write_simulation_metadata
+from csfdata.catalogue.registry import index_catalogue
+from csfdata.catalogue.snapshots import refresh_snapshot_times
 from csfdata_analysis.derived import import_derived
 
 
@@ -36,8 +38,10 @@ optional_parameters: []
         SimulationConfiguration((ConfigurationParameter("tff", 1.0, "Myr", "explicit"),), ()),
         simulation / "config.yaml",
     )
+    index_catalogue(full)
+    refresh_snapshot_times(full, "grid")
     lite = tmp_path / "lite"
-    export_lite_collection(full, "grid", lite)
+    import_lite_collection(full, "grid", lite)
     lite_simulation = lite / "collections" / "grid" / "simulations" / "0001"
     result = lite_simulation / "derived" / "diagnostics" / "test" / "v1" / "series.h5"
     result.parent.mkdir(parents=True)

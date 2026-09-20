@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Each completed diagnostic writes one HDF5 time series for one simulation and
+Each completed time-series diagnostic writes one HDF5 file for one simulation and
 one diagnostic version. The file contains only derived scalar measurements and
 their provenance. It never duplicates raw particle data.
 
@@ -68,8 +68,9 @@ or changed choice definitions require a new diagnostic version.
 ## Units And Values
 
 Every output dataset has a `unit` HDF5 attribute. The initial canonical units
-are `Myr`, `pc`, `Msun`, and `km/s`. Diagnostics return AMUSE quantities; the
-runner converts them to their declared canonical units before writing.
+are `Myr`, `pc`, `Msun`, `km/s`, and the dimensionless unit `1` for counts.
+Diagnostics return AMUSE quantities; the runner converts them to their
+declared canonical units before writing.
 
 Every choice must return every declared output for every snapshot. If a
 measurement is unavailable or incompatible, the diagnostic fails for that
@@ -94,7 +95,7 @@ groups and datasets.
 Local Python variable names and the evaluator function name do not change the
 stored format. A descriptive constant such as `LAGRANGIAN_RADII_V1` is useful
 for code readability, but the authoritative identity is
-`Diagnostic(name="lagrangian_radii", version=1, ...)`.
+`TimeSeriesDiagnostic(name="lagrangian_radii", version=1, ...)`.
 
 Adding an output parameter after a diagnostic has been used changes its schema
 and requires a new diagnostic version.

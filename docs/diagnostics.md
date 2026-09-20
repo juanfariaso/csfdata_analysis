@@ -1,26 +1,67 @@
 # Diagnostics
 
+## Published Catalogue Definitions
+
+After at least one simulation completes a collection-wide diagnostic run,
+`csfdata_analysis` updates the collection's `diagnostics.yaml`. This small
+file is the interface to core `csfdata`: it declares each available diagnostic
+version, its result path, fields, units, and the registered scientific choices
+that affect it. It never duplicates the numerical HDF5 or YAML results.
+
+For example, the `lagrangian_radii` diagnostic publishes `center` as its
+choice, with `stellar_com` as the default. Its concrete HDF5 result groups,
+`origin` and `stellar_com`, are evaluation choices: they are the stored values
+of the global `center` choice rather than a second independent choice system.
+For each centre, it records total stellar mass, the number of valid stars,
+mass-weighted Lagrangian radii, and the number of valid stars within each
+corresponding radius. Thus `r_l50` is the half-mass radius and `n_l50` is the
+number of valid stars within or at that radius.
+
 A diagnostic is a versioned definition of scalar measurements calculated from
 one AMUSE particle set. The runner evaluates the same diagnostic for every
 snapshot of a simulation and writes one standardized time series.
 
+## Module Layout
+
+Concrete diagnostic implementations are separated by their stored result type:
+
+```text
+diagnostics/
+  base.py
+  time_series/
+  scalar/
+```
+
+`time_series/` is for diagnostics evaluated at each snapshot and stored in
+versioned HDF5 files. `scalar/` is for scalar diagnostics calculated once per
+simulation and stored in `derived/scalar_diagnostics.yaml`. Each module declares any
+completed diagnostic versions it requires, so dependency chains are visible in
+the published collection definition.
+
 ## Definition
 
 ```python
-from csfdata_analysis.diagnostics import Diagnostic, DiagnosticChoice
+from csfdata_analysis.diagnostics import TimeSeriesDiagnostic, EvaluationChoice
 
 
-lagrangian_radii = Diagnostic(
+lagrangian_radii = TimeSeriesDiagnostic(
     name="lagrangian_radii",
     version=1,
+    description="Mass-weighted stellar Lagrangian radii through time.",
     evaluate=measure_lagrangian_radii,
-    choices=(
-        DiagnosticChoice(
+    evaluation_choices=(
+        EvaluationChoice(
             name="stellar_com",
             metadata={"method": "mass_weighted_stellar_center_of_mass"},
             outputs={"r_l10": "pc", "r_l50": "pc", "r_l90": "pc"},
         ),
     ),
+    field_descriptions={
+        "r_l10": "Radius enclosing 10 percent of stellar mass.",
+        "r_l50": "Radius enclosing 50 percent of stellar mass.",
+        "r_l90": "Radius enclosing 90 percent of stellar mass.",
+    },
+    choice_names=("center",),
 )
 ```
 
@@ -40,8 +81,8 @@ def measure_lagrangian_radii(particles):
 
 The runner, rather than the function, provides the model time and snapshot
 identity, validates returned values and units, and handles output files,
-parallelism, provenance, and progress reporting. Each choice becomes one HDF5
-group in the diagnostic time series.
+parallelism, provenance, and progress reporting. Each evaluation choice becomes
+one HDF5 group in the diagnostic time series.
 
 ## Versioning
 

@@ -8,7 +8,7 @@ import pytest
 from amuse.datamodel import Particles
 from amuse.units import units
 
-from csfdata_analysis.diagnostics import Diagnostic, DiagnosticChoice
+from csfdata_analysis.diagnostics import EvaluationChoice, TimeSeriesDiagnostic
 from csfdata_analysis.runner import compute_time_series
 
 
@@ -24,17 +24,27 @@ def test_compute_time_series_writes_a_versioned_time_series(tmp_path: Path) -> N
         snapshot_paths=lambda: (snapshot_path,),
         snapshot_time=lambda path: 2.5,
     )
-    diagnostic = Diagnostic(
+    diagnostic = TimeSeriesDiagnostic(
         name="example_radius",
         version=1,
-        evaluate=lambda particles: {"origin": {"r_l50": 3.0 | units.pc}},
-        choices=(
-            DiagnosticChoice(
+        description="Example radius diagnostic used only for tests.",
+        evaluate=lambda particles: {
+            "origin": {
+                "r_l50": 3.0 | units.pc,
+                "n_l50": 4 | units.none,
+            }
+        },
+        evaluation_choices=(
+            EvaluationChoice(
                 name="origin",
                 metadata={"method": "coordinate_origin"},
-                outputs={"r_l50": "pc"},
+                outputs={"r_l50": "pc", "n_l50": "1"},
             ),
         ),
+        field_descriptions={
+            "r_l50": "Example half-mass radius.",
+            "n_l50": "Example count inside the half-mass radius.",
+        },
     )
 
     report = compute_time_series(
@@ -54,10 +64,12 @@ def test_compute_time_series_writes_a_versioned_time_series(tmp_path: Path) -> N
         assert result["choices/origin"].attrs["method"] == "coordinate_origin"
         assert result["choices/origin/r_l50"][:].tolist() == [3.0]
         assert result["choices/origin/r_l50"].attrs["unit"] == "pc"
+        assert result["choices/origin/n_l50"][:].tolist() == [4.0]
+        assert result["choices/origin/n_l50"].attrs["unit"] == "1"
 
 
 def test_compute_time_series_never_replaces_completed_output(tmp_path: Path) -> None:
-    """Re-running one diagnostic version fails instead of overwriting it."""
+    """Re-running requires explicit permission before it replaces output."""
     simulation_root = tmp_path / "0001"
     raw_root = simulation_root / "raw"
     snapshot_path = raw_root / "dcaf_output" / "stars_0001.amuse"
@@ -68,20 +80,32 @@ def test_compute_time_series_never_replaces_completed_output(tmp_path: Path) -> 
         snapshot_paths=lambda: (snapshot_path,),
         snapshot_time=lambda path: 2.5,
     )
-    diagnostic = Diagnostic(
+    diagnostic = TimeSeriesDiagnostic(
         name="example_radius",
         version=1,
+        description="Example radius diagnostic used only for tests.",
         evaluate=lambda particles: {"origin": {"r_l50": 3.0 | units.pc}},
-        choices=(
-            DiagnosticChoice(
+        evaluation_choices=(
+            EvaluationChoice(
                 name="origin",
                 metadata={"method": "coordinate_origin"},
                 outputs={"r_l50": "pc"},
             ),
         ),
+        field_descriptions={"r_l50": "Example half-mass radius."},
     )
 
     compute_time_series(simulation_root, diagnostic, adapter, lambda path: Particles())
 
     with pytest.raises(FileExistsError, match="already exists"):
         compute_time_series(simulation_root, diagnostic, adapter, lambda path: Particles())
+
+    report = compute_time_series(
+        simulation_root,
+        diagnostic,
+        adapter,
+        lambda path: Particles(),
+        overwrite=True,
+    )
+
+    assert report.output_path.is_file()

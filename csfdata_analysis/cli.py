@@ -8,10 +8,9 @@ from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import find_simulations
-from csfdata_analysis.checks import test_diagnostics
-from csfdata_analysis.collection import compute_collection
+from csfdata_analysis.catalogue_runner import clear_time_series, compute_collection
 from csfdata_analysis.derived import import_derived
-from csfdata_analysis.diagnostics import DIAGNOSTICS
+from csfdata_analysis.diagnostics import TIME_SERIES_DIAGNOSTICS
 from csfdata_analysis.readers import read_stars
 from csfdata_analysis.runner import compute_time_series
 
@@ -29,15 +28,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="csfdata-analysis")
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("diagnostics", help="List available diagnostic defaults.")
-    subcommands.add_parser(
-        "test-diagnostics",
-        help="Run the built-in readiness check for every registered diagnostic.",
-    )
     compute_parser = subcommands.add_parser(
         "compute",
         help="Compute one diagnostic for indexed catalogue simulations.",
     )
-    compute_parser.add_argument("diagnostic", choices=sorted(DIAGNOSTICS))
+    compute_parser.add_argument("diagnostic", choices=sorted(TIME_SERIES_DIAGNOSTICS))
     compute_parser.add_argument(
         "--catalogue",
         type=Path,
@@ -52,6 +47,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
     compute_parser.add_argument("--workers", type=int, default=1)
     compute_parser.add_argument("--dry-run", action="store_true")
     compute_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Atomically replace completed selected diagnostic files after success.",
+    )
+    compute_parser.add_argument(
         "--no-prompt",
         action="store_true",
         help="Start immediately without showing the selection and asking for confirmation.",
@@ -61,8 +61,25 @@ def main(arguments: Sequence[str] | None = None) -> int:
         help="Compute one diagnostic for one imported simulation directory.",
     )
     simulation_parser.add_argument("simulation_root", type=Path)
-    simulation_parser.add_argument("diagnostic", choices=sorted(DIAGNOSTICS))
+    simulation_parser.add_argument("diagnostic", choices=sorted(TIME_SERIES_DIAGNOSTICS))
     simulation_parser.add_argument("--dry-run", action="store_true")
+    simulation_parser.add_argument("--overwrite", action="store_true")
+    clear_parser = subcommands.add_parser(
+        "clear-derived",
+        help="Remove one selected time-series diagnostic from a lite catalogue.",
+    )
+    clear_parser.add_argument("diagnostic", choices=sorted(TIME_SERIES_DIAGNOSTICS))
+    clear_parser.add_argument("--catalogue", type=Path, required=True)
+    clear_parser.add_argument(
+        "--filter",
+        action="append",
+        help="Selection filter such as collection=dcaf-grid-v1 or tff=0.5:3.0.",
+    )
+    clear_parser.add_argument(
+        "--no-prompt",
+        action="store_true",
+        help="Remove immediately without showing the selection and asking for confirmation.",
+    )
     import_parser = subcommands.add_parser(
         "import-derived",
         help="Safely import completed derived results from one lite catalogue.",
@@ -74,19 +91,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
     options = parser.parse_args(arguments)
 
     if options.command == "diagnostics":
-        for name, diagnostic in DIAGNOSTICS.items():
+        for name, diagnostic in TIME_SERIES_DIAGNOSTICS.items():
             print(f"{name} v{diagnostic.version}")
         return 0
-
-    if options.command == "test-diagnostics":
-        checks = test_diagnostics()
-        for check in checks:
-            if check.passed:
-                print(f"OK: {check.name} v{check.version}")
-            else:
-                print(f"FAILED: {check.name} v{check.version}: {check.error}")
-        print(f"Passed: {sum(check.passed for check in checks)}/{len(checks)}")
-        return 1 if any(not check.passed for check in checks) else 0
 
     if options.command == "compute":
         try:
@@ -133,6 +140,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 options.diagnostic,
                 workers=options.workers,
                 dry_run=options.dry_run,
+                overwrite=options.overwrite,
                 on_result=show_result,
             )
         except (FileNotFoundError, OSError, ValueError) as error:
@@ -147,6 +155,37 @@ def main(arguments: Sequence[str] | None = None) -> int:
         print(f"Failed: {counts['failed']}")
         return 1 if counts["failed"] else 0
 
+    if options.command == "clear-derived":
+        try:
+            collection_id, filters = parse_filters(options.filter or ())
+            simulations = find_simulations(
+                options.catalogue,
+                collection_id=collection_id,
+                filters=filters,
+            )
+            if not simulations:
+                print("No simulations matched the supplied filters.")
+                return 0
+            print(f"Diagnostic: {options.diagnostic}")
+            print(f"Selected simulations: {len(simulations)}")
+            if not options.no_prompt:
+                try:
+                    answer = input("Remove these derived results? [y/N] ").strip().lower()
+                except EOFError as error:
+                    raise ValueError("No confirmation input available. Re-run with --no-prompt.") from error
+                if answer not in {"y", "yes"}:
+                    print("Cancelled.")
+                    return 0
+            removed_paths = clear_time_series(
+                options.catalogue,
+                simulations,
+                options.diagnostic,
+            )
+        except (FileNotFoundError, OSError, ValueError) as error:
+            clear_parser.error(str(error))
+        print(f"Removed: {len(removed_paths)}")
+        return 0
+
     if options.command == "import-derived":
         return import_derived_command(
             options.lite_catalogue,
@@ -160,11 +199,16 @@ def main(arguments: Sequence[str] | None = None) -> int:
     adapter = DcafAdapter(simulation_root / "raw")
     if not adapter.is_simulation():
         parser.error(f"{simulation_root / 'raw'} is not a D-CAF simulation directory.")
-    diagnostic = DIAGNOSTICS[options.diagnostic]
+    diagnostic = TIME_SERIES_DIAGNOSTICS[options.diagnostic]
     report = compute_time_series(
-        simulation_root, diagnostic, adapter, read_stars, dry_run=options.dry_run
+        simulation_root,
+        diagnostic,
+        adapter,
+        read_stars,
+        dry_run=options.dry_run,
+        overwrite=options.overwrite,
     )
-    print(f"Diagnostic: {diagnostic.name} v{diagnostic.version}")
+    print(f"Time-series diagnostic: {diagnostic.name} v{diagnostic.version}")
     print(f"Simulation: {report.simulation_root}")
     print(f"Snapshots: {report.snapshot_count}")
     print(f"Time range: {report.first_time_myr:g} to {report.last_time_myr:g} Myr")

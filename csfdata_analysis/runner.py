@@ -12,7 +12,7 @@ from amuse.datamodel import Particles
 from amuse.units import units
 
 from csfdata.adapters.base import SimulationAdapter
-from csfdata_analysis.diagnostics import Diagnostic
+from csfdata_analysis.diagnostics import TimeSeriesDiagnostic
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class SimulationReport:
     dry_run: bool
 
 
-def time_series_path(simulation_root: Path, diagnostic: Diagnostic) -> Path:
+def time_series_path(simulation_root: Path, diagnostic: TimeSeriesDiagnostic) -> Path:
     """Return the standard output path for one diagnostic time series.
 
     Args:
@@ -58,10 +58,11 @@ def time_series_path(simulation_root: Path, diagnostic: Diagnostic) -> Path:
 
 def compute_time_series(
     simulation_root: Path,
-    diagnostic: Diagnostic,
+    diagnostic: TimeSeriesDiagnostic,
     adapter: SimulationAdapter,
     read_snapshot: Callable[[Path], Particles],
     dry_run: bool = False,
+    overwrite: bool = False,
     output_path: Path | None = None,
     identity: Mapping[str, str | int] | None = None,
 ) -> SimulationReport:
@@ -77,6 +78,8 @@ def compute_time_series(
             AMUSE particles.
         dry_run: Whether to validate the snapshot plan without reading AMUSE
             particles or creating output.
+        overwrite: Whether a completed output at the destination may be
+            atomically replaced after a successful calculation.
         output_path: Optional alternate final HDF5 destination. This allows a
             lite catalogue to store results while raw inputs remain elsewhere.
         identity: Optional immutable simulation identity written as HDF5
@@ -88,7 +91,7 @@ def compute_time_series(
 
     Raises:
         FileExistsError: If this diagnostic version already has a completed
-            time series for the simulation.
+            time series for the simulation and ``overwrite`` is ``False``.
         ValueError: If snapshots have no model time, a snapshot lies outside
             the adapter's raw directory, diagnostic choices are invalid, a
             diagnostic returns unexpected parameter names, or a returned value
@@ -104,8 +107,8 @@ def compute_time_series(
         raise ValueError("The adapter must be initialized with the simulation raw directory.")
 
     destination = output_path or time_series_path(simulation_root, diagnostic)
-    if destination.exists():
-        raise FileExistsError(f"Diagnostic output already exists: {destination}")
+    if destination.exists() and not overwrite:
+        raise FileExistsError(f"Time-series diagnostic output already exists: {destination}")
 
     snapshot_paths = adapter.snapshot_paths()
     if not snapshot_paths:
@@ -136,49 +139,58 @@ def compute_time_series(
             dry_run=True,
         )
 
-    if not diagnostic.choices:
-        raise ValueError(f"Diagnostic {diagnostic.name!r} must declare at least one choice.")
-    choices_by_name = {choice.name: choice for choice in diagnostic.choices}
-    if len(choices_by_name) != len(diagnostic.choices):
-        raise ValueError(f"Diagnostic {diagnostic.name!r} declares duplicate choice names.")
+    if not diagnostic.evaluation_choices:
+        raise ValueError(
+            f"Time-series diagnostic {diagnostic.name!r} must declare at least one choice."
+        )
+    choices_by_name = {
+        choice.name: choice for choice in diagnostic.evaluation_choices
+    }
+    if len(choices_by_name) != len(diagnostic.evaluation_choices):
+        raise ValueError(
+            f"Time-series diagnostic {diagnostic.name!r} declares duplicate choice names."
+        )
 
     canonical_units = {
         "Myr": units.Myr,
         "pc": units.pc,
         "Msun": units.MSun,
         "km/s": units.kms,
+        "1": units.none,
     }
     unsupported_units = sorted(
         {
             unit_name
-            for choice in diagnostic.choices
+            for choice in diagnostic.evaluation_choices
             for unit_name in choice.outputs.values()
             if unit_name not in canonical_units
         }
     )
     if unsupported_units:
         raise ValueError(
-            "Diagnostic declares unsupported canonical units: "
+            "Time-series diagnostic declares unsupported canonical units: "
             f"{', '.join(unsupported_units)}."
         )
 
     values = {
         choice.name: {name: [] for name in choice.outputs}
-        for choice in diagnostic.choices
+        for choice in diagnostic.evaluation_choices
     }
     expected_choice_names = set(choices_by_name)
     for snapshot_path in snapshot_paths:
         measurements = diagnostic.evaluate(read_snapshot(snapshot_path))
         if set(measurements) != expected_choice_names:
             raise ValueError(
-                f"Diagnostic {diagnostic.name!r} returned choices {sorted(measurements)}, "
+                f"Time-series diagnostic {diagnostic.name!r} returned choices "
+                f"{sorted(measurements)}, "
                 f"but declares {sorted(expected_choice_names)}."
             )
 
         for choice_name, choice in choices_by_name.items():
             if set(measurements[choice_name]) != set(choice.outputs):
                 raise ValueError(
-                    f"Diagnostic {diagnostic.name!r} choice {choice_name!r} returned "
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice_name!r} returned "
                     f"{sorted(measurements[choice_name])}, but declares "
                     f"{sorted(choice.outputs)}."
                 )
@@ -189,7 +201,8 @@ def compute_time_series(
                     )
                 except (AttributeError, TypeError, ValueError) as error:
                     raise ValueError(
-                        f"Diagnostic {diagnostic.name!r} choice {choice_name!r} returned a "
+                        f"Time-series diagnostic {diagnostic.name!r} choice "
+                        f"{choice_name!r} returned a "
                         f"non-scalar or incompatible value for {name!r}; expected {unit_name}."
                     ) from error
 
@@ -208,7 +221,7 @@ def compute_time_series(
             dtype=h5py.string_dtype(encoding="utf-8"),
         )
         choice_group = output_file.create_group("choices")
-        for choice in diagnostic.choices:
+        for choice in diagnostic.evaluation_choices:
             output_choice_group = choice_group.create_group(choice.name)
             for name, value in choice.metadata.items():
                 output_choice_group.attrs[name] = value
@@ -217,6 +230,8 @@ def compute_time_series(
                 dataset.attrs["unit"] = unit_name
         output_file.attrs["complete"] = True
 
+    # The rename replaces an old completed file only after every snapshot was
+    # evaluated and the replacement HDF5 file was fully written.
     staging_path.replace(destination)
     return SimulationReport(
         simulation_root=simulation_root,

@@ -4,7 +4,9 @@ import pytest
 from amuse.datamodel import Particles
 from amuse.units import units
 
-from csfdata_analysis.diagnostics.lagrangian_radii import measure_lagrangian_radii
+from csfdata_analysis.diagnostics.time_series.lagrangian_radii import (
+    measure_lagrangian_radii,
+)
 
 
 def test_measure_lagrangian_radii_records_origin_and_stellar_com() -> None:
@@ -18,5 +20,9 @@ def test_measure_lagrangian_radii_records_origin_and_stellar_com() -> None:
     results = measure_lagrangian_radii(particles)
 
     assert results["origin"]["r_l50"].value_in(units.pc) == pytest.approx(1.0)
+    assert results["origin"]["stellar_mass"].value_in(units.MSun) == pytest.approx(4.0)
+    assert results["origin"]["n_stars"].value_in(units.none) == 4
+    assert results["origin"]["n_l50"].value_in(units.none) == 2
     assert results["stellar_com"]["centre_x"].value_in(units.pc) == pytest.approx(1.5)
     assert results["stellar_com"]["r_l50"].value_in(units.pc) == pytest.approx(0.5)
+    assert results["stellar_com"]["n_l50"].value_in(units.none) == 2
