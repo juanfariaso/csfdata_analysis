@@ -65,6 +65,7 @@ def compute_time_series(
     overwrite: bool = False,
     output_path: Path | None = None,
     identity: Mapping[str, str | int] | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> SimulationReport:
     """Compute one diagnostic time series for one imported simulation.
 
@@ -84,6 +85,9 @@ def compute_time_series(
             lite catalogue to store results while raw inputs remain elsewhere.
         identity: Optional immutable simulation identity written as HDF5
             attributes for a later derived-data import.
+        progress: Optional callback invoked after each evaluated snapshot. It
+            receives the one-based completed count, total count, and source
+            snapshot ID.
 
     Returns:
         SimulationReport: Location, time range, and snapshot count of the
@@ -116,7 +120,7 @@ def compute_time_series(
 
     times_myr = []
     snapshot_ids = []
-    for snapshot_path in snapshot_paths:
+    for snapshot_number, snapshot_path in enumerate(snapshot_paths, start=1):
         try:
             snapshot_id = str(snapshot_path.relative_to(raw_root))
         except ValueError as error:
@@ -205,6 +209,8 @@ def compute_time_series(
                         f"{choice_name!r} returned a "
                         f"non-scalar or incompatible value for {name!r}; expected {unit_name}."
                     ) from error
+        if progress is not None:
+            progress(snapshot_number, len(snapshot_paths), snapshot_ids[snapshot_number - 1])
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging_path = destination.parent / f".{destination.name}.{uuid4().hex}.tmp"

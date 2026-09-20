@@ -6,8 +6,10 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
+from tqdm import tqdm
+
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import find_simulations
+from csfdata.catalogue import find_simulations, read_lite_source
 from csfdata_analysis.catalogue_runner import clear_time_series, compute_collection
 from csfdata_analysis.derived import import_derived
 from csfdata_analysis.diagnostics import TIME_SERIES_DIAGNOSTICS
@@ -123,26 +125,32 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 if answer not in {"y", "yes"}:
                     print("Cancelled.")
                     return 0
-            completed = 0
+            with tqdm(
+                total=len(simulations),
+                desc=f"Computing {options.diagnostic}",
+                unit="simulation",
+                dynamic_ncols=True,
+                leave=True,
+            ) as progress_bar:
+                def show_result(result) -> None:
+                    """Advance the parent-owned collection computation bar."""
+                    label = (
+                        f"{result.simulation.collection_id}/"
+                        f"{result.simulation.simulation_id}"
+                    )
+                    progress_bar.set_postfix_str(f"{result.status}: {label}")
+                    progress_bar.update(1)
+                    if result.error is not None:
+                        tqdm.write(f"FAILED: {label}: {result.error}")
 
-            def show_result(result) -> None:
-                """Print one parent-owned collection-analysis progress result."""
-                nonlocal completed
-                completed += 1
-                label = f"{result.simulation.collection_id}/{result.simulation.simulation_id}"
-                if result.error is None:
-                    print(f"[{completed:>4}/{len(simulations)}] {result.status}: {label}")
-                else:
-                    print(f"[{completed:>4}/{len(simulations)}] failed: {label}: {result.error}")
-
-            results = compute_collection(
-                simulations,
-                options.diagnostic,
-                workers=options.workers,
-                dry_run=options.dry_run,
-                overwrite=options.overwrite,
-                on_result=show_result,
-            )
+                results = compute_collection(
+                    simulations,
+                    options.diagnostic,
+                    workers=options.workers,
+                    dry_run=options.dry_run,
+                    overwrite=options.overwrite,
+                    on_result=show_result,
+                )
         except (FileNotFoundError, OSError, ValueError) as error:
             parser.error(str(error))
         counts = {status: sum(result.status == status for result in results) for status in (
@@ -176,11 +184,24 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 if answer not in {"y", "yes"}:
                     print("Cancelled.")
                     return 0
-            removed_paths = clear_time_series(
-                options.catalogue,
-                simulations,
-                options.diagnostic,
-            )
+            with tqdm(
+                total=len(simulations),
+                desc=f"Clearing {options.diagnostic}",
+                unit="simulation",
+                dynamic_ncols=True,
+                leave=True,
+            ) as progress_bar:
+                def update_progress(number: int, total: int, label: str) -> None:
+                    """Advance the derived-data clearing bar after one simulation."""
+                    progress_bar.set_postfix_str(label)
+                    progress_bar.update(1)
+
+                removed_paths = clear_time_series(
+                    options.catalogue,
+                    simulations,
+                    options.diagnostic,
+                    progress=update_progress,
+                )
         except (FileNotFoundError, OSError, ValueError) as error:
             clear_parser.error(str(error))
         print(f"Removed: {len(removed_paths)}")
@@ -200,14 +221,28 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if not adapter.is_simulation():
         parser.error(f"{simulation_root / 'raw'} is not a D-CAF simulation directory.")
     diagnostic = TIME_SERIES_DIAGNOSTICS[options.diagnostic]
-    report = compute_time_series(
-        simulation_root,
-        diagnostic,
-        adapter,
-        read_stars,
-        dry_run=options.dry_run,
-        overwrite=options.overwrite,
-    )
+    with tqdm(
+        total=len(adapter.snapshot_paths()),
+        desc=f"Computing {diagnostic.name}",
+        unit="snapshot",
+        dynamic_ncols=True,
+        leave=True,
+        disable=options.dry_run,
+    ) as progress_bar:
+        def update_progress(number: int, total: int, snapshot_id: str) -> None:
+            """Advance the single-simulation bar after one snapshot."""
+            progress_bar.set_postfix_str(snapshot_id)
+            progress_bar.update(1)
+
+        report = compute_time_series(
+            simulation_root,
+            diagnostic,
+            adapter,
+            read_stars,
+            dry_run=options.dry_run,
+            overwrite=options.overwrite,
+            progress=update_progress,
+        )
     print(f"Time-series diagnostic: {diagnostic.name} v{diagnostic.version}")
     print(f"Simulation: {report.simulation_root}")
     print(f"Snapshots: {report.snapshot_count}")
@@ -238,12 +273,28 @@ def import_derived_command(
         Zero after reporting copied, skipped, and unsafe results.
     """
     try:
-        report = import_derived(
-            lite_catalogue,
-            destination_catalogue,
-            overwrite=overwrite,
-            dry_run=dry_run,
-        )
+        source = read_lite_source(lite_catalogue)
+        simulations_root = lite_catalogue / "collections" / source.collection_id / "simulations"
+        total = sum(path.is_dir() for path in simulations_root.iterdir())
+        with tqdm(
+            total=total,
+            desc="Importing derived data",
+            unit="simulation",
+            dynamic_ncols=True,
+            leave=True,
+        ) as progress_bar:
+            def update_progress(number: int, total: int, label: str) -> None:
+                """Advance the derived-data import bar after one simulation."""
+                progress_bar.set_postfix_str(label)
+                progress_bar.update(1)
+
+            report = import_derived(
+                lite_catalogue,
+                destination_catalogue,
+                overwrite=overwrite,
+                dry_run=dry_run,
+                progress=update_progress,
+            )
     except (FileNotFoundError, OSError, ValueError) as error:
         if parser is None:
             raise

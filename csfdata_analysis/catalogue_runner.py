@@ -191,6 +191,7 @@ def clear_time_series(
     lite_catalogue: Path,
     simulations: Sequence[CatalogueSimulation],
     diagnostic_name: str,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> tuple[Path, ...]:
     """Remove one selected time-series diagnostic from a lite catalogue.
 
@@ -199,6 +200,9 @@ def clear_time_series(
             selected derived data.
         simulations: Indexed simulations whose selected diagnostic is removed.
         diagnostic_name: Registered time-series diagnostic to remove.
+        progress: Optional callback invoked after each selected simulation is
+            inspected. It receives the completed count, total count, and
+            ``collection_id/simulation_id`` label.
 
     Returns:
         Tuple[Path, ...]: Exact ``series.h5`` files removed from the lite
@@ -221,7 +225,7 @@ def clear_time_series(
         raise ValueError(f"Unknown time-series diagnostic: {diagnostic_name}")
 
     removed_paths = []
-    for simulation in simulations:
+    for simulation_number, simulation in enumerate(simulations, start=1):
         # Selection comes from an index, so verify its path before any removal.
         try:
             simulation.path.resolve().relative_to(lite_root)
@@ -233,4 +237,10 @@ def clear_time_series(
         if path.is_file():
             path.unlink()
             removed_paths.append(path)
+        if progress is not None:
+            progress(
+                simulation_number,
+                len(simulations),
+                f"{simulation.collection_id}/{simulation.simulation_id}",
+            )
     return tuple(removed_paths)

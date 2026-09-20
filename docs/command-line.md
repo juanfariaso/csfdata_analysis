@@ -42,8 +42,9 @@ csfdata analysis compute lagrangian_radii \
 ```
 
 `--dry-run` checks the snapshot plan but does not read AMUSE particles or
-write analysis files. The parent process prints one final result per
-simulation, followed by complete, ready, skipped, and failed totals.
+write analysis files. The parent process keeps one simulation progress bar,
+prints failures below it, and finishes with complete, ready, skipped, and
+failed totals.
 
 To replace an earlier result with the same diagnostic version, use
 `--overwrite`. Every replacement is first written to a temporary HDF5 file and

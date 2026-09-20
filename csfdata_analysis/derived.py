@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
@@ -33,6 +34,7 @@ def import_derived(
     destination_catalogue: Path,
     overwrite: bool = False,
     dry_run: bool = False,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> DerivedImportReport:
     """Import completed HDF5 diagnostics from one lite catalogue.
 
@@ -41,6 +43,9 @@ def import_derived(
         destination_catalogue: Full catalogue that owns the matching collection.
         overwrite: Whether completed destination results may be replaced.
         dry_run: Whether to report actions without copying files.
+        progress: Optional callback invoked after each lite simulation is
+            inspected. It receives the completed count, total count, and
+            ``collection_id/simulation_id`` label.
 
     Returns:
         Copied and skipped paths plus every result that could not be imported.
@@ -71,19 +76,28 @@ def import_derived(
     skipped_paths: list[Path] = []
     issues: list[str] = []
     lite_simulations = lite_collection / "simulations"
-    for lite_simulation in sorted(path for path in lite_simulations.iterdir() if path.is_dir()):
+    simulations = tuple(
+        sorted(path for path in lite_simulations.iterdir() if path.is_dir())
+    )
+    for simulation_number, lite_simulation in enumerate(simulations, start=1):
         destination_simulation = destination_collection / "simulations" / lite_simulation.name
         if not destination_simulation.is_dir():
             issues.append(f"Missing destination simulation: {source.collection_id}/{lite_simulation.name}")
+            if progress is not None:
+                progress(simulation_number, len(simulations), f"{source.collection_id}/{lite_simulation.name}")
             continue
         if read_simulation_metadata(lite_simulation / "metadata.yaml") != read_simulation_metadata(
             destination_simulation / "metadata.yaml"
         ):
             issues.append(f"Simulation metadata differs: {source.collection_id}/{lite_simulation.name}")
+            if progress is not None:
+                progress(simulation_number, len(simulations), f"{source.collection_id}/{lite_simulation.name}")
             continue
         configuration_sha256 = file_sha256(lite_simulation / "config.yaml")
         if configuration_sha256 != file_sha256(destination_simulation / "config.yaml"):
             issues.append(f"Simulation configuration differs: {source.collection_id}/{lite_simulation.name}")
+            if progress is not None:
+                progress(simulation_number, len(simulations), f"{source.collection_id}/{lite_simulation.name}")
             continue
         result_paths = tuple(lite_simulation.glob("derived/diagnostics/*/v*/series.h5"))
         if not result_paths:
@@ -109,6 +123,8 @@ def import_derived(
                 shutil.copy2(result_path, staging_path)
                 staging_path.replace(destination_path)
             copied_paths.append(destination_path)
+        if progress is not None:
+            progress(simulation_number, len(simulations), f"{source.collection_id}/{lite_simulation.name}")
     return DerivedImportReport(tuple(copied_paths), tuple(skipped_paths), tuple(issues))
 
 
