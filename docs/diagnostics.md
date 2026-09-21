@@ -2,11 +2,12 @@
 
 ## Published Catalogue Definitions
 
-After at least one simulation completes a collection-wide diagnostic run,
-`csfdata_analysis` updates the collection's `diagnostics.yaml`. This small
-file is the interface to core `csfdata`: it declares each available diagnostic
-version, its result path, fields, units, and the registered scientific choices
-that affect it. It never duplicates the numerical HDF5 or YAML results.
+Before a diagnostic calculation writes results, `csfdata_analysis` ensures the
+collection's `diagnostics.yaml` contains its definition, requirements, and
+registered scientific choices. This small file is the interface to core
+`csfdata`: it declares each available diagnostic version, its result path,
+fields, units, and choices. It never duplicates the numerical HDF5 or YAML
+results.
 
 For example, the `lagrangian_radii` diagnostic publishes `center` as its
 choice, with `stellar_com` as the default. Its concrete HDF5 result groups,
@@ -36,7 +37,10 @@ diagnostics/
 versioned HDF5 files. `scalar/` is for scalar diagnostics calculated once per
 simulation and stored in `derived/scalar_diagnostics.yaml`. Each module declares any
 completed diagnostic versions it requires, so dependency chains are visible in
-the published collection definition.
+the published collection definition. Every concrete module must also declare a
+non-empty `DIAGNOSTICS` tuple containing its supported versions. The analysis
+package loads only these explicit tuples and stops with an error if a module is
+missing one or contains an object of the wrong diagnostic type.
 
 ## Definition
 

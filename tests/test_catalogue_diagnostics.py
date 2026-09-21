@@ -1,24 +1,24 @@
-"""Tests for publishing analysis diagnostic definitions to core CSFData."""
+"""Tests for automatic analysis diagnostic registration in core CSFData."""
 
 from pathlib import Path
 
 from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.diagnostics import read_collection_diagnostics
 from csfdata_analysis.catalogue_runner import compute_collection
-from csfdata_analysis.diagnostics import publish_collection_diagnostics
+from csfdata_analysis.diagnostics import ensure_collection_diagnostics
 from csfdata_analysis.diagnostics.time_series.lagrangian_radii import (
     LAGRANGIAN_RADII_V1,
 )
 
 
-def test_publish_collection_diagnostics_writes_lagrangian_radii_definition(
+def test_ensure_collection_diagnostics_writes_lagrangian_radii_definition(
     tmp_path: Path,
 ) -> None:
-    """Publish choices and the Lagrangian-radii series schema to one collection."""
+    """Automatic registration writes choices and the Lagrangian-radii schema."""
     collection_root = tmp_path / "example-collection"
     collection_root.mkdir()
 
-    path = publish_collection_diagnostics(collection_root, (LAGRANGIAN_RADII_V1,))
+    path = ensure_collection_diagnostics(collection_root, (LAGRANGIAN_RADII_V1,))
 
     published = read_collection_diagnostics(path)
     assert path == collection_root / "diagnostics.yaml"
@@ -36,7 +36,7 @@ def test_publish_collection_diagnostics_writes_lagrangian_radii_definition(
     assert next(field for field in diagnostic.fields if field.name == "r_l50").unit == "pc"
 
 
-def test_collection_runner_publishes_an_existing_diagnostic(tmp_path: Path) -> None:
+def test_collection_runner_registers_an_existing_diagnostic(tmp_path: Path) -> None:
     """A skipped complete result still makes its collection definition available."""
     collection_root = tmp_path / "example-collection"
     simulation_root = collection_root / "simulations" / "0001"

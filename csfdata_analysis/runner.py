@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from itertools import product
 from pathlib import Path
 from uuid import uuid4
 
@@ -12,7 +13,22 @@ from amuse.datamodel import Particles
 from amuse.units import units
 
 from csfdata.adapters.base import SimulationAdapter
-from csfdata_analysis.diagnostics import TimeSeriesDiagnostic
+from csfdata.catalogue.diagnostics import (
+    ScalarDiagnosticResult,
+    ScalarValue,
+    SimulationScalarDiagnostics,
+    read_collection_diagnostics,
+    read_simulation_scalar_diagnostics,
+    simulation_scalar_diagnostics_path,
+    write_simulation_scalar_diagnostics,
+)
+from csfdata_analysis.diagnostics import (
+    ScalarDiagnostic,
+    TimeSeriesDiagnostic,
+    diagnostic_directories,
+    ensure_collection_diagnostics,
+    load_diagnostics,
+)
 
 
 @dataclass(frozen=True)
@@ -34,6 +50,23 @@ class SimulationReport:
     first_time_myr: float
     last_time_myr: float
     dry_run: bool
+
+
+@dataclass(frozen=True)
+class ScalarReport:
+    """Describe one scalar-diagnostic calculation for one simulation.
+
+    Args:
+        simulation_root: Imported simulation directory that was analysed.
+        output_path: Shared scalar-diagnostics YAML path.
+        results: Stored results for every declared choice combination.
+        written_count: Number of new or replaced results written in this call.
+    """
+
+    simulation_root: Path
+    output_path: Path
+    results: tuple[ScalarDiagnosticResult, ...]
+    written_count: int
 
 
 def time_series_path(simulation_root: Path, diagnostic: TimeSeriesDiagnostic) -> Path:
@@ -246,4 +279,159 @@ def compute_time_series(
         first_time_myr=times_myr[0],
         last_time_myr=times_myr[-1],
         dry_run=False,
+    )
+
+
+def compute_scalar_diagnostic(
+    simulation_root: Path,
+    collection_root: Path,
+    diagnostic: ScalarDiagnostic,
+    overwrite: bool = False,
+    available_diagnostics: Mapping[
+        tuple[str, str], TimeSeriesDiagnostic | ScalarDiagnostic
+    ] | None = None,
+) -> ScalarReport:
+    """Compute every missing choice combination of one scalar diagnostic.
+
+    Args:
+        simulation_root: Imported simulation directory where scalar results
+            are stored.
+        collection_root: Parent collection directory containing
+            ``diagnostics.yaml``.
+        diagnostic: Versioned scalar diagnostic to evaluate.
+        overwrite: Whether existing results for this diagnostic version and
+            choice combination may be replaced.
+        available_diagnostics: Optional built-in and trusted local diagnostic
+            registry used to resolve requirements. ``None`` loads directories
+            configured in the collection's local ``analysis.yaml``.
+
+    Returns:
+        Report containing stored results for the requested diagnostic version
+        and its declared choice combinations, including already present values.
+
+    Raises:
+        FileNotFoundError: If a declared required diagnostic product is absent.
+        ValueError: If collection definitions conflict, a requirement is not
+            published, the evaluator returns the wrong fields, or output
+            values have unsupported types.
+
+    Notes:
+        This operation owns scalar-result storage but not the scientific
+        calculation. It registers the declared collection schema before
+        computing so the core writer can validate every generated result.
+    """
+    registry = available_diagnostics
+    if registry is None:
+        configuration_root = collection_root
+        if collection_root.parent.name == "collections":
+            # Collection metadata lives below the catalogue root, while local
+            # diagnostic directories are configured once for that catalogue.
+            configuration_root = collection_root.parent.parent
+        registry = load_diagnostics(diagnostic_directories(configuration_root))
+    ensure_collection_diagnostics(collection_root, (diagnostic,), registry)
+    collection_diagnostics = read_collection_diagnostics(
+        collection_root / "diagnostics.yaml"
+    )
+
+    # Confirm declared prerequisite files exist before evaluating any choices.
+    for requirement in diagnostic.requires:
+        definition = next(
+            (
+                candidate
+                for candidate in collection_diagnostics.diagnostics
+                if candidate.name == requirement.name
+                and candidate.version == requirement.version
+            ),
+            None,
+        )
+        if definition is None:
+            raise ValueError(
+                "Scalar diagnostic requirement is not published: "
+                f"{requirement.name} {requirement.version}."
+            )
+        required_path = simulation_root / definition.relative_path
+        if not required_path.is_file():
+            raise FileNotFoundError(
+                "Scalar diagnostic requirement is missing: "
+                f"{requirement.name} {requirement.version} at {required_path}."
+            )
+
+    output_path = simulation_scalar_diagnostics_path(simulation_root)
+    existing = (
+        read_simulation_scalar_diagnostics(output_path, collection_diagnostics)
+        if output_path.is_file()
+        else SimulationScalarDiagnostics(())
+    )
+    existing_by_choices = {
+        result.choices: result
+        for result in existing.results
+        if result.diagnostic_name == diagnostic.name
+        and result.diagnostic_version == f"v{diagnostic.version}"
+    }
+    choices_by_name = {choice.name: choice for choice in collection_diagnostics.choices}
+    choice_values = [
+        choices_by_name[choice_name].values for choice_name in diagnostic.choice_names
+    ]
+    choice_combinations = tuple(product(*choice_values)) if choice_values else ((),)
+    new_results = []
+
+    for combination in choice_combinations:
+        selected_choices = tuple(zip(diagnostic.choice_names, combination, strict=True))
+        if selected_choices in existing_by_choices and not overwrite:
+            continue
+        calculated_values = diagnostic.evaluate(simulation_root, dict(selected_choices))
+        declared_fields = {field.name: field for field in diagnostic.fields}
+        if set(calculated_values) != set(declared_fields):
+            raise ValueError(
+                f"Scalar diagnostic {diagnostic.name!r} returned "
+                f"{sorted(calculated_values)}, but declares {sorted(declared_fields)}."
+            )
+        for name, value in calculated_values.items():
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError(
+                    f"Scalar diagnostic {diagnostic.name!r} returned a non-numeric "
+                    f"value for {name!r}."
+                )
+        new_results.append(
+            ScalarDiagnosticResult(
+                diagnostic.name,
+                f"v{diagnostic.version}",
+                selected_choices,
+                tuple(
+                    ScalarValue(field.name, calculated_values[field.name], field.unit)
+                    for field in diagnostic.fields
+                ),
+            )
+        )
+
+    if new_results:
+        # Retain unrelated diagnostics and replace only explicitly requested
+        # choice combinations after every new value has been validated.
+        new_keys = {result.choices for result in new_results}
+        retained_results = tuple(
+            result
+            for result in existing.results
+            if not (
+                result.diagnostic_name == diagnostic.name
+                and result.diagnostic_version == f"v{diagnostic.version}"
+                and result.choices in new_keys
+            )
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        write_simulation_scalar_diagnostics(
+            SimulationScalarDiagnostics(retained_results + tuple(new_results)),
+            collection_diagnostics,
+            output_path,
+        )
+        existing_by_choices.update({result.choices: result for result in new_results})
+
+    results = tuple(
+        existing_by_choices[tuple(zip(diagnostic.choice_names, combination, strict=True))]
+        for combination in choice_combinations
+    )
+    return ScalarReport(
+        simulation_root,
+        output_path,
+        results,
+        len(new_results),
     )

@@ -4,15 +4,28 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Sequence
+from inspect import getdoc
 from pathlib import Path
 
+import yaml
 from tqdm import tqdm
 
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import find_simulations, read_lite_source
-from csfdata_analysis.catalogue_runner import clear_time_series, compute_collection
+from csfdata_analysis.catalogue_runner import (
+    clear_time_series,
+    compute_collection,
+    compute_scalar_collection,
+)
 from csfdata_analysis.derived import import_derived
-from csfdata_analysis.diagnostics import TIME_SERIES_DIAGNOSTICS
+from csfdata_analysis.diagnostics import (
+    DIAGNOSTICS,
+    ScalarDiagnostic,
+    TIME_SERIES_DIAGNOSTICS,
+    TimeSeriesDiagnostic,
+    diagnostic_directories,
+    load_diagnostics,
+)
 from csfdata_analysis.readers import read_stars
 from csfdata_analysis.runner import compute_time_series
 
@@ -29,12 +42,20 @@ def main(arguments: Sequence[str] | None = None) -> int:
     """
     parser = argparse.ArgumentParser(prog="csfdata-analysis")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    subcommands.add_parser("diagnostics", help="List available diagnostic defaults.")
+    diagnostics_parser = subcommands.add_parser(
+        "diagnostics",
+        help="List built-in and configured local diagnostics.",
+    )
+    diagnostics_parser.add_argument(
+        "--catalogue",
+        type=Path,
+        help="Optional catalogue root whose analysis.yaml adds local diagnostics.",
+    )
     compute_parser = subcommands.add_parser(
         "compute",
         help="Compute one diagnostic for indexed catalogue simulations.",
     )
-    compute_parser.add_argument("diagnostic", choices=sorted(TIME_SERIES_DIAGNOSTICS))
+    compute_parser.add_argument("diagnostic", help="Built-in or local diagnostic name.")
     compute_parser.add_argument(
         "--catalogue",
         type=Path,
@@ -93,12 +114,50 @@ def main(arguments: Sequence[str] | None = None) -> int:
     options = parser.parse_args(arguments)
 
     if options.command == "diagnostics":
-        for name, diagnostic in TIME_SERIES_DIAGNOSTICS.items():
-            print(f"{name} v{diagnostic.version}")
+        try:
+            directories = diagnostic_directories(options.catalogue) if options.catalogue else ()
+            registered = load_diagnostics(directories) if directories else DIAGNOSTICS
+        except (FileNotFoundError, OSError, ValueError, yaml.YAMLError) as error:
+            diagnostics_parser.error(str(error))
+        time_series = {}
+        scalar = {}
+        for diagnostic in registered.values():
+            selected = time_series if isinstance(diagnostic, TimeSeriesDiagnostic) else scalar
+            existing = selected.get(diagnostic.name)
+            if existing is None or diagnostic.version > existing.version:
+                selected[diagnostic.name] = diagnostic
+        for title, diagnostics in (
+            ("Time-series diagnostics", time_series),
+            ("Scalar diagnostics", scalar),
+        ):
+            print(f"{title}:")
+            if not diagnostics:
+                print("  None")
+                continue
+            for name, diagnostic in sorted(diagnostics.items()):
+                docstring = getdoc(diagnostic.evaluate) or "No evaluator documentation."
+                print(f"  {name} v{diagnostic.version}: {docstring.splitlines()[0]}")
         return 0
 
     if options.command == "compute":
         try:
+            local_directories = diagnostic_directories(options.catalogue)
+            registered = load_diagnostics(local_directories)
+            matching_diagnostics = tuple(
+                diagnostic
+                for diagnostic in registered.values()
+                if diagnostic.name == options.diagnostic
+            )
+            if not matching_diagnostics:
+                raise ValueError(f"Unknown diagnostic: {options.diagnostic}")
+            diagnostic_kinds = {type(diagnostic) for diagnostic in matching_diagnostics}
+            if len(diagnostic_kinds) != 1:
+                raise ValueError(
+                    f"Diagnostic name is ambiguous across types: {options.diagnostic}"
+                )
+            diagnostic = max(matching_diagnostics, key=lambda item: item.version)
+            if isinstance(diagnostic, ScalarDiagnostic) and options.dry_run:
+                raise ValueError("Scalar diagnostics do not support --dry-run yet.")
             collection_id, filters = parse_filters(options.filter or ())
             simulations = find_simulations(
                 options.catalogue,
@@ -143,15 +202,26 @@ def main(arguments: Sequence[str] | None = None) -> int:
                     if result.error is not None:
                         tqdm.write(f"FAILED: {label}: {result.error}")
 
-                results = compute_collection(
-                    simulations,
-                    options.diagnostic,
-                    workers=options.workers,
-                    dry_run=options.dry_run,
-                    overwrite=options.overwrite,
-                    on_result=show_result,
-                )
-        except (FileNotFoundError, OSError, ValueError) as error:
+                if isinstance(diagnostic, ScalarDiagnostic):
+                    results = compute_scalar_collection(
+                        simulations,
+                        options.diagnostic,
+                        workers=options.workers,
+                        overwrite=options.overwrite,
+                        on_result=show_result,
+                        diagnostic_directories=local_directories,
+                    )
+                else:
+                    results = compute_collection(
+                        simulations,
+                        options.diagnostic,
+                        workers=options.workers,
+                        dry_run=options.dry_run,
+                        overwrite=options.overwrite,
+                        on_result=show_result,
+                        diagnostic_directories=local_directories,
+                    )
+        except (FileNotFoundError, OSError, ValueError, yaml.YAMLError) as error:
             parser.error(str(error))
         counts = {status: sum(result.status == status for result in results) for status in (
             "complete", "ready", "skipped", "failed"

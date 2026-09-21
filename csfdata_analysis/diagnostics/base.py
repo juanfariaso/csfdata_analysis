@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from amuse.datamodel import Particles
 from amuse.units.quantities import Quantity
@@ -21,6 +21,10 @@ from csfdata.catalogue.diagnostics import (
 
 SnapshotEvaluator = Callable[[Particles], Mapping[str, Mapping[str, Quantity]]]
 """Type of a function that evaluates all choices for one AMUSE particle set."""
+
+
+ScalarEvaluator = Callable[[Path, Mapping[str, str]], Mapping[str, float | int]]
+"""Type of a function that evaluates one scalar diagnostic choice combination."""
 
 
 @dataclass(frozen=True)
@@ -137,6 +141,9 @@ class ScalarDiagnostic:
         name: Stable diagnostic identifier.
         version: Scientific and output-schema version.
         description: Human-readable scientific purpose of the diagnostic.
+        evaluate: Function that receives one imported simulation directory and
+            concrete choice values, then returns the declared scalar fields in
+            their canonical units.
         fields: Scalar output fields written into
             ``derived/scalar_diagnostics.yaml``.
         choice_names: Global scientific choices that affect the scalar result.
@@ -144,15 +151,15 @@ class ScalarDiagnostic:
             before this scalar diagnostic can be calculated.
 
     Notes:
-        This template deliberately contains no scientific calculation yet. A
-        concrete module later pairs it with a calculation that reads the
-        declared requirements and writes its values through the core summary
-        API.
+        The generic scalar runner verifies requirements, enumerates concrete
+        choice combinations, and writes results. The evaluator owns only its
+        diagnostic-specific reading and calculation.
     """
 
     name: str
     version: int
     description: str
+    evaluate: ScalarEvaluator
     fields: tuple[DiagnosticField, ...]
     choice_names: tuple[str, ...] = ()
     requires: tuple[DiagnosticRequirement, ...] = ()

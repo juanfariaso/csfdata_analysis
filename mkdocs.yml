@@ -40,14 +40,16 @@ plugins:
 nav:
   - Home: index.md
   - Diagnostics: diagnostics.md
-  - Adding A Diagnostic: adding-a-diagnostic.md
   - Command Line: command-line.md
   - Data Interfaces: data.md
   - Readers: readers.md
   - Runner: runner.md
   - Time-Series Format: time-series-format.md
   - Tutorials:
+      - Running Local Diagnostics: tutorials/local-diagnostics.md
       - Parameters And Versions: tutorials/parameters-and-versions.md
+  - Development:
+      - Adding Diagnostics: adding-a-diagnostic.md
 
 extra_css:
   - stylesheets/api-reference.css

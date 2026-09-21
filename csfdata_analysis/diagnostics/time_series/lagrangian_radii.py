@@ -163,3 +163,7 @@ LAGRANGIAN_RADII_V1 = TimeSeriesDiagnostic(
     choice_names=("center",),
 )
 """Lagrangian-radii diagnostic using the standard version-1 choices."""
+
+
+DIAGNOSTICS = (LAGRANGIAN_RADII_V1,)
+"""Every supported Lagrangian-radii diagnostic version in this module."""

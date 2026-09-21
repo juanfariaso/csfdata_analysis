@@ -1,6 +1,20 @@
 # Command Line
 
-## Catalogue Time-Series Diagnostic
+## List Diagnostics
+
+List built-in diagnostic functions and their evaluator summaries:
+
+```bash
+csfdata analysis diagnostics
+```
+
+Include trusted local diagnostics configured by a catalogue's `analysis.yaml`:
+
+```bash
+csfdata analysis diagnostics --catalogue /path/to/lite-catalogue
+```
+
+## Catalogue Diagnostics
 
 Run a standard diagnostic for every indexed simulation selected by filters:
 
@@ -41,10 +55,44 @@ csfdata analysis compute lagrangian_radii \
   --dry-run
 ```
 
-`--dry-run` checks the snapshot plan but does not read AMUSE particles or
-write analysis files. The parent process keeps one simulation progress bar,
-prints failures below it, and finishes with complete, ready, skipped, and
-failed totals.
+`--dry-run` checks a time-series snapshot plan but does not read AMUSE
+particles or write analysis files. Scalar diagnostics do not yet support a dry
+run. The parent process keeps one simulation progress bar, prints failures
+below it, and finishes with complete, ready, skipped, and failed totals.
+
+Scalar diagnostics use the same command and selection options. They read
+their declared completed diagnostic requirements, write all missing
+choice-specific values to `derived/scalar_diagnostics.yaml`, and skip existing
+values by default:
+
+```bash
+csfdata analysis compute expansion_rate \
+  --catalogue /path/to/catalogue \
+  --filter collection=dcaf-grid-v1 \
+  --workers 12
+```
+
+## Local Diagnostics
+
+The same command runs trusted local diagnostics configured by an `analysis.yaml`
+file at the catalogue root:
+
+```yaml
+schema_version: 1
+diagnostic_directories:
+  - /path/to/project/csfdata_diagnostics
+```
+
+```bash
+csfdata analysis compute maximum_radius \
+  --catalogue /path/to/lite-catalogue \
+  --workers 4
+```
+
+Each Python file in the configured directory must declare `DIAGNOSTICS = (...)`.
+The selected diagnostic is registered and stored in the standard time-series or
+scalar layout. See [Running Local Diagnostics](tutorials/local-diagnostics.md)
+for the module format and workflow.
 
 To replace an earlier result with the same diagnostic version, use
 `--overwrite`. Every replacement is first written to a temporary HDF5 file and

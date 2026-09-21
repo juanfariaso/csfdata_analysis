@@ -5,16 +5,26 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
+from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import CatalogueSimulation, file_sha256, is_lite_catalogue
 from csfdata_analysis.data.loader import source_simulation
 from csfdata_analysis.diagnostics import (
     TIME_SERIES_DIAGNOSTICS,
-    publish_collection_diagnostics,
+    ensure_collection_diagnostics,
+    load_diagnostics,
+    scalar_diagnostic,
+    time_series_diagnostic,
 )
 from csfdata_analysis.readers import read_stars
-from csfdata_analysis.runner import SimulationReport, compute_time_series, time_series_path
+from csfdata_analysis.runner import (
+    ScalarReport,
+    SimulationReport,
+    compute_scalar_diagnostic,
+    compute_time_series,
+    time_series_path,
+)
 
 
 @dataclass(frozen=True)
@@ -24,17 +34,17 @@ class SimulationResult:
     Args:
         simulation: Indexed catalogue simulation selected for analysis.
         status: ``"complete"``, ``"ready"``, ``"skipped"``, or ``"failed"``.
-        report: Per-simulation time-series report for complete or ready work.
+        report: Per-simulation time-series or scalar report for completed work.
         error: Human-readable failure reason, if the status is ``"failed"``.
 
     Notes:
-        ``"ready"`` is used by a dry run. ``"skipped"`` means a completed
-        time series already exists and was deliberately left unchanged.
+        ``"ready"`` is used by a time-series dry run. ``"skipped"`` means
+        the requested completed diagnostic result was left unchanged.
     """
 
     simulation: CatalogueSimulation
     status: str
-    report: SimulationReport | None = None
+    report: SimulationReport | ScalarReport | None = None
     error: str | None = None
 
 
@@ -43,6 +53,7 @@ def compute_catalogue_simulation(
     diagnostic_name: str,
     dry_run: bool = False,
     overwrite: bool = False,
+    diagnostic_directories: tuple[Path | str, ...] = (),
 ) -> SimulationResult:
     """Compute one registered diagnostic for one catalogue simulation.
 
@@ -52,6 +63,8 @@ def compute_catalogue_simulation(
             ``"lagrangian_radii"``.
         dry_run: Whether to inspect the snapshot plan without writing output.
         overwrite: Whether a completed selected diagnostic may be recomputed.
+        diagnostic_directories: Trusted local directories containing additional
+            diagnostic modules. Each worker loads these directories itself.
 
     Returns:
         A result describing completed, ready, skipped, or failed work.
@@ -61,8 +74,9 @@ def compute_catalogue_simulation(
         worker. It currently supports catalogue simulations imported with the
         D-CAF adapter.
     """
-    diagnostic = TIME_SERIES_DIAGNOSTICS.get(diagnostic_name)
-    if diagnostic is None:
+    try:
+        diagnostic = time_series_diagnostic(diagnostic_name, diagnostic_directories)
+    except ValueError:
         return SimulationResult(
             simulation,
             "failed",
@@ -109,6 +123,7 @@ def compute_collection(
     dry_run: bool = False,
     overwrite: bool = False,
     on_result: Callable[[SimulationResult], None] | None = None,
+    diagnostic_directories: tuple[Path | str, ...] = (),
 ) -> tuple[SimulationResult, ...]:
     """Compute one diagnostic for every selected catalogue simulation.
 
@@ -121,6 +136,8 @@ def compute_collection(
         overwrite: Whether completed selected diagnostics may be recomputed.
         on_result: Optional parent-process callback called once for each
             completed, skipped, ready, or failed simulation result.
+        diagnostic_directories: Trusted local directories containing additional
+            diagnostic modules.
 
     Returns:
         Results in the same order as ``simulations``.
@@ -135,11 +152,34 @@ def compute_collection(
     """
     if workers < 1:
         raise ValueError("workers must be at least 1.")
+    try:
+        diagnostic = time_series_diagnostic(diagnostic_name, diagnostic_directories)
+    except ValueError:
+        diagnostic = None
+    if not dry_run and diagnostic is not None:
+        # Register the complete scientific contract before workers write data,
+        # so every completed result can be validated against this collection.
+        collection_roots = {
+            simulation.path.parent.parent
+            for simulation in simulations
+            if simulation.importer == "dcaf"
+        }
+        available_diagnostics = load_diagnostics(diagnostic_directories)
+        for collection_root in collection_roots:
+            ensure_collection_diagnostics(
+                collection_root,
+                (diagnostic,),
+                available_diagnostics,
+            )
     if workers == 1:
         results = []
         for simulation in simulations:
             result = compute_catalogue_simulation(
-                simulation, diagnostic_name, dry_run, overwrite
+                simulation,
+                diagnostic_name,
+                dry_run,
+                overwrite,
+                diagnostic_directories,
             )
             results.append(result)
             if on_result is not None:
@@ -155,6 +195,7 @@ def compute_collection(
                     diagnostic_name,
                     dry_run,
                     overwrite,
+                    diagnostic_directories,
                 ): simulation
                 for simulation in simulations
             }
@@ -173,18 +214,128 @@ def compute_collection(
                     on_result(result)
         result_tuple = tuple(results_by_simulation[simulation] for simulation in simulations)
 
-    diagnostic = TIME_SERIES_DIAGNOSTICS.get(diagnostic_name)
-    if not dry_run and diagnostic is not None:
-        # Publish only collections with a completed file or an already complete
-        # file; a dry run or completely failed selection must not advertise data.
-        collection_roots = {
-            result.simulation.path.parent.parent
-            for result in result_tuple
-            if result.status in {"complete", "skipped"}
-        }
-        for collection_root in collection_roots:
-            publish_collection_diagnostics(collection_root, (diagnostic,))
     return result_tuple
+
+
+def compute_scalar_catalogue_simulation(
+    simulation: CatalogueSimulation,
+    diagnostic_name: str,
+    overwrite: bool = False,
+    diagnostic_directories: tuple[Path | str, ...] = (),
+) -> SimulationResult:
+    """Compute one registered scalar diagnostic for one catalogue simulation.
+
+    Args:
+        simulation: Indexed simulation selected by ``csfdata``.
+        diagnostic_name: Registered scalar diagnostic name.
+        overwrite: Whether existing choice-specific results may be replaced.
+        diagnostic_directories: Trusted local directories containing additional
+            diagnostic modules. Each worker loads these directories itself.
+
+    Returns:
+        A result describing completed, skipped, or failed work.
+    """
+    try:
+        diagnostic = scalar_diagnostic(diagnostic_name, diagnostic_directories)
+        registry = load_diagnostics(diagnostic_directories)
+        report = compute_scalar_diagnostic(
+            simulation.path,
+            simulation.path.parent.parent,
+            diagnostic,
+            overwrite,
+            registry,
+        )
+    except Exception as error:
+        return SimulationResult(
+            simulation,
+            "failed",
+            error=f"{type(error).__name__}: {error}",
+        )
+    return SimulationResult(
+        simulation,
+        "complete" if report.written_count else "skipped",
+        report=report,
+    )
+
+
+def compute_scalar_collection(
+    simulations: Sequence[CatalogueSimulation],
+    diagnostic_name: str,
+    workers: int = 1,
+    overwrite: bool = False,
+    on_result: Callable[[SimulationResult], None] | None = None,
+    diagnostic_directories: tuple[Path | str, ...] = (),
+) -> tuple[SimulationResult, ...]:
+    """Compute one scalar diagnostic for every selected catalogue simulation.
+
+    Args:
+        simulations: Indexed catalogue simulations to analyse.
+        diagnostic_name: Registered scalar diagnostic name to compute.
+        workers: Maximum number of simulations to analyse concurrently.
+        overwrite: Whether existing choice-specific results may be recomputed.
+        on_result: Optional parent-process callback called once for each
+            completed, skipped, or failed simulation result.
+        diagnostic_directories: Trusted local directories containing additional
+            diagnostic modules.
+
+    Returns:
+        Results in the same order as ``simulations``.
+
+    Raises:
+        ValueError: If ``workers`` is less than one or the diagnostic name is
+            not registered as a scalar diagnostic.
+    """
+    if workers < 1:
+        raise ValueError("workers must be at least 1.")
+    diagnostic = scalar_diagnostic(diagnostic_name, diagnostic_directories)
+    registry = load_diagnostics(diagnostic_directories)
+
+    # Register once in the parent before independent workers validate and
+    # write their own simulation-level scalar result files.
+    collection_roots = {simulation.path.parent.parent for simulation in simulations}
+    for collection_root in collection_roots:
+        ensure_collection_diagnostics(collection_root, (diagnostic,), registry)
+
+    if workers == 1:
+        results = []
+        for simulation in simulations:
+            result = compute_scalar_catalogue_simulation(
+                simulation,
+                diagnostic_name,
+                overwrite,
+                diagnostic_directories,
+            )
+            results.append(result)
+            if on_result is not None:
+                on_result(result)
+        return tuple(results)
+
+    results_by_simulation: dict[CatalogueSimulation, SimulationResult] = {}
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = {
+            executor.submit(
+                compute_scalar_catalogue_simulation,
+                simulation,
+                diagnostic_name,
+                overwrite,
+                diagnostic_directories,
+            ): simulation
+            for simulation in simulations
+        }
+        for future in as_completed(futures):
+            simulation = futures[future]
+            try:
+                result = future.result()
+            except Exception as error:
+                result = SimulationResult(
+                    simulation,
+                    "failed",
+                    error=f"{type(error).__name__}: {error}",
+                )
+            results_by_simulation[simulation] = result
+            if on_result is not None:
+                on_result(result)
+    return tuple(results_by_simulation[simulation] for simulation in simulations)
 
 
 def clear_time_series(
