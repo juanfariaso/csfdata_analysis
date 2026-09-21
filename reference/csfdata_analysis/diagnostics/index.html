@@ -2197,7 +2197,7 @@
                 <code>metadata</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2213,11 +2213,11 @@
                 <code>outputs</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Mapping from standardized output names to their canonical unit
+                <p>Dictionary from standardized output names to their canonical unit
 strings, such as <code>{"r_l50": "pc"}</code>.</p>
               </div>
             </td>
@@ -2259,13 +2259,13 @@ strings, such as <code>{"r_l50": "pc"}</code>.</p>
 <span class="sd">    Args:</span>
 <span class="sd">        name: Stable result-group identifier, such as ``&quot;stellar_com&quot;``.</span>
 <span class="sd">        metadata: Method details written as HDF5 attributes for this choice.</span>
-<span class="sd">        outputs: Mapping from standardized output names to their canonical unit</span>
+<span class="sd">        outputs: Dictionary from standardized output names to their canonical unit</span>
 <span class="sd">            strings, such as ``{&quot;r_l50&quot;: &quot;pc&quot;}``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-    <span class="n">outputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">outputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2376,7 +2376,7 @@ strings, such as <code>{"r_l50": "pc"}</code>.</p>
                 <code>evaluate</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="            ScalarEvaluator = Callable[[CatalogueSimulation, Mapping[str, str]], Mapping[str, float | int]]
+                  <code><a class="autorefs autorefs-internal" title="            ScalarEvaluator = Callable[[CatalogueSimulation, dict[str, str]], dict[str, float | int]]
 
   
       module-attribute
@@ -2773,7 +2773,7 @@ when results, parameter meanings, units, or output columns change.</p>
                 <code>evaluate</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="            SnapshotEvaluator = Callable[[Particles], Mapping[str, Mapping[str, Quantity]]]
+                  <code><a class="autorefs autorefs-internal" title="            SnapshotEvaluator = Callable[[Particles], dict[str, dict[str, Quantity]]]
 
   
       module-attribute
@@ -2816,7 +2816,7 @@ schemas, such as <code>"origin"</code> and <code>"stellar_com"</code>.</p>
                 <code>field_descriptions</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3028,7 +3028,7 @@ while global choices are user-facing selection dimensions.</p>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">evaluate</span><span class="p">:</span> <span class="n">SnapshotEvaluator</span>
     <span class="n">evaluation_choices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EvaluationChoice</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-    <span class="n">field_descriptions</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">field_descriptions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="n">choice_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">requires</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DiagnosticRequirement</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
@@ -3415,7 +3415,8 @@ metadata. Relative paths are resolved relative to <code>analysis.yaml</code>.</p
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
+<span class="normal">26</span>
 <span class="normal">27</span>
 <span class="normal">28</span>
 <span class="normal">29</span>
@@ -3456,8 +3457,7 @@ metadata. Relative paths are resolved relative to <code>analysis.yaml</code>.</p
 <span class="normal">64</span>
 <span class="normal">65</span>
 <span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">diagnostic_directories</span><span class="p">(</span><span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">diagnostic_directories</span><span class="p">(</span><span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read trusted local diagnostic directories from ``analysis.yaml``.</span>
 
 <span class="sd">    Args:</span>
@@ -3589,7 +3589,8 @@ name/version identity.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 71</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 70</span>
+<span class="normal"> 71</span>
 <span class="normal"> 72</span>
 <span class="normal"> 73</span>
 <span class="normal"> 74</span>
@@ -3675,8 +3676,7 @@ name/version identity.</p>
 <span class="normal">154</span>
 <span class="normal">155</span>
 <span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_diagnostics</span><span class="p">(</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_diagnostics</span><span class="p">(</span>
     <span class="n">directories</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span>
     <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span>
@@ -3884,7 +3884,8 @@ name/version identity.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">161</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">160</span>
+<span class="normal">161</span>
 <span class="normal">162</span>
 <span class="normal">163</span>
 <span class="normal">164</span>
@@ -3906,8 +3907,7 @@ name/version identity.</p>
 <span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">time_series_diagnostic</span><span class="p">(</span>
+<span class="normal">183</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">time_series_diagnostic</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">directories</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeriesDiagnostic</span><span class="p">:</span>
@@ -4051,7 +4051,8 @@ name/version identity.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">187</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">186</span>
+<span class="normal">187</span>
 <span class="normal">188</span>
 <span class="normal">189</span>
 <span class="normal">190</span>
@@ -4073,8 +4074,7 @@ name/version identity.</p>
 <span class="normal">206</span>
 <span class="normal">207</span>
 <span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalar_diagnostic</span><span class="p">(</span>
+<span class="normal">209</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalar_diagnostic</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">directories</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ScalarDiagnostic</span><span class="p">:</span>
@@ -4176,7 +4176,7 @@ name/version identity.</p>
                 <code>available_diagnostics</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="tuple">tuple</span>[<span title="str">str</span>, <span title="str">str</span>], <a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
+                  <code><span title="dict">dict</span>[<span title="tuple">tuple</span>[<span title="str">str</span>, <span title="str">str</span>], <a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
 
 
   
@@ -4279,7 +4279,8 @@ scientific meaning of already stored data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">233</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">232</span>
+<span class="normal">233</span>
 <span class="normal">234</span>
 <span class="normal">235</span>
 <span class="normal">236</span>
@@ -4384,11 +4385,10 @@ scientific meaning of already stored data.</p>
 <span class="normal">335</span>
 <span class="normal">336</span>
 <span class="normal">337</span>
-<span class="normal">338</span>
-<span class="normal">339</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">ensure_collection_diagnostics</span><span class="p">(</span>
+<span class="normal">338</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">ensure_collection_diagnostics</span><span class="p">(</span>
     <span class="n">collection_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
-    <span class="n">available_diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span>
+    <span class="n">available_diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>
         <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span>
     <span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>

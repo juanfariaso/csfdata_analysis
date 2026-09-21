@@ -1871,6 +1871,9 @@ receive <code>NaN</code>. Every summary table contains <code>n_simulations</code
 <code>aggregate_time_series</code> to produce separate ensembles for configuration-value
 combinations. <code>n_simulations</code> counts simulations with finite values for every
 field selected in that diagnostic table.</p>
+<p>For a seed ensemble, omit <code>seed_index</code> from the initial <code>load_simulations</code>
+filters and from <code>group_by</code>. Include every parameter that defines the physical
+model in <code>group_by</code>; rows that differ only in seed are then averaged together.</p>
 <h2 id="select-diagnostic-slices">Select Diagnostic Slices</h2>
 <p>Select linearly interpolated derived values at one time. A normalization makes
 the requested time relative to a canonical Myr-valued configuration parameter:</p>

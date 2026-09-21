@@ -1714,7 +1714,7 @@ not mean a simulation input in <code>config.yaml</code>.</p>
 The output name is <code>r_l99</code>; its canonical unit remains <code>pc</code> in the diagnostic
 schema and HDF5 attribute, not in the name.</p>
 <ol>
-<li>Add <code>"r_l99": "pc"</code> to the <code>outputs</code> mapping of every relevant
+<li>Add <code>"r_l99": "pc"</code> to the <code>outputs</code> dictionary of every relevant
    <code>EvaluationChoice</code>.</li>
 <li>Update <code>measure_lagrangian_radii</code> so every choice returns an AMUSE quantity
    named <code>r_l99</code>.</li>

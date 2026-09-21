@@ -1860,7 +1860,7 @@ diagnostics combine completed diagnostic products into scalar simulation values.
 
 
 <h2 id="csfdata_analysis.diagnostics.base.SnapshotEvaluator" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">SnapshotEvaluator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Particles</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]]]</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">SnapshotEvaluator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Particles</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]]]</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
@@ -1882,7 +1882,7 @@ diagnostics combine completed diagnostic products into scalar simulation values.
 
 
 <h2 id="csfdata_analysis.diagnostics.base.ScalarEvaluator" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">ScalarEvaluator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">CatalogueSimulation</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]]</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">ScalarEvaluator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">CatalogueSimulation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]]</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
@@ -1955,7 +1955,7 @@ diagnostics combine completed diagnostic products into scalar simulation values.
                 <code>metadata</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1971,11 +1971,11 @@ diagnostics combine completed diagnostic products into scalar simulation values.
                 <code>outputs</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Mapping from standardized output names to their canonical unit
+                <p>Dictionary from standardized output names to their canonical unit
 strings, such as <code>{"r_l50": "pc"}</code>.</p>
               </div>
             </td>
@@ -2017,13 +2017,13 @@ strings, such as <code>{"r_l50": "pc"}</code>.</p>
 <span class="sd">    Args:</span>
 <span class="sd">        name: Stable result-group identifier, such as ``&quot;stellar_com&quot;``.</span>
 <span class="sd">        metadata: Method details written as HDF5 attributes for this choice.</span>
-<span class="sd">        outputs: Mapping from standardized output names to their canonical unit</span>
+<span class="sd">        outputs: Dictionary from standardized output names to their canonical unit</span>
 <span class="sd">            strings, such as ``{&quot;r_l50&quot;: &quot;pc&quot;}``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-    <span class="n">outputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">outputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2135,7 +2135,7 @@ when results, parameter meanings, units, or output columns change.</p>
                 <code>evaluate</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="            SnapshotEvaluator = Callable[[Particles], Mapping[str, Mapping[str, Quantity]]]
+                  <code><a class="autorefs autorefs-internal" title="            SnapshotEvaluator = Callable[[Particles], dict[str, dict[str, Quantity]]]
 
   
       module-attribute
@@ -2178,7 +2178,7 @@ schemas, such as <code>"origin"</code> and <code>"stellar_com"</code>.</p>
                 <code>field_descriptions</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2390,7 +2390,7 @@ while global choices are user-facing selection dimensions.</p>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">evaluate</span><span class="p">:</span> <span class="n">SnapshotEvaluator</span>
     <span class="n">evaluation_choices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EvaluationChoice</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-    <span class="n">field_descriptions</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">field_descriptions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="n">choice_names</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">requires</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DiagnosticRequirement</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
@@ -2732,7 +2732,7 @@ if output-field descriptions do not exactly match the schema.</p>
                 <code>evaluate</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="            ScalarEvaluator = Callable[[CatalogueSimulation, Mapping[str, str]], Mapping[str, float | int]]
+                  <code><a class="autorefs autorefs-internal" title="            ScalarEvaluator = Callable[[CatalogueSimulation, dict[str, str]], dict[str, float | int]]
 
   
       module-attribute

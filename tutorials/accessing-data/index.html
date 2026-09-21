@@ -1753,7 +1753,9 @@
 and selecting raw snapshot paths. It does not compute diagnostics or load
 particle data into memory.</p>
 <h2 id="inspect-one-simulation">Inspect One Simulation</h2>
-<p>Select simulations through the catalogue index, then inspect the first result:</p>
+<p>Select simulations through the catalogue index with
+<a href="../../reference/csfdata_analysis/data/loader/#csfdata_analysis.data.loader.load_simulations"><code>load_simulations</code></a>,
+then inspect the first result:</p>
 <pre><code class="language-python">from csfdata_analysis.data import load_simulations
 
 simulations = load_simulations(
@@ -1765,13 +1767,25 @@ simulation = simulations[0]
 
 print(simulation.diagnostics)
 </code></pre>
-<p><code>simulation.diagnostics</code> is lazy: printing it shows available time-series and
-scalar diagnostic versions, fields, choices, and result paths without loading
-their numerical arrays.</p>
+<p><a href="https://juanfariaso.github.io/csfdata/reference/csfdata/catalogue/registry/#csfdata.catalogue.registry.CatalogueSimulation.diagnostics"><code>simulation.diagnostics</code></a>
+is lazy: printing it shows available time-series and scalar diagnostic
+versions, fields, choices, and result paths without loading their numerical
+arrays.</p>
 <h2 id="select-raw-snapshot-slices">Select Raw Snapshot Slices</h2>
-<p>Use the selected simulations to find the nearest stored raw snapshot at one
-physical or normalized time:</p>
-<pre><code class="language-python">from csfdata_analysis.data import select_snapshot_slice
+<p>First select the simulations through ordinary catalogue filters. Then pass that
+explicit selection to
+<a href="../../reference/csfdata_analysis/data/slices/#csfdata_analysis.data.slices.select_snapshot_slice"><code>select_snapshot_slice</code></a>:</p>
+<pre><code class="language-python">from csfdata_analysis.data import load_simulations, select_snapshot_slice
+
+simulations = load_simulations(
+    &quot;/path/to/catalogue&quot;,
+    collection_id=&quot;collection-id&quot;,
+    filters={
+        &quot;tff&quot;: 1.0,
+        &quot;sfe&quot;: 0.1,
+        &quot;fret_max&quot;: (2.0, None),
+    },
+)
 
 snapshot_slice = select_snapshot_slice(
     simulations,
@@ -1797,8 +1811,10 @@ data = radii.read(
 time = data[&quot;time_myr&quot;]
 half_mass_radius = data[&quot;r_l50&quot;]
 </code></pre>
-<p>Time-series reads return NumPy arrays. Use <code>radii.fields</code>, <code>radii.choices</code>, and
-<code>radii.available_choices</code> to inspect what is available before reading.</p>
+<p>Time-series reads return NumPy arrays. A
+<a href="https://juanfariaso.github.io/csfdata/reference/csfdata/catalogue/diagnostics/#csfdata.catalogue.diagnostics.SimulationDiagnostic"><code>SimulationDiagnostic</code></a>
+provides <code>fields</code>, <code>choices</code>, and <code>available_choices</code> to inspect what is
+available before reading.</p>
 <h2 id="read-a-scalar-diagnostic">Read A Scalar Diagnostic</h2>
 <p>Scalar diagnostics use the same <code>(name, version)</code> identity, but return
 canonical Python scalar values:</p>
@@ -1809,11 +1825,55 @@ values = rates.read(choices={&quot;center&quot;: &quot;stellar_com&quot;})
 expansion_rate = values[&quot;dRdt&quot;]
 </code></pre>
 <h2 id="work-across-a-collection">Work Across A Collection</h2>
-<p>For plotting or statistics across many simulations, use the collection-level
-functions in <a href="../../data/">Data Interfaces</a>: <code>load_time_series</code> loads selected
-diagnostic fields into Pandas tables, <code>interpolate_time_series</code> aligns output
-times, <code>aggregate_time_series</code> calculates ensemble means and standard
-deviations, and <code>select_time_series_slice</code> extracts values at one time.</p>
+<p>For plotting or statistics across many simulations,
+<a href="../../reference/csfdata_analysis/data/series/#csfdata_analysis.data.series.load_time_series"><code>load_time_series</code></a>
+loads the desired diagnostic field into a Pandas table,
+<a href="../../reference/csfdata_analysis/data/series/#csfdata_analysis.data.series.interpolate_time_series"><code>interpolate_time_series</code></a>
+aligns its output times, and
+<a href="../../reference/csfdata_analysis/data/series/#csfdata_analysis.data.series.aggregate_time_series"><code>aggregate_time_series</code></a>
+summarizes it. This example averages simulations that share physical parameters
+but differ in random seed. It deliberately does not filter on <code>seed_index</code>:</p>
+<pre><code class="language-python">import numpy as np
+
+from csfdata_analysis.data import (
+    aggregate_time_series,
+    interpolate_time_series,
+    load_simulations,
+    load_time_series,
+)
+
+simulations = load_simulations(
+    &quot;/path/to/catalogue&quot;,
+    collection_id=&quot;collection-id&quot;,
+)
+
+series = load_time_series(
+    simulations,
+    diagnostics={
+        (&quot;lagrangian_radii&quot;, &quot;v1&quot;): {
+            &quot;choices&quot;: {&quot;center&quot;: &quot;stellar_com&quot;},
+            &quot;fields&quot;: (&quot;r_l50&quot;,),
+        },
+    },
+)
+
+aligned = interpolate_time_series(
+    series,
+    times_myr=np.arange(0.0, 30.0, 0.1),
+)
+
+summary = aggregate_time_series(
+    aligned,
+    group_by=(&quot;tff&quot;, &quot;sfe&quot;, &quot;fret_max&quot;, &quot;texp_over_tff&quot;, &quot;Mstars&quot;),
+)
+
+radii_summary = summary[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
+</code></pre>
+<p>Each summary row represents one exact combination of the listed parameters at
+one model time. <code>n_simulations</code>, <code>&lt;field&gt;_mean</code>, and <code>&lt;field&gt;_std</code> therefore
+describe the seed ensemble. Include another parameter in <code>group_by</code> when it
+defines a physically distinct model; leave it out only when it should be
+averaged over, as with <code>seed_index</code>.</p>
 
 
 

@@ -1781,7 +1781,7 @@
                 <code>data</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -1996,7 +1996,7 @@ column, or unique ascending simulation times.</p>
 <span class="normal">80</span>
 <span class="normal">81</span>
 <span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_time_series_slice</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>

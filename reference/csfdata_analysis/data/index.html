@@ -2028,7 +2028,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Mapping from parameter names to known scalar values.</p>
+                <p>Dictionary from parameter names to known scalar values.</p>
               </div>
             </td>
           </tr>
@@ -2038,7 +2038,8 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/data/loader.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
+<span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
@@ -2051,15 +2052,14 @@
 <span class="normal">41</span>
 <span class="normal">42</span>
 <span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return every known scalar canonical parameter for one simulation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        simulation: Catalogue simulation whose top-level ``config.yaml`` is read.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Mapping from parameter names to known scalar values.</span>
+<span class="sd">        Dictionary from parameter names to known scalar values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">configuration</span> <span class="o">=</span> <span class="n">read_simulation_configuration</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -2135,7 +2135,7 @@
                 <code>filters</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span> | <span title="int">int</span> | <span title="float">float</span> | <span title="bool">bool</span> | <span title="tuple">tuple</span>[<span title="float">float</span> | None, <span title="float">float</span> | None]] | None</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span> | <span title="int">int</span> | <span title="float">float</span> | <span title="bool">bool</span> | <span title="tuple">tuple</span>[<span title="float">float</span> | None, <span title="float">float</span> | None]] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2175,7 +2175,8 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/data/loader.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
+<span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
 <span class="normal">16</span>
@@ -2189,11 +2190,10 @@
 <span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
+<span class="normal">27</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
     <span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">filters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">filters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load catalogue simulations selected by collection and parameter filters.</span>
 
@@ -2316,7 +2316,8 @@ configuration differs from the lite export.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/data/loader.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">48</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
+<span class="normal">48</span>
 <span class="normal">49</span>
 <span class="normal">50</span>
 <span class="normal">51</span>
@@ -2347,8 +2348,7 @@ configuration differs from the lite export.</p>
 <span class="normal">76</span>
 <span class="normal">77</span>
 <span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="normal">79</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the simulation directory that owns raw snapshots for analysis.</span>
 
 <span class="sd">    Args:</span>
@@ -2417,7 +2417,7 @@ configuration differs from the lite export.</p>
                 <code>data</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2596,7 +2596,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
 <span class="normal">239</span>
 <span class="normal">240</span>
 <span class="normal">241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">aggregate_time_series</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
     <span class="n">group_by</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate ensemble mean and standard deviation at every stored time.</span>
@@ -2687,7 +2687,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
                 <code>data</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2851,7 +2851,7 @@ duplicate or unordered source times.</p>
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_time_series</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
     <span class="n">times_myr</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearly interpolate selected diagnostics onto one physical-time grid.</span>
@@ -2963,15 +2963,15 @@ duplicate or unordered source times.</p>
                 <code>diagnostics</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
-   (csfdata_analysis.data.series.DiagnosticKey)" href="series/#csfdata_analysis.data.series.DiagnosticKey">DiagnosticKey</a>, <span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="object">object</span>]]</code>
+   (csfdata_analysis.data.series.DiagnosticKey)" href="series/#csfdata_analysis.data.series.DiagnosticKey">DiagnosticKey</a>, <span title="dict">dict</span>[<span title="str">str</span>, <span title="object">object</span>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Mapping from <code>(name, version)</code> to a selection mapping.
+                <p>Dictionary from <code>(name, version)</code> to a selection dictionary.
 Each selection defines <code>"choices"</code> as an exact choice mapping
 and <code>"fields"</code> as a non-empty sequence of output names.</p>
               </div>
@@ -3193,14 +3193,14 @@ columns rather than configuration metadata.</p>
 <span class="normal">119</span>
 <span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_time_series</span><span class="p">(</span>
     <span class="n">simulations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">],</span>
-    <span class="n">diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]],</span>
+    <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]],</span>
     <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load selected fields from one or more completed diagnostics.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        simulations: Catalogue simulations selected by ``load_simulations``.</span>
-<span class="sd">        diagnostics: Mapping from ``(name, version)`` to a selection mapping.</span>
+<span class="sd">        diagnostics: Dictionary from ``(name, version)`` to a selection dictionary.</span>
 <span class="sd">            Each selection defines ``&quot;choices&quot;`` as an exact choice mapping</span>
 <span class="sd">            and ``&quot;fields&quot;`` as a non-empty sequence of output names.</span>
 <span class="sd">        allow_missing: Whether to omit simulations without a completed selected</span>
@@ -3233,15 +3233,15 @@ columns rather than configuration metadata.</p>
             <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">identity</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Diagnostic identities must be non-empty (name, version) tuples.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic selection for </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> must be a mapping.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic selection for </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> must be a dictionary.&quot;</span><span class="p">)</span>
         <span class="n">choices</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;choices&quot;</span><span class="p">)</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">choices</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic selection for </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> needs string choices.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic selection for </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> needs a string choices dictionary.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span>
             <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
@@ -3593,7 +3593,7 @@ known Myr-valued normalization parameter.</p>
                 <code>data</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -3808,7 +3808,7 @@ column, or unique ascending simulation times.</p>
 <span class="normal">80</span>
 <span class="normal">81</span>
 <span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_time_series_slice</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>

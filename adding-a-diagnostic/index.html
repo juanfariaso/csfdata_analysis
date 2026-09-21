@@ -2152,7 +2152,7 @@ Location:
 <a href="../reference/csfdata_analysis/diagnostics/base/#csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic"><code>TimeSeriesDiagnostic</code></a>
 with one
 <a href="../reference/csfdata_analysis/diagnostics/base/#csfdata_analysis.diagnostics.base.EvaluationChoice"><code>EvaluationChoice</code></a>
-per stored evaluation group. The <code>metadata</code> mapping becomes HDF5 attributes.
+per stored evaluation group. The <code>metadata</code> dictionary becomes HDF5 attributes.
 <code>choice_names</code> references registered global choices from
 <a href="../reference/csfdata_analysis/choices/"><code>csfdata_analysis.choices</code></a>.</p>
 <details>
@@ -2279,8 +2279,8 @@ with simulation configuration parameters and can be used in the same query.
 Their evaluator signature is:</p>
 <pre><code class="language-python">def evaluate(
     simulation: CatalogueSimulation,
-    choices: Mapping[str, str],
-) -&gt; Mapping[str, float | int]:
+    choices: dict[str, str],
+) -&gt; dict[str, float | int]:
     ...
 </code></pre>
 <p>The simulation object provides the lazy <code>simulation.diagnostics</code> interface for

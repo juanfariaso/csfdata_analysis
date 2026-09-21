@@ -2474,7 +2474,7 @@ lite catalogue to store results while raw inputs remain elsewhere.</p>
                 <code>identity</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="str">str</span>, <span title="str">str</span> | <span title="int">int</span>] | None</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span> | <span title="int">int</span>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2785,7 +2785,7 @@ data and completed time series are never modified.</p>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">identity</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">identity</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">progress</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimulationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute one diagnostic time series for one imported simulation.</span>
@@ -3063,7 +3063,7 @@ choice combination may be replaced.</p>
                 <code>available_diagnostics</code>
             </td>
             <td>
-                  <code><span title="collections.abc.Mapping">Mapping</span>[<span title="tuple">tuple</span>[<span title="str">str</span>, <span title="str">str</span>], <a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
+                  <code><span title="dict">dict</span>[<span title="tuple">tuple</span>[<span title="str">str</span>, <span title="str">str</span>], <a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
 
 
   
@@ -3332,7 +3332,7 @@ computing so the core writer can validate every generated result.</p>
     <span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">,</span>
     <span class="n">diagnostic</span><span class="p">:</span> <span class="n">ScalarDiagnostic</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">available_diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span>
+    <span class="n">available_diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>
         <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span>
     <span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ScalarReport</span><span class="p">:</span>
