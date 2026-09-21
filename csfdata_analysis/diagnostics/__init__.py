@@ -157,15 +157,72 @@ def load_diagnostics(
     return diagnostics
 
 
+def diagnostics_in_dependency_order(
+    diagnostics: dict[tuple[str, str], TimeSeriesDiagnostic | ScalarDiagnostic],
+) -> tuple[TimeSeriesDiagnostic | ScalarDiagnostic, ...]:
+    """Return registered diagnostics ordered after their requirements.
+
+    Args:
+        diagnostics: Registered diagnostics keyed by ``(name, version)``.
+
+    Returns:
+        Every registered diagnostic, with each declared requirement placed
+        before the diagnostic that needs it.
+
+    Raises:
+        ValueError: If a requirement is unregistered or the requirements form
+            a cycle.
+
+    Notes:
+        Diagnostics without a dependency are ordered by name and version. This
+        gives catalogue-wide updates a repeatable execution order while still
+        allowing independent diagnostics to run in any scientifically valid
+        order.
+    """
+    pending = dict(diagnostics)
+    ordered: list[TimeSeriesDiagnostic | ScalarDiagnostic] = []
+    completed: set[tuple[str, str]] = set()
+    while pending:
+        ready = []
+        for key, diagnostic in pending.items():
+            required = {
+                (requirement.name, requirement.version)
+                for requirement in diagnostic.requires
+            }
+            missing = required - set(diagnostics)
+            if missing:
+                names = ", ".join(f"{name} {version}" for name, version in sorted(missing))
+                raise ValueError(
+                    f"Diagnostic {diagnostic.name} v{diagnostic.version} requires "
+                    f"unregistered diagnostics: {names}."
+                )
+            if required <= completed:
+                ready.append((key, diagnostic))
+        if not ready:
+            names = ", ".join(
+                f"{diagnostic.name} v{diagnostic.version}"
+                for diagnostic in pending.values()
+            )
+            raise ValueError(f"Diagnostic requirements contain a cycle: {names}.")
+        for key, diagnostic in sorted(ready):
+            ordered.append(diagnostic)
+            completed.add(key)
+            del pending[key]
+    return tuple(ordered)
+
+
 def time_series_diagnostic(
     name: str,
     directories: tuple[Path | str, ...] = (),
+    version: str | None = None,
 ) -> TimeSeriesDiagnostic:
     """Return the latest registered time-series diagnostic with one name.
 
     Args:
         name: Stable diagnostic name.
         directories: Trusted local directories added to built-in diagnostics.
+        version: Optional exact version identifier, such as ``"v1"``. ``None``
+            selects the highest registered version.
 
     Returns:
         The highest available version of the named time-series diagnostic.
@@ -176,7 +233,9 @@ def time_series_diagnostic(
     matches = [
         diagnostic
         for diagnostic in load_diagnostics(directories).values()
-        if isinstance(diagnostic, TimeSeriesDiagnostic) and diagnostic.name == name
+        if isinstance(diagnostic, TimeSeriesDiagnostic)
+        and diagnostic.name == name
+        and (version is None or f"v{diagnostic.version}" == version)
     ]
     if not matches:
         raise ValueError(f"Unknown time-series diagnostic: {name}")
@@ -186,12 +245,15 @@ def time_series_diagnostic(
 def scalar_diagnostic(
     name: str,
     directories: tuple[Path | str, ...] = (),
+    version: str | None = None,
 ) -> ScalarDiagnostic:
     """Return the latest registered scalar diagnostic with one name.
 
     Args:
         name: Stable diagnostic name.
         directories: Trusted local directories added to built-in diagnostics.
+        version: Optional exact version identifier, such as ``"v1"``. ``None``
+            selects the highest registered version.
 
     Returns:
         The highest available version of the named scalar diagnostic.
@@ -202,7 +264,9 @@ def scalar_diagnostic(
     matches = [
         diagnostic
         for diagnostic in load_diagnostics(directories).values()
-        if isinstance(diagnostic, ScalarDiagnostic) and diagnostic.name == name
+        if isinstance(diagnostic, ScalarDiagnostic)
+        and diagnostic.name == name
+        and (version is None or f"v{diagnostic.version}" == version)
     ]
     if not matches:
         raise ValueError(f"Unknown scalar diagnostic: {name}")
@@ -346,6 +410,7 @@ __all__ = [
     "TIME_SERIES_DIAGNOSTICS",
     "TimeSeriesDiagnostic",
     "diagnostic_directories",
+    "diagnostics_in_dependency_order",
     "ensure_collection_diagnostics",
     "load_diagnostics",
     "scalar_diagnostic",

@@ -91,6 +91,28 @@ csfdata analysis compute expansion_rate \
   --workers 12
 ```
 
+## Update All Diagnostics
+
+Update every registered built-in and configured local diagnostic for a
+catalogue selection:
+
+```bash
+csfdata analysis update-diagnostics \
+  --catalogue /path/to/catalogue \
+  --filter collection=example-grid-v1 \
+  --workers 12
+```
+
+The command loads built-in and configured local diagnostics, orders them after
+their declared requirements, then processes every selected simulation. Current
+completed results are skipped. Missing, incomplete, and outdated time-series
+results are recomputed and atomically replaced. This is the command to use
+after an output-format update such as the `time_myr` to `time` migration.
+
+Use `--overwrite` only when every selected result should be recomputed,
+including already-current results. The command asks for confirmation unless
+`--no-prompt` is supplied for a non-interactive job.
+
 ## Local Diagnostics
 
 The same command runs trusted local diagnostics configured by an `analysis.yaml`

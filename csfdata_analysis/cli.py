@@ -24,6 +24,7 @@ from csfdata_analysis.diagnostics import (
     TIME_SERIES_DIAGNOSTICS,
     TimeSeriesDiagnostic,
     diagnostic_directories,
+    diagnostics_in_dependency_order,
     load_diagnostics,
 )
 from csfdata_analysis.readers import read_stars
@@ -75,6 +76,27 @@ def main(arguments: Sequence[str] | None = None) -> int:
         help="Atomically replace completed selected diagnostic files after success.",
     )
     compute_parser.add_argument(
+        "--no-prompt",
+        action="store_true",
+        help="Start immediately without showing the selection and asking for confirmation.",
+    )
+    update_parser = subcommands.add_parser(
+        "update-diagnostics",
+        help="Update every registered built-in and local diagnostic.",
+    )
+    update_parser.add_argument("--catalogue", type=Path, required=True, help="Indexed catalogue root.")
+    update_parser.add_argument(
+        "--filter",
+        action="append",
+        help="Selection filter such as collection=dcaf-grid-v1 or tff=0.5:3.0.",
+    )
+    update_parser.add_argument("--workers", type=int, default=1)
+    update_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Recompute every selected result, including current completed diagnostics.",
+    )
+    update_parser.add_argument(
         "--no-prompt",
         action="store_true",
         help="Start immediately without showing the selection and asking for confirmation.",
@@ -232,6 +254,95 @@ def main(arguments: Sequence[str] | None = None) -> int:
         print(f"Skipped: {counts['skipped']}")
         print(f"Failed: {counts['failed']}")
         return 1 if counts["failed"] else 0
+
+    if options.command == "update-diagnostics":
+        try:
+            local_directories = diagnostic_directories(options.catalogue)
+            diagnostics = diagnostics_in_dependency_order(load_diagnostics(local_directories))
+            collection_id, filters = parse_filters(options.filter or ())
+            simulations = find_simulations(
+                options.catalogue,
+                collection_id=collection_id,
+                filters=filters,
+            )
+            if not simulations:
+                print("No simulations matched the supplied filters.")
+                return 0
+            counts_by_collection: dict[str, int] = {}
+            for simulation in simulations:
+                counts_by_collection[simulation.collection_id] = (
+                    counts_by_collection.get(simulation.collection_id, 0) + 1
+                )
+            print("Selected collections:")
+            for selected_collection, count in counts_by_collection.items():
+                print(f"  {selected_collection}: {count} simulations")
+            print(f"Total simulations: {len(simulations)}")
+            print("Diagnostics:")
+            for diagnostic in diagnostics:
+                print(f"  {diagnostic.name} v{diagnostic.version}")
+            if not options.no_prompt:
+                try:
+                    answer = input("Update these diagnostics? [y/N] ").strip().lower()
+                except EOFError as error:
+                    raise ValueError("No confirmation input available. Re-run with --no-prompt.") from error
+                if answer not in {"y", "yes"}:
+                    print("Cancelled.")
+                    return 0
+            failed = False
+            for diagnostic in diagnostics:
+                with tqdm(
+                    total=len(simulations),
+                    desc=f"Updating {diagnostic.name}",
+                    unit="simulation",
+                    dynamic_ncols=True,
+                    leave=True,
+                ) as progress_bar:
+                    def show_result(result) -> None:
+                        """Advance the active diagnostic update progress bar."""
+                        label = (
+                            f"{result.simulation.collection_id}/"
+                            f"{result.simulation.simulation_id}"
+                        )
+                        progress_bar.set_postfix_str(f"{result.status}: {label}")
+                        progress_bar.update(1)
+                        if result.error is not None:
+                            tqdm.write(f"FAILED: {label}: {result.error}")
+
+                    if isinstance(diagnostic, ScalarDiagnostic):
+                        results = compute_scalar_collection(
+                            simulations,
+                            diagnostic.name,
+                            workers=options.workers,
+                            overwrite=options.overwrite,
+                            on_result=show_result,
+                            diagnostic_directories=local_directories,
+                            diagnostic_version=f"v{diagnostic.version}",
+                            update=True,
+                        )
+                    else:
+                        results = compute_collection(
+                            simulations,
+                            diagnostic.name,
+                            workers=options.workers,
+                            overwrite=options.overwrite,
+                            on_result=show_result,
+                            diagnostic_directories=local_directories,
+                            diagnostic_version=f"v{diagnostic.version}",
+                            update=True,
+                        )
+                counts = {
+                    status: sum(result.status == status for result in results)
+                    for status in ("complete", "skipped", "failed")
+                }
+                print(
+                    f"{diagnostic.name} v{diagnostic.version}: "
+                    f"complete={counts['complete']}, skipped={counts['skipped']}, "
+                    f"failed={counts['failed']}"
+                )
+                failed = failed or bool(counts["failed"])
+        except (FileNotFoundError, OSError, ValueError, yaml.YAMLError) as error:
+            update_parser.error(str(error))
+        return 1 if failed else 0
 
     if options.command == "clear-derived":
         try:

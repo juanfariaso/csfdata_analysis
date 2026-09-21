@@ -13,6 +13,7 @@ from csfdata_analysis.diagnostics import (
     TimeSeriesDiagnostic,
     TIME_SERIES_DIAGNOSTICS,
     diagnostic_directories,
+    diagnostics_in_dependency_order,
     load_diagnostics,
 )
 
@@ -68,6 +69,14 @@ def test_diagnostic_loader_uses_explicit_module_tuples() -> None:
         ("lagrangian_radii", "v1")
     ]
     assert SCALAR_DIAGNOSTICS["expansion_rate"] is loaded[("expansion_rate", "v1")]
+
+
+def test_diagnostic_order_places_requirements_first() -> None:
+    """The registry order makes dependent catalogue updates safe."""
+    ordered = diagnostics_in_dependency_order(DIAGNOSTICS)
+    identities = [(diagnostic.name, diagnostic.version) for diagnostic in ordered]
+
+    assert identities.index(("lagrangian_radii", 1)) < identities.index(("expansion_rate", 1))
 
 
 def test_local_diagnostic_directory_loads_through_analysis_configuration(

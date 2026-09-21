@@ -95,6 +95,41 @@ def test_compute_dispatches_scalar_diagnostics_to_scalar_runner(
     assert "Complete: 1" in capsys.readouterr().out
 
 
+def test_update_diagnostics_runs_registered_requirements_before_scalars(
+    monkeypatch: MonkeyPatch,
+    capsys: CaptureFixture[str],
+) -> None:
+    """The update-diagnostics command uses registry dependency order."""
+    simulation = CatalogueSimulation("example-grid", "0000", Path("/tmp/example"), "dcaf")
+    calls: list[str] = []
+    monkeypatch.setattr(cli, "find_simulations", lambda *args, **kwargs: (simulation,))
+
+    def compute_series(simulations, diagnostic_name, **kwargs):
+        """Record each time-series update without reading fixture data."""
+        calls.append(diagnostic_name)
+        assert kwargs["update"] is True
+        assert kwargs["diagnostic_version"] == "v1"
+        return (SimulationResult(simulation, "complete"),)
+
+    def compute_scalar(simulations, diagnostic_name, **kwargs):
+        """Record each scalar update without reading fixture data."""
+        calls.append(diagnostic_name)
+        assert kwargs["update"] is True
+        assert kwargs["diagnostic_version"] == "v1"
+        return (SimulationResult(simulation, "complete"),)
+
+    monkeypatch.setattr(cli, "compute_collection", compute_series)
+    monkeypatch.setattr(cli, "compute_scalar_collection", compute_scalar)
+
+    assert (
+        cli.main(["update-diagnostics", "--catalogue", "/tmp/catalogue", "--no-prompt"])
+        == 0
+    )
+
+    assert calls.index("lagrangian_radii") < calls.index("expansion_rate")
+    assert "Diagnostics:" in capsys.readouterr().out
+
+
 def test_clear_derived_requires_confirmation_before_removing(
     monkeypatch: MonkeyPatch,
     capsys: CaptureFixture[str],

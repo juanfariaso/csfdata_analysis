@@ -54,6 +54,8 @@ def compute_catalogue_simulation(
     dry_run: bool = False,
     overwrite: bool = False,
     diagnostic_directories: tuple[Path | str, ...] = (),
+    diagnostic_version: str | None = None,
+    update: bool = False,
 ) -> SimulationResult:
     """Compute one registered diagnostic for one catalogue simulation.
 
@@ -65,6 +67,10 @@ def compute_catalogue_simulation(
         overwrite: Whether a completed selected diagnostic may be recomputed.
         diagnostic_directories: Trusted local directories containing additional
             diagnostic modules. Each worker loads these directories itself.
+        diagnostic_version: Optional exact diagnostic version. ``None`` uses
+            the highest registered version for ``diagnostic_name``.
+        update: Whether incomplete or outdated existing results should be
+            replaced while current completed results remain untouched.
 
     Returns:
         A result describing completed, ready, skipped, or failed work.
@@ -75,7 +81,11 @@ def compute_catalogue_simulation(
         D-CAF adapter.
     """
     try:
-        diagnostic = time_series_diagnostic(diagnostic_name, diagnostic_directories)
+        diagnostic = time_series_diagnostic(
+            diagnostic_name,
+            diagnostic_directories,
+            diagnostic_version,
+        )
     except ValueError:
         return SimulationResult(
             simulation,
@@ -89,8 +99,18 @@ def compute_catalogue_simulation(
             error=f"Unsupported catalogue importer: {simulation.importer}",
         )
     destination = time_series_path(simulation.path, diagnostic)
-    if destination.exists() and not overwrite:
+    replace_existing = overwrite
+    if destination.exists() and not overwrite and not update:
         return SimulationResult(simulation, "skipped")
+    if destination.exists() and update and not overwrite:
+        try:
+            simulation.diagnostics.time_series[(diagnostic.name, f"v{diagnostic.version}")]
+        except (KeyError, OSError, ValueError):
+            # An older schema remains in place until a fully computed result
+            # can atomically replace it.
+            replace_existing = True
+        else:
+            return SimulationResult(simulation, "skipped")
     try:
         input_simulation = source_simulation(simulation)
         report = compute_time_series(
@@ -99,7 +119,7 @@ def compute_catalogue_simulation(
             DcafAdapter(input_simulation / "raw"),
             read_stars,
             dry_run=dry_run,
-            overwrite=overwrite,
+            overwrite=replace_existing,
             output_path=destination,
             identity={
                 "collection_id": simulation.collection_id,
@@ -124,6 +144,8 @@ def compute_collection(
     overwrite: bool = False,
     on_result: Callable[[SimulationResult], None] | None = None,
     diagnostic_directories: tuple[Path | str, ...] = (),
+    diagnostic_version: str | None = None,
+    update: bool = False,
 ) -> tuple[SimulationResult, ...]:
     """Compute one diagnostic for every selected catalogue simulation.
 
@@ -138,6 +160,10 @@ def compute_collection(
             completed, skipped, ready, or failed simulation result.
         diagnostic_directories: Trusted local directories containing additional
             diagnostic modules.
+        diagnostic_version: Optional exact diagnostic version. ``None`` uses
+            the highest registered version for ``diagnostic_name``.
+        update: Whether incomplete or outdated existing results should be
+            replaced while current completed results remain untouched.
 
     Returns:
         Results in the same order as ``simulations``.
@@ -153,7 +179,11 @@ def compute_collection(
     if workers < 1:
         raise ValueError("workers must be at least 1.")
     try:
-        diagnostic = time_series_diagnostic(diagnostic_name, diagnostic_directories)
+        diagnostic = time_series_diagnostic(
+            diagnostic_name,
+            diagnostic_directories,
+            diagnostic_version,
+        )
     except ValueError:
         diagnostic = None
     if not dry_run and diagnostic is not None:
@@ -180,6 +210,8 @@ def compute_collection(
                 dry_run,
                 overwrite,
                 diagnostic_directories,
+                diagnostic_version,
+                update,
             )
             results.append(result)
             if on_result is not None:
@@ -196,6 +228,8 @@ def compute_collection(
                     dry_run,
                     overwrite,
                     diagnostic_directories,
+                    diagnostic_version,
+                    update,
                 ): simulation
                 for simulation in simulations
             }
@@ -222,6 +256,8 @@ def compute_scalar_catalogue_simulation(
     diagnostic_name: str,
     overwrite: bool = False,
     diagnostic_directories: tuple[Path | str, ...] = (),
+    diagnostic_version: str | None = None,
+    update: bool = False,
 ) -> SimulationResult:
     """Compute one registered scalar diagnostic for one catalogue simulation.
 
@@ -231,17 +267,33 @@ def compute_scalar_catalogue_simulation(
         overwrite: Whether existing choice-specific results may be replaced.
         diagnostic_directories: Trusted local directories containing additional
             diagnostic modules. Each worker loads these directories itself.
+        diagnostic_version: Optional exact diagnostic version. ``None`` uses
+            the highest registered version for ``diagnostic_name``.
+        update: Whether incomplete existing scalar results should be replaced
+            while current completed results remain untouched.
 
     Returns:
         A result describing completed, skipped, or failed work.
     """
     try:
-        diagnostic = scalar_diagnostic(diagnostic_name, diagnostic_directories)
+        diagnostic = scalar_diagnostic(
+            diagnostic_name,
+            diagnostic_directories,
+            diagnostic_version,
+        )
         registry = load_diagnostics(diagnostic_directories)
+        replace_existing = overwrite
+        if update and not overwrite:
+            try:
+                simulation.diagnostics.scalar[(diagnostic.name, f"v{diagnostic.version}")]
+            except (KeyError, OSError, ValueError):
+                replace_existing = True
+            else:
+                return SimulationResult(simulation, "skipped")
         report = compute_scalar_diagnostic(
             simulation,
             diagnostic,
-            overwrite,
+            replace_existing,
             registry,
         )
     except Exception as error:
@@ -264,6 +316,8 @@ def compute_scalar_collection(
     overwrite: bool = False,
     on_result: Callable[[SimulationResult], None] | None = None,
     diagnostic_directories: tuple[Path | str, ...] = (),
+    diagnostic_version: str | None = None,
+    update: bool = False,
 ) -> tuple[SimulationResult, ...]:
     """Compute one scalar diagnostic for every selected catalogue simulation.
 
@@ -276,6 +330,10 @@ def compute_scalar_collection(
             completed, skipped, or failed simulation result.
         diagnostic_directories: Trusted local directories containing additional
             diagnostic modules.
+        diagnostic_version: Optional exact diagnostic version. ``None`` uses
+            the highest registered version for ``diagnostic_name``.
+        update: Whether incomplete existing scalar results should be replaced
+            while current completed results remain untouched.
 
     Returns:
         Results in the same order as ``simulations``.
@@ -286,7 +344,11 @@ def compute_scalar_collection(
     """
     if workers < 1:
         raise ValueError("workers must be at least 1.")
-    diagnostic = scalar_diagnostic(diagnostic_name, diagnostic_directories)
+    diagnostic = scalar_diagnostic(
+        diagnostic_name,
+        diagnostic_directories,
+        diagnostic_version,
+    )
     registry = load_diagnostics(diagnostic_directories)
 
     # Register once in the parent before independent workers validate and
@@ -303,6 +365,8 @@ def compute_scalar_collection(
                 diagnostic_name,
                 overwrite,
                 diagnostic_directories,
+                diagnostic_version,
+                update,
             )
             results.append(result)
             if on_result is not None:
@@ -318,6 +382,8 @@ def compute_scalar_collection(
                 diagnostic_name,
                 overwrite,
                 diagnostic_directories,
+                diagnostic_version,
+                update,
             ): simulation
             for simulation in simulations
         }
