@@ -517,6 +517,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Select Raw Snapshot Slices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#work-with-one-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Work With One Snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1696,6 +1713,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Select Raw Snapshot Slices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#work-with-one-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Work With One Snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1797,6 +1831,31 @@ snapshot_slice = select_snapshot_slice(
 each simulation. <code>snapshot_slice</code> is a Pandas table containing the selected
 <code>snapshot_path</code>, requested physical time, actual snapshot time, and its offset.
 It only identifies files; it does not read AMUSE particles.</p>
+<h3 id="work-with-one-snapshot">Work With One Snapshot</h3>
+<p>To work with particles from one particular simulation, include its <code>seed_index</code>
+in the filters so the selection contains one row. Check the actual selected
+time, then use <a href="../../reference/csfdata_analysis/readers/dcaf/#csfdata_analysis.readers.dcaf.read_stars"><code>read_stars</code></a>
+to load that one D-CAF snapshot:</p>
+<pre><code class="language-python">from pathlib import Path
+
+from csfdata_analysis.data import load_simulations, select_snapshot_slice
+from csfdata_analysis.readers import read_stars
+
+simulations = load_simulations(
+    &quot;/path/to/catalogue&quot;,
+    collection_id=&quot;collection-id&quot;,
+    filters={&quot;tff&quot;: 1.0, &quot;sfe&quot;: 0.1, &quot;seed_index&quot;: 3},
+)
+snapshot = select_snapshot_slice(simulations, time=10.0).iloc[0]
+
+print(snapshot[&quot;snapshot_time&quot;])
+print(snapshot[&quot;time_offset&quot;])
+
+stars = read_stars(Path(snapshot[&quot;snapshot_path&quot;]))
+</code></pre>
+<p><code>stars</code> is an AMUSE <code>Particles</code> object for the selected stored file. This is
+appropriate for an exploratory calculation; it does not create or register a
+catalogue diagnostic.</p>
 <h2 id="read-a-time-series">Read A Time Series</h2>
 <p>Select a diagnostic by <code>(name, version)</code>, inspect it, then request one stored
 choice and the fields needed for the analysis:</p>
@@ -1808,7 +1867,7 @@ data = radii.read(
     fields=(&quot;r_l50&quot;, &quot;n_l50&quot;),
 )
 
-time = data[&quot;time_myr&quot;]
+time = data[&quot;time&quot;]
 half_mass_radius = data[&quot;r_l50&quot;]
 </code></pre>
 <p>Time-series reads return NumPy arrays. A
@@ -1859,7 +1918,7 @@ series = load_time_series(
 
 aligned = interpolate_time_series(
     series,
-    times_myr=np.arange(0.0, 30.0, 0.1),
+    times=np.arange(0.0, 30.0, 0.1),
 )
 
 summary = aggregate_time_series(

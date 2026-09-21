@@ -1845,7 +1845,7 @@ radii = data[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
 velocity = data[(&quot;radial_velocity_3d&quot;, &quot;v1&quot;)]
 </code></pre>
 <p>Every table includes <code>collection_id</code>, <code>simulation_id</code>, all known canonical
-configuration parameters, selected scientific choices, <code>time_myr</code>, and its
+configuration parameters, selected scientific choices, <code>time</code>, and its
 requested output fields. By default, the function stops if any selected
 simulation lacks a completed matching result. Use <code>allow_missing=True</code> only
 for an explicitly partial exploratory selection.</p>
@@ -1858,7 +1858,7 @@ from csfdata_analysis.data.series import aggregate_time_series, interpolate_time
 
 aligned = interpolate_time_series(
     data,
-    times_myr=np.arange(0.0, 30.0, 0.1),
+    times=np.arange(0.0, 30.0, 0.1),
 )
 
 summary = aggregate_time_series(aligned)

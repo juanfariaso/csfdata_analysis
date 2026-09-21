@@ -1903,7 +1903,7 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>first_time_myr</code>
+                <code>first_time</code>
             </td>
             <td>
                   <code><span title="float">float</span></code>
@@ -1919,7 +1919,7 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>last_time_myr</code>
+                <code>last_time</code>
             </td>
             <td>
                   <code><span title="float">float</span></code>
@@ -1989,16 +1989,16 @@
 <span class="sd">        simulation_root: Imported simulation directory that was analysed.</span>
 <span class="sd">        output_path: Final path of the created HDF5 time series.</span>
 <span class="sd">        snapshot_count: Number of snapshots evaluated successfully.</span>
-<span class="sd">        first_time_myr: First snapshot model time in Myr.</span>
-<span class="sd">        last_time_myr: Final snapshot model time in Myr.</span>
+<span class="sd">        first_time: First snapshot model time in Myr.</span>
+<span class="sd">        last_time: Final snapshot model time in Myr.</span>
 <span class="sd">        dry_run: Whether this report describes a plan that created no file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">simulation_root</span><span class="p">:</span> <span class="n">Path</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span>
     <span class="n">snapshot_count</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">first_time_myr</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">last_time_myr</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">first_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">last_time</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -2839,7 +2839,7 @@ data and completed time series are never modified.</p>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">snapshot_paths</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No snapshots found for simulation: </span><span class="si">{</span><span class="n">simulation_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">times_myr</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">snapshot_ids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">snapshot_number</span><span class="p">,</span> <span class="n">snapshot_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">snapshot_paths</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -2848,10 +2848,10 @@ data and completed time series are never modified.</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Snapshot path is outside the simulation raw directory: </span><span class="si">{</span><span class="n">snapshot_path</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
-        <span class="n">time_myr</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">(</span><span class="n">snapshot_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">time_myr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">(</span><span class="n">snapshot_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot has no readable model time: </span><span class="si">{</span><span class="n">snapshot_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">times_myr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_myr</span><span class="p">)</span>
+        <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
         <span class="n">snapshot_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snapshot_id</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
@@ -2859,8 +2859,8 @@ data and completed time series are never modified.</p>
             <span class="n">simulation_root</span><span class="o">=</span><span class="n">simulation_root</span><span class="p">,</span>
             <span class="n">output_path</span><span class="o">=</span><span class="n">destination</span><span class="p">,</span>
             <span class="n">snapshot_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshot_paths</span><span class="p">),</span>
-            <span class="n">first_time_myr</span><span class="o">=</span><span class="n">times_myr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-            <span class="n">last_time_myr</span><span class="o">=</span><span class="n">times_myr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">first_time</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">last_time</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -2940,12 +2940,12 @@ data and completed time series are never modified.</p>
     <span class="n">destination</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">staging_path</span> <span class="o">=</span> <span class="n">destination</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">destination</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="si">}</span><span class="s2">.tmp&quot;</span>
     <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">staging_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
-        <span class="n">output_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;format_schema_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;format_schema_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">output_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;diagnostic_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span>
         <span class="n">output_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;diagnostic_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">version</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">identity</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">output_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="n">output_file</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">times_myr</span><span class="p">)</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
         <span class="n">output_file</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
             <span class="s2">&quot;snapshot_id&quot;</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">snapshot_ids</span><span class="p">,</span>
@@ -2968,8 +2968,8 @@ data and completed time series are never modified.</p>
         <span class="n">simulation_root</span><span class="o">=</span><span class="n">simulation_root</span><span class="p">,</span>
         <span class="n">output_path</span><span class="o">=</span><span class="n">destination</span><span class="p">,</span>
         <span class="n">snapshot_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshot_paths</span><span class="p">),</span>
-        <span class="n">first_time_myr</span><span class="o">=</span><span class="n">times_myr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-        <span class="n">last_time_myr</span><span class="o">=</span><span class="n">times_myr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">first_time</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">last_time</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>

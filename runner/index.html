@@ -1608,7 +1608,7 @@ converts D-CAF output to AMUSE particles.</p>
 <p>On success, the runner writes exactly one HDF5 file:</p>
 <pre><code class="language-text">derived/diagnostics/&lt;diagnostic-name&gt;/v&lt;version&gt;/series.h5
 </code></pre>
-<p>It contains <code>time_myr</code>, <code>snapshot_id</code>, and one group per diagnostic choice.
+<p>It contains <code>time</code>, <code>snapshot_id</code>, and one group per diagnostic choice.
 Each choice group contains its declared output datasets and method metadata.
 Every output dataset stores its canonical unit as an HDF5 attribute.</p>
 <p>The runner never modifies <code>raw/</code> or replaces a completed time series. It

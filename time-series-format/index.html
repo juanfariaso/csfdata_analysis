@@ -1802,7 +1802,7 @@ snapshot:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>time_myr</code></td>
+<td><code>time</code></td>
 <td>Physical model time in Myr.</td>
 </tr>
 <tr>
@@ -1812,12 +1812,14 @@ snapshot:</p>
 </tbody>
 </table>
 <p>The root attributes identify the diagnostic, its version, and this HDF5
-format's schema version.</p>
+format's schema version. The current <code>format_schema_version</code> is <code>2</code>; files
+written by the earlier time-series schema must be recomputed before this
+interface reads them.</p>
 <h2 id="choices">Choices</h2>
 <p>Scientifically meaningful methodological choices are stored as named HDF5
 groups inside the same time-series file. They are not separate files.</p>
 <pre><code class="language-text">series.h5
-├── time_myr
+├── time
 ├── snapshot_id
 └── choices/
     ├── origin/

@@ -2485,8 +2485,8 @@ for snapshot in slices.itertuples():
     rows.append(
         {
             &quot;simulation_id&quot;: snapshot.simulation_id,
-            &quot;time_myr&quot;: snapshot.snapshot_time_myr,
-            &quot;maximum_radius_pc&quot;: maximum_radius(particles),
+            &quot;time&quot;: snapshot.snapshot_time,
+            &quot;maximum_radius&quot;: maximum_radius(particles),
         }
     )
 </code></pre>

@@ -1743,7 +1743,7 @@
       </thead>
       <tbody>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            fit_expansion_rate(time_myr, radius_pc, n_stars, min_points=6) (csfdata_analysis.diagnostics.scalar.expansion_rate.fit_expansion_rate)" href="#csfdata_analysis.diagnostics.scalar.expansion_rate.fit_expansion_rate">fit_expansion_rate</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            fit_expansion_rate(time, radius, n_stars, min_points=6) (csfdata_analysis.diagnostics.scalar.expansion_rate.fit_expansion_rate)" href="#csfdata_analysis.diagnostics.scalar.expansion_rate.fit_expansion_rate">fit_expansion_rate</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Fit the late-time expansion of one Lagrangian-radius series.</p>
@@ -1801,7 +1801,7 @@
 
 
 <h2 id="csfdata_analysis.diagnostics.scalar.expansion_rate.fit_expansion_rate" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">fit_expansion_rate</span><span class="p">(</span><span class="n">time_myr</span><span class="p">,</span> <span class="n">radius_pc</span><span class="p">,</span> <span class="n">n_stars</span><span class="p">,</span> <span class="n">min_points</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">fit_expansion_rate</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">n_stars</span><span class="p">,</span> <span class="n">min_points</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span></code>
 
 </h2>
 
@@ -1827,7 +1827,7 @@ changing the stellar system.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>time_myr</code>
+                <code>time</code>
             </td>
             <td>
                   <code><span title="numpy.ndarray">ndarray</span></code>
@@ -1843,7 +1843,7 @@ changing the stellar system.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>radius_pc</code>
+                <code>radius</code>
             </td>
             <td>
                   <code><span title="numpy.ndarray">ndarray</span></code>
@@ -2154,8 +2154,8 @@ enough post-minimum snapshots for the fit.</p>
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fit_expansion_rate</span><span class="p">(</span>
-    <span class="n">time_myr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">radius_pc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">time</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">n_stars</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">min_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -2166,8 +2166,8 @@ enough post-minimum snapshots for the fit.</p>
 <span class="sd">    changing the stellar system.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        time_myr: Snapshot times in Myr.</span>
-<span class="sd">        radius_pc: One selected Lagrangian-radius series in pc, for example</span>
+<span class="sd">        time: Snapshot times in Myr.</span>
+<span class="sd">        radius: One selected Lagrangian-radius series in pc, for example</span>
 <span class="sd">            ``r_l50`` from the ``stellar_com`` group.</span>
 <span class="sd">        n_stars: Total valid stellar count at the same snapshots.</span>
 <span class="sd">        min_points: Minimum number of snapshots required in the fitted interval.</span>
@@ -2190,8 +2190,8 @@ enough post-minimum snapshots for the fit.</p>
 <span class="sd">            lengths, contain insufficient usable snapshots, or do not provide</span>
 <span class="sd">            enough post-minimum snapshots for the fit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time_myr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radius_pc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n_stars</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">radius</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">counts</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -2235,8 +2235,8 @@ enough post-minimum snapshots for the fit.</p>
             <span class="s2">&quot;Not enough snapshots from the post-star-formation minimum to the final time.&quot;</span>
         <span class="p">)</span>
 
-    <span class="n">slope_pc_per_myr</span><span class="p">,</span> <span class="n">intercept_pc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">fit_time</span><span class="p">,</span> <span class="n">fit_radius</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">fitted_radius</span> <span class="o">=</span> <span class="n">intercept_pc</span> <span class="o">+</span> <span class="n">slope_pc_per_myr</span> <span class="o">*</span> <span class="n">fit_time</span>
+    <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">fit_time</span><span class="p">,</span> <span class="n">fit_radius</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fitted_radius</span> <span class="o">=</span> <span class="n">intercept</span> <span class="o">+</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">fit_time</span>
     <span class="n">residuals</span> <span class="o">=</span> <span class="n">fit_radius</span> <span class="o">-</span> <span class="n">fitted_radius</span>
 
     <span class="n">squared_residuals</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">residuals</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
@@ -2252,9 +2252,9 @@ enough post-minimum snapshots for the fit.</p>
         <span class="n">nrmse_iqr</span> <span class="o">=</span> <span class="n">rmse</span> <span class="o">/</span> <span class="n">iqr</span>
 
     <span class="n">dRdt</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">slope_pc_per_myr</span> <span class="o">|</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">pc</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">Myr</span><span class="p">))</span><span class="o">.</span><span class="n">value_in</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">kms</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">slope</span> <span class="o">|</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">pc</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">Myr</span><span class="p">))</span><span class="o">.</span><span class="n">value_in</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">kms</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">fit_radius_at_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">intercept_pc</span> <span class="o">+</span> <span class="n">slope_pc_per_myr</span> <span class="o">*</span> <span class="n">fit_start_time</span><span class="p">)</span>
+    <span class="n">fit_radius_at_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">intercept</span> <span class="o">+</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">fit_start_time</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;dRdt&quot;</span><span class="p">:</span> <span class="n">dRdt</span><span class="p">,</span>
@@ -2460,7 +2460,7 @@ unavailable.</p>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">fit_expansion_rate</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time_myr&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
         <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">radius_name</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
         <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;n_stars&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
     <span class="p">)</span>

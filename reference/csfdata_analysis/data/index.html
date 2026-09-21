@@ -1920,7 +1920,7 @@
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            interpolate_time_series(data, times_myr) (csfdata_analysis.data.interpolate_time_series)" href="#csfdata_analysis.data.interpolate_time_series">interpolate_time_series</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            interpolate_time_series(data, times) (csfdata_analysis.data.interpolate_time_series)" href="#csfdata_analysis.data.interpolate_time_series">interpolate_time_series</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Linearly interpolate selected diagnostics onto one physical-time grid.</p>
@@ -2487,7 +2487,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>time_myr</code>, <code>n_simulations</code>, and <code>&lt;field&gt;_mean</code> and</p>
+                <p><code>time</code>, <code>n_simulations</code>, and <code>&lt;field&gt;_mean</code> and</p>
               </div>
             </td>
           </tr>
@@ -2609,7 +2609,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One summary table per diagnostic. Each has grouping columns,</span>
-<span class="sd">        ``time_myr``, ``n_simulations``, and ``&lt;field&gt;_mean`` and</span>
+<span class="sd">        ``time``, ``n_simulations``, and ``&lt;field&gt;_mean`` and</span>
 <span class="sd">        ``&lt;field&gt;_std`` columns.</span>
 
 <span class="sd">    Raises:</span>
@@ -2624,14 +2624,14 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
         <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> has no declared fields metadata.&quot;</span><span class="p">)</span>
-        <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">group_by</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">group_by</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
             <span class="n">missing</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">columns</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">)))</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> is missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Group only by stable metadata and model time. A simulation contributes</span>
         <span class="c1"># only when it has finite values for every requested output field.</span>
-        <span class="n">grouping</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">group_by</span><span class="p">,</span> <span class="s2">&quot;time_myr&quot;</span><span class="p">]</span>
+        <span class="n">grouping</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">group_by</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
         <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">values</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">grouping</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="n">group_values</span> <span class="o">=</span> <span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">values</span><span class="p">,)</span>
@@ -2661,7 +2661,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
 
 
 <h2 id="csfdata_analysis.data.interpolate_time_series" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">interpolate_time_series</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">times_myr</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">interpolate_time_series</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span></code>
 
 </h2>
 
@@ -2704,7 +2704,7 @@ ensembles, such as <code>("tff", "sfe")</code>.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>times_myr</code>
+                <code>times</code>
             </td>
             <td>
                   <code><span title="collections.abc.Sequence">Sequence</span>[<span title="float">float</span>]</code>
@@ -2852,13 +2852,13 @@ duplicate or unordered source times.</p>
 <span class="normal">182</span>
 <span class="normal">183</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_time_series</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
-    <span class="n">times_myr</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearly interpolate selected diagnostics onto one physical-time grid.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        data: Diagnostic tables returned by :func:`load_time_series`.</span>
-<span class="sd">        times_myr: Explicit target model times in Myr.</span>
+<span class="sd">        times: Explicit target model times in Myr.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One aligned table per diagnostic. Values outside an individual</span>
@@ -2869,16 +2869,16 @@ duplicate or unordered source times.</p>
 <span class="sd">            strictly increasing non-empty sequence, or one simulation has</span>
 <span class="sd">            duplicate or unordered source times.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">targets</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">times_myr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">targets</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;times_myr must be one non-empty strictly increasing sequence.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;times must be one non-empty strictly increasing sequence.&quot;</span><span class="p">)</span>
 
     <span class="n">aligned_tables</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">identity</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> has no declared fields metadata.&quot;</span><span class="p">)</span>
-        <span class="n">required_columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
+        <span class="n">required_columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">required_columns</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
             <span class="n">missing</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">required_columns</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">)))</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> is missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2887,12 +2887,12 @@ duplicate or unordered source times.</p>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">],</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="c1"># A unique ascending source grid is required for one well-defined</span>
             <span class="c1"># linear interpolation per simulation and output field.</span>
-            <span class="n">ordered</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time_myr&quot;</span><span class="p">)</span>
-            <span class="n">source_times</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="s2">&quot;time_myr&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">ordered</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="n">source_times</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">source_times</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;collection_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;simulation_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation has duplicate or unordered times: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">metadata</span> <span class="o">=</span> <span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
             <span class="n">interpolated_fields</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
                 <span class="n">values</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -2903,7 +2903,7 @@ duplicate or unordered source times.</p>
                 <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">{</span>
                         <span class="o">**</span><span class="n">metadata</span><span class="p">,</span>
-                        <span class="s2">&quot;time_myr&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">),</span>
+                        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">),</span>
                         <span class="o">**</span><span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">interpolated_fields</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">index</span><span class="p">])</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">},</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
@@ -3034,7 +3034,7 @@ diagnostic. By default, any missing selected result raises an error.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>IDs, canonical configuration values, selected choices, <code>time_myr</code>,</p>
+                <p>IDs, canonical configuration values, selected choices, <code>time</code>,</p>
               </div>
             </td>
           </tr>
@@ -3208,7 +3208,7 @@ columns rather than configuration metadata.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One wide Pandas table per requested diagnostic. Every table includes</span>
-<span class="sd">        IDs, canonical configuration values, selected choices, ``time_myr``,</span>
+<span class="sd">        IDs, canonical configuration values, selected choices, ``time``,</span>
 <span class="sd">        and its requested fields.</span>
 
 <span class="sd">    Raises:</span>
@@ -3262,7 +3262,7 @@ columns rather than configuration metadata.</p>
             <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
                 <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
-            <span class="n">times</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;time_myr&quot;</span><span class="p">)</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
             <span class="n">lengths</span> <span class="o">=</span> <span class="p">{</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">field</span><span class="p">])</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">)}</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -3273,14 +3273,14 @@ columns rather than configuration metadata.</p>
             <span class="c1"># Attach invariant simulation metadata to every time row, making</span>
             <span class="c1"># the returned table immediately usable for grouping and plotting.</span>
             <span class="n">parameters</span> <span class="o">=</span> <span class="n">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">time_myr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
                 <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">{</span>
                         <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span>
                         <span class="s2">&quot;simulation_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">parameters</span><span class="p">,</span>
                         <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">choices</span><span class="p">),</span>
-                        <span class="s2">&quot;time_myr&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">time_myr</span><span class="p">),</span>
+                        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">),</span>
                         <span class="o">**</span><span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">index</span><span class="p">])</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">},</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
@@ -3551,9 +3551,9 @@ known Myr-valued normalization parameter.</p>
                 <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span>
                 <span class="s2">&quot;simulation_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">,</span>
                 <span class="s2">&quot;snapshot_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">selected_path</span><span class="p">),</span>
-                <span class="s2">&quot;target_time_myr&quot;</span><span class="p">:</span> <span class="n">target_time</span><span class="p">,</span>
-                <span class="s2">&quot;snapshot_time_myr&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">selected_time</span><span class="p">),</span>
-                <span class="s2">&quot;time_offset_myr&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">selected_time</span><span class="p">)</span> <span class="o">-</span> <span class="n">target_time</span><span class="p">,</span>
+                <span class="s2">&quot;target_time&quot;</span><span class="p">:</span> <span class="n">target_time</span><span class="p">,</span>
+                <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">selected_time</span><span class="p">),</span>
+                <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">selected_time</span><span class="p">)</span> <span class="o">-</span> <span class="n">target_time</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
@@ -3837,7 +3837,7 @@ column, or unique ascending simulation times.</p>
         <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> has no declared fields metadata.&quot;</span><span class="p">)</span>
-        <span class="n">required</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">normalization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">required</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">normalization</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">required</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
@@ -3848,8 +3848,8 @@ column, or unique ascending simulation times.</p>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">],</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="c1"># Each simulation may use a different normalized target, but its</span>
             <span class="c1"># source diagnostic still supplies the unique interpolation grid.</span>
-            <span class="n">ordered</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time_myr&quot;</span><span class="p">)</span>
-            <span class="n">source_times</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="s2">&quot;time_myr&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">ordered</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="n">source_times</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">source_times</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;collection_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;simulation_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation has duplicate or unordered times: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -3859,8 +3859,8 @@ column, or unique ascending simulation times.</p>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">scale</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation has invalid normalization </span><span class="si">{</span><span class="n">normalization</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">target</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
-            <span class="n">metadata</span> <span class="o">=</span> <span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time_myr&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">metadata</span><span class="p">,</span> <span class="s2">&quot;time_myr&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">}</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">metadata</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
                 <span class="n">values</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
                 <span class="n">row</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
