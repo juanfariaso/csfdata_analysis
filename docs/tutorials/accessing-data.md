@@ -59,6 +59,36 @@ each simulation. `snapshot_slice` is a Pandas table containing the selected
 `snapshot_path`, requested physical time, actual snapshot time, and its offset.
 It only identifies files; it does not read AMUSE particles.
 
+### Work With One Snapshot
+
+To work with particles from one particular simulation, include its `seed_index`
+in the filters so the selection contains one row. Check the actual selected
+time, then use [`read_stars`](../reference/csfdata_analysis/readers/dcaf.md#csfdata_analysis.readers.dcaf.read_stars)
+to load that one D-CAF snapshot:
+
+```python
+from pathlib import Path
+
+from csfdata_analysis.data import load_simulations, select_snapshot_slice
+from csfdata_analysis.readers import read_stars
+
+simulations = load_simulations(
+    "/path/to/catalogue",
+    collection_id="collection-id",
+    filters={"tff": 1.0, "sfe": 0.1, "seed_index": 3},
+)
+snapshot = select_snapshot_slice(simulations, time=10.0).iloc[0]
+
+print(snapshot["snapshot_time"])
+print(snapshot["time_offset"])
+
+stars = read_stars(Path(snapshot["snapshot_path"]))
+```
+
+`stars` is an AMUSE `Particles` object for the selected stored file. This is
+appropriate for an exploratory calculation; it does not create or register a
+catalogue diagnostic.
+
 ## Read A Time Series
 
 Select a diagnostic by `(name, version)`, inspect it, then request one stored
@@ -73,7 +103,7 @@ data = radii.read(
     fields=("r_l50", "n_l50"),
 )
 
-time = data["time_myr"]
+time = data["time"]
 half_mass_radius = data["r_l50"]
 ```
 
@@ -133,7 +163,7 @@ series = load_time_series(
 
 aligned = interpolate_time_series(
     series,
-    times_myr=np.arange(0.0, 30.0, 0.1),
+    times=np.arange(0.0, 30.0, 0.1),
 )
 
 summary = aggregate_time_series(

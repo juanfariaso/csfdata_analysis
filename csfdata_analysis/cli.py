@@ -316,7 +316,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
     print(f"Time-series diagnostic: {diagnostic.name} v{diagnostic.version}")
     print(f"Simulation: {report.simulation_root}")
     print(f"Snapshots: {report.snapshot_count}")
-    print(f"Time range: {report.first_time_myr:g} to {report.last_time_myr:g} Myr")
+    print(f"Time range: {report.first_time:g} to {report.last_time:g} Myr")
     print(f"Output: {report.output_path}")
     if report.dry_run:
         print("Dry run: no particle data was read and no output was created.")

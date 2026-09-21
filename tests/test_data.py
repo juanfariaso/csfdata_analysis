@@ -61,7 +61,7 @@ def test_load_align_aggregate_and_slice_multiple_time_series(tmp_path: Path) -> 
 
     radii = data[("radii", "v1")]
     assert set(radii["tff"]) == {1.0, 2.0}
-    assert list(radii.columns[-3:]) == ["time_myr", "r50", "n_stars"]
+    assert list(radii.columns[-3:]) == ["time", "r50", "n_stars"]
     first_values = list(aligned[("radii", "v1")][lambda table: table["simulation_id"] == "0001"]["r50"])
     assert first_values[:2] == [1.0, 2.0]
     assert math.isnan(first_values[2])
@@ -70,7 +70,7 @@ def test_load_align_aggregate_and_slice_multiple_time_series(tmp_path: Path) -> 
     assert first_summary["r50_mean"] == approx(3.0)
     assert first_summary["r50_std"] == approx(2.0**0.5)
     assert summary[("radii", "v1")].iloc[2]["n_simulations"] == 0
-    assert list(sliced[("velocity", "v1")]["time_myr"]) == [0.5, 1.0]
+    assert list(sliced[("velocity", "v1")]["time"]) == [0.5, 1.0]
     assert list(sliced[("velocity", "v1")]["mean_vr"]) == [3.0, 8.0]
 
 
@@ -79,16 +79,16 @@ def test_select_snapshot_slice_uses_a_normalized_time(tmp_path: Path) -> None:
     simulation = _write_simulation(tmp_path, "0001", 2.0)
     raw_output = simulation.path / "raw/dcaf_output"
     raw_output.mkdir(parents=True)
-    for index, time_myr in enumerate((1.0, 3.0)):
+    for index, time in enumerate((1.0, 3.0)):
         with h5py.File(raw_output / f"stars_{index:03}.amuse", "w") as snapshot:
             group = snapshot.create_group("data/0000000001")
-            group.attrs["model_time"] = time_myr * _MYR_IN_SECONDS
+            group.attrs["model_time"] = time * _MYR_IN_SECONDS
 
     slice_data = select_snapshot_slice((simulation,), 1.4, normalization="tff")
 
-    assert slice_data.iloc[0]["target_time_myr"] == 2.8
-    assert slice_data.iloc[0]["snapshot_time_myr"] == 3.0
-    assert slice_data.iloc[0]["time_offset_myr"] == approx(0.2)
+    assert slice_data.iloc[0]["target_time"] == 2.8
+    assert slice_data.iloc[0]["snapshot_time"] == 3.0
+    assert slice_data.iloc[0]["time_offset"] == approx(0.2)
 
 
 def _write_simulation(root: Path, simulation_id: str, tff: float) -> CatalogueSimulation:
@@ -152,9 +152,10 @@ def _write_time_series(
     path.parent.mkdir(parents=True)
     with h5py.File(path, "w") as output:
         output.attrs["complete"] = True
+        output.attrs["format_schema_version"] = 2
         output.attrs["diagnostic_name"] = diagnostic
         output.attrs["diagnostic_version"] = 1
-        output.create_dataset("time_myr", data=(0.0, 2.0))
+        output.create_dataset("time", data=(0.0, 2.0))
         choice = output.create_group("choices").create_group("stellar_com")
         for name, values in fields.items():
             choice.create_dataset(name, data=values)

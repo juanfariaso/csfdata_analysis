@@ -13,8 +13,8 @@ from csfdata_analysis.diagnostics.base import ScalarDiagnostic
 
 
 def fit_expansion_rate(
-    time_myr: np.ndarray,
-    radius_pc: np.ndarray,
+    time: np.ndarray,
+    radius: np.ndarray,
     n_stars: np.ndarray,
     min_points: int = 6,
 ) -> dict[str, float]:
@@ -25,8 +25,8 @@ def fit_expansion_rate(
     changing the stellar system.
 
     Args:
-        time_myr: Snapshot times in Myr.
-        radius_pc: One selected Lagrangian-radius series in pc, for example
+        time: Snapshot times in Myr.
+        radius: One selected Lagrangian-radius series in pc, for example
             ``r_l50`` from the ``stellar_com`` group.
         n_stars: Total valid stellar count at the same snapshots.
         min_points: Minimum number of snapshots required in the fitted interval.
@@ -49,8 +49,8 @@ def fit_expansion_rate(
             lengths, contain insufficient usable snapshots, or do not provide
             enough post-minimum snapshots for the fit.
     """
-    time = np.asarray(time_myr, dtype=float)
-    radius = np.asarray(radius_pc, dtype=float)
+    time = np.asarray(time, dtype=float)
+    radius = np.asarray(radius, dtype=float)
     counts = np.asarray(n_stars, dtype=float)
 
     if time.ndim != 1 or radius.ndim != 1 or counts.ndim != 1:
@@ -94,8 +94,8 @@ def fit_expansion_rate(
             "Not enough snapshots from the post-star-formation minimum to the final time."
         )
 
-    slope_pc_per_myr, intercept_pc = np.polyfit(fit_time, fit_radius, 1)
-    fitted_radius = intercept_pc + slope_pc_per_myr * fit_time
+    slope, intercept = np.polyfit(fit_time, fit_radius, 1)
+    fitted_radius = intercept + slope * fit_time
     residuals = fit_radius - fitted_radius
 
     squared_residuals = float(np.sum(residuals**2))
@@ -111,9 +111,9 @@ def fit_expansion_rate(
         nrmse_iqr = rmse / iqr
 
     dRdt = float(
-        (slope_pc_per_myr | (units.pc / units.Myr)).value_in(units.kms)
+        (slope | (units.pc / units.Myr)).value_in(units.kms)
     )
-    fit_radius_at_start = float(intercept_pc + slope_pc_per_myr * fit_start_time)
+    fit_radius_at_start = float(intercept + slope * fit_start_time)
 
     return {
         "dRdt": dRdt,
@@ -159,7 +159,7 @@ def compute_expansion_rate(
     )
 
     return fit_expansion_rate(
-        np.asarray(data["time_myr"], dtype=float),
+        np.asarray(data["time"], dtype=float),
         np.asarray(data[radius_name], dtype=float),
         np.asarray(data["n_stars"], dtype=float),
     )

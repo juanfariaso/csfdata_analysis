@@ -47,6 +47,7 @@ optional_parameters: []
     result.parent.mkdir(parents=True)
     with h5py.File(result, "w") as output:
         output.attrs["complete"] = True
+        output.attrs["format_schema_version"] = 2
         output.attrs["collection_id"] = "grid"
         output.attrs["simulation_id"] = "0001"
         output.attrs["config_sha256"] = file_sha256(lite_simulation / "config.yaml")

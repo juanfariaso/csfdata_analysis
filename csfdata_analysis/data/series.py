@@ -32,7 +32,7 @@ def load_time_series(
 
     Returns:
         One wide Pandas table per requested diagnostic. Every table includes
-        IDs, canonical configuration values, selected choices, ``time_myr``,
+        IDs, canonical configuration values, selected choices, ``time``,
         and its requested fields.
 
     Raises:
@@ -86,7 +86,7 @@ def load_time_series(
             except (KeyError, ValueError):
                 missing.append(f"{simulation.collection_id}/{simulation.simulation_id}")
                 continue
-            times = values.pop("time_myr")
+            times = values.pop("time")
             lengths = {len(times), *(len(values[field]) for field in fields)}
             if len(lengths) != 1:
                 raise ValueError(
@@ -97,14 +97,14 @@ def load_time_series(
             # Attach invariant simulation metadata to every time row, making
             # the returned table immediately usable for grouping and plotting.
             parameters = configuration_values(simulation)
-            for index, time_myr in enumerate(times):
+            for index, time in enumerate(times):
                 rows.append(
                     {
                         "collection_id": simulation.collection_id,
                         "simulation_id": simulation.simulation_id,
                         **parameters,
                         **dict(choices),
-                        "time_myr": float(time_myr),
+                        "time": float(time),
                         **{field: float(values[field][index]) for field in fields},
                     }
                 )
@@ -122,13 +122,13 @@ def load_time_series(
 
 def interpolate_time_series(
     data: dict[DiagnosticKey, pandas.DataFrame],
-    times_myr: Sequence[float],
+    times: Sequence[float],
 ) -> dict[DiagnosticKey, pandas.DataFrame]:
     """Linearly interpolate selected diagnostics onto one physical-time grid.
 
     Args:
         data: Diagnostic tables returned by :func:`load_time_series`.
-        times_myr: Explicit target model times in Myr.
+        times: Explicit target model times in Myr.
 
     Returns:
         One aligned table per diagnostic. Values outside an individual
@@ -139,16 +139,16 @@ def interpolate_time_series(
             strictly increasing non-empty sequence, or one simulation has
             duplicate or unordered source times.
     """
-    targets = numpy.asarray(times_myr, dtype=float)
+    targets = numpy.asarray(times, dtype=float)
     if targets.ndim != 1 or len(targets) == 0 or numpy.any(numpy.diff(targets) <= 0):
-        raise ValueError("times_myr must be one non-empty strictly increasing sequence.")
+        raise ValueError("times must be one non-empty strictly increasing sequence.")
 
     aligned_tables: dict[DiagnosticKey, pandas.DataFrame] = {}
     for identity, table in data.items():
         fields = table.attrs.get("fields")
         if not isinstance(fields, tuple) or not fields:
             raise ValueError(f"Diagnostic table {identity!r} has no declared fields metadata.")
-        required_columns = {"collection_id", "simulation_id", "time_myr", *fields}
+        required_columns = {"collection_id", "simulation_id", "time", *fields}
         if not required_columns.issubset(table.columns):
             missing = ", ".join(sorted(required_columns - set(table.columns)))
             raise ValueError(f"Diagnostic table {identity!r} is missing columns: {missing}")
@@ -157,12 +157,12 @@ def interpolate_time_series(
         for _, group in table.groupby(["collection_id", "simulation_id"], sort=False):
             # A unique ascending source grid is required for one well-defined
             # linear interpolation per simulation and output field.
-            ordered = group.sort_values("time_myr")
-            source_times = ordered["time_myr"].to_numpy(dtype=float)
+            ordered = group.sort_values("time")
+            source_times = ordered["time"].to_numpy(dtype=float)
             if numpy.any(numpy.diff(source_times) <= 0):
                 label = f"{ordered.iloc[0]['collection_id']}/{ordered.iloc[0]['simulation_id']}"
                 raise ValueError(f"Simulation has duplicate or unordered times: {label}")
-            metadata = ordered.iloc[0].drop(labels=["time_myr", *fields]).to_dict()
+            metadata = ordered.iloc[0].drop(labels=["time", *fields]).to_dict()
             interpolated_fields = {}
             for field in fields:
                 values = ordered[field].to_numpy(dtype=float)
@@ -173,7 +173,7 @@ def interpolate_time_series(
                 rows.append(
                     {
                         **metadata,
-                        "time_myr": float(target),
+                        "time": float(target),
                         **{field: float(interpolated_fields[field][index]) for field in fields},
                     }
                 )
@@ -197,7 +197,7 @@ def aggregate_time_series(
 
     Returns:
         One summary table per diagnostic. Each has grouping columns,
-        ``time_myr``, ``n_simulations``, and ``<field>_mean`` and
+        ``time``, ``n_simulations``, and ``<field>_mean`` and
         ``<field>_std`` columns.
 
     Raises:
@@ -212,14 +212,14 @@ def aggregate_time_series(
         fields = table.attrs.get("fields")
         if not isinstance(fields, tuple) or not fields:
             raise ValueError(f"Diagnostic table {identity!r} has no declared fields metadata.")
-        columns = {"collection_id", "time_myr", *group_by, *fields}
+        columns = {"collection_id", "time", *group_by, *fields}
         if not columns.issubset(table.columns):
             missing = ", ".join(sorted(columns - set(table.columns)))
             raise ValueError(f"Diagnostic table {identity!r} is missing columns: {missing}")
 
         # Group only by stable metadata and model time. A simulation contributes
         # only when it has finite values for every requested output field.
-        grouping = ["collection_id", *group_by, "time_myr"]
+        grouping = ["collection_id", *group_by, "time"]
         rows: list[dict[str, str | int | float | bool]] = []
         for values, group in table.groupby(grouping, sort=False, dropna=False):
             group_values = values if isinstance(values, tuple) else (values,)

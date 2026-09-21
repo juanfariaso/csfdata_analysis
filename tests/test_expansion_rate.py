@@ -59,9 +59,10 @@ def test_scalar_runner_registers_and_writes_every_choice(tmp_path: Path) -> None
     series_path.parent.mkdir(parents=True)
     with h5py.File(series_path, "w") as series_file:
         series_file.attrs["complete"] = True
+        series_file.attrs["format_schema_version"] = 2
         series_file.attrs["diagnostic_name"] = "lagrangian_radii"
         series_file.attrs["diagnostic_version"] = 1
-        series_file.create_dataset("time_myr", data=np.arange(10, dtype=float))
+        series_file.create_dataset("time", data=np.arange(10, dtype=float))
         choices_group = series_file.create_group("choices")
         for center in ("origin", "stellar_com"):
             group = choices_group.create_group(center)

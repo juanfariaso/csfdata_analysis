@@ -70,7 +70,7 @@ velocity = data[("radial_velocity_3d", "v1")]
 ```
 
 Every table includes `collection_id`, `simulation_id`, all known canonical
-configuration parameters, selected scientific choices, `time_myr`, and its
+configuration parameters, selected scientific choices, `time`, and its
 requested output fields. By default, the function stops if any selected
 simulation lacks a completed matching result. Use `allow_missing=True` only
 for an explicitly partial exploratory selection.
@@ -87,7 +87,7 @@ from csfdata_analysis.data.series import aggregate_time_series, interpolate_time
 
 aligned = interpolate_time_series(
     data,
-    times_myr=np.arange(0.0, 30.0, 0.1),
+    times=np.arange(0.0, 30.0, 0.1),
 )
 
 summary = aggregate_time_series(aligned)

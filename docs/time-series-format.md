@@ -21,11 +21,13 @@ snapshot:
 
 | Dataset | Meaning |
 | --- | --- |
-| `time_myr` | Physical model time in Myr. |
+| `time` | Physical model time in Myr. |
 | `snapshot_id` | Source path relative to the imported simulation's `raw/` directory. |
 
 The root attributes identify the diagnostic, its version, and this HDF5
-format's schema version.
+format's schema version. The current `format_schema_version` is `2`; files
+written by the earlier time-series schema must be recomputed before this
+interface reads them.
 
 ## Choices
 
@@ -34,7 +36,7 @@ groups inside the same time-series file. They are not separate files.
 
 ```text
 series.h5
-├── time_myr
+├── time
 ├── snapshot_id
 └── choices/
     ├── origin/

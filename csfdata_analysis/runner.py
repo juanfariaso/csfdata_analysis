@@ -40,16 +40,16 @@ class SimulationReport:
         simulation_root: Imported simulation directory that was analysed.
         output_path: Final path of the created HDF5 time series.
         snapshot_count: Number of snapshots evaluated successfully.
-        first_time_myr: First snapshot model time in Myr.
-        last_time_myr: Final snapshot model time in Myr.
+        first_time: First snapshot model time in Myr.
+        last_time: Final snapshot model time in Myr.
         dry_run: Whether this report describes a plan that created no file.
     """
 
     simulation_root: Path
     output_path: Path
     snapshot_count: int
-    first_time_myr: float
-    last_time_myr: float
+    first_time: float
+    last_time: float
     dry_run: bool
 
 
@@ -152,7 +152,7 @@ def compute_time_series(
     if not snapshot_paths:
         raise ValueError(f"No snapshots found for simulation: {simulation_root}")
 
-    times_myr = []
+    times = []
     snapshot_ids = []
     for snapshot_number, snapshot_path in enumerate(snapshot_paths, start=1):
         try:
@@ -161,10 +161,10 @@ def compute_time_series(
             raise ValueError(
                 f"Snapshot path is outside the simulation raw directory: {snapshot_path}"
             ) from error
-        time_myr = adapter.snapshot_time(snapshot_path)
-        if time_myr is None:
+        time = adapter.snapshot_time(snapshot_path)
+        if time is None:
             raise ValueError(f"Snapshot has no readable model time: {snapshot_id}")
-        times_myr.append(time_myr)
+        times.append(time)
         snapshot_ids.append(snapshot_id)
 
     if dry_run:
@@ -172,8 +172,8 @@ def compute_time_series(
             simulation_root=simulation_root,
             output_path=destination,
             snapshot_count=len(snapshot_paths),
-            first_time_myr=times_myr[0],
-            last_time_myr=times_myr[-1],
+            first_time=times[0],
+            last_time=times[-1],
             dry_run=True,
         )
 
@@ -253,12 +253,12 @@ def compute_time_series(
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging_path = destination.parent / f".{destination.name}.{uuid4().hex}.tmp"
     with h5py.File(staging_path, "w") as output_file:
-        output_file.attrs["format_schema_version"] = 1
+        output_file.attrs["format_schema_version"] = 2
         output_file.attrs["diagnostic_name"] = diagnostic.name
         output_file.attrs["diagnostic_version"] = diagnostic.version
         for name, value in (identity or {}).items():
             output_file.attrs[name] = value
-        output_file.create_dataset("time_myr", data=times_myr)
+        output_file.create_dataset("time", data=times)
         output_file.create_dataset(
             "snapshot_id",
             data=snapshot_ids,
@@ -281,8 +281,8 @@ def compute_time_series(
         simulation_root=simulation_root,
         output_path=destination,
         snapshot_count=len(snapshot_paths),
-        first_time_myr=times_myr[0],
-        last_time_myr=times_myr[-1],
+        first_time=times[0],
+        last_time=times[-1],
         dry_run=False,
     )
 

@@ -86,9 +86,9 @@ def create_slice_manifest(
         entries.append(
             {
                 "simulation_id": simulation.simulation_id,
-                "target_time_myr": float(slice_row["target_time_myr"]),
-                "snapshot_time_myr": float(slice_row["snapshot_time_myr"]),
-                "time_offset_myr": float(slice_row["time_offset_myr"]),
+                "target_time": float(slice_row["target_time"]),
+                "snapshot_time": float(slice_row["snapshot_time"]),
+                "time_offset": float(slice_row["time_offset"]),
                 "snapshot_relative_path": str(snapshot_relative_path),
             }
         )

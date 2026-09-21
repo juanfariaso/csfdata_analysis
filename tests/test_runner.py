@@ -58,9 +58,9 @@ def test_compute_time_series_writes_a_versioned_time_series(tmp_path: Path) -> N
     with h5py.File(report.output_path) as result:
         assert result.attrs["diagnostic_name"] == "example_radius"
         assert result.attrs["diagnostic_version"] == 1
-        assert result["time_myr"][:].tolist() == [2.5]
+        assert result["time"][:].tolist() == [2.5]
         assert result["snapshot_id"][:].tolist() == [b"dcaf_output/stars_0001.amuse"]
-        assert result.attrs["format_schema_version"] == 1
+        assert result.attrs["format_schema_version"] == 2
         assert result["choices/origin"].attrs["method"] == "coordinate_origin"
         assert result["choices/origin/r_l50"][:].tolist() == [3.0]
         assert result["choices/origin/r_l50"].attrs["unit"] == "pc"

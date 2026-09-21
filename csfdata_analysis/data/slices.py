@@ -44,7 +44,7 @@ def select_time_series_slice(
         fields = table.attrs.get("fields")
         if not isinstance(fields, tuple) or not fields:
             raise ValueError(f"Diagnostic table {identity!r} has no declared fields metadata.")
-        required = {"collection_id", "simulation_id", "time_myr", *fields}
+        required = {"collection_id", "simulation_id", "time", *fields}
         if normalization is not None:
             required.add(normalization)
         if not required.issubset(table.columns):
@@ -55,8 +55,8 @@ def select_time_series_slice(
         for _, group in table.groupby(["collection_id", "simulation_id"], sort=False):
             # Each simulation may use a different normalized target, but its
             # source diagnostic still supplies the unique interpolation grid.
-            ordered = group.sort_values("time_myr")
-            source_times = ordered["time_myr"].to_numpy(dtype=float)
+            ordered = group.sort_values("time")
+            source_times = ordered["time"].to_numpy(dtype=float)
             if numpy.any(numpy.diff(source_times) <= 0):
                 label = f"{ordered.iloc[0]['collection_id']}/{ordered.iloc[0]['simulation_id']}"
                 raise ValueError(f"Simulation has duplicate or unordered times: {label}")
@@ -66,8 +66,8 @@ def select_time_series_slice(
                 if not isinstance(scale, (int, float)) or not numpy.isfinite(scale):
                     raise ValueError(f"Simulation has invalid normalization {normalization!r}: {label}")
                 target *= float(scale)
-            metadata = ordered.iloc[0].drop(labels=["time_myr", *fields]).to_dict()
-            row = {**metadata, "time_myr": target}
+            metadata = ordered.iloc[0].drop(labels=["time", *fields]).to_dict()
+            row = {**metadata, "time": target}
             for field in fields:
                 values = ordered[field].to_numpy(dtype=float)
                 row[field] = (
@@ -136,9 +136,9 @@ def select_snapshot_slice(
                 "collection_id": simulation.collection_id,
                 "simulation_id": simulation.simulation_id,
                 "snapshot_path": str(selected_path),
-                "target_time_myr": target_time,
-                "snapshot_time_myr": float(selected_time),
-                "time_offset_myr": float(selected_time) - target_time,
+                "target_time": target_time,
+                "snapshot_time": float(selected_time),
+                "time_offset": float(selected_time) - target_time,
             }
         )
     return pandas.DataFrame(rows)

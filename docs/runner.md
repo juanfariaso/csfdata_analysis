@@ -23,7 +23,7 @@ On success, the runner writes exactly one HDF5 file:
 derived/diagnostics/<diagnostic-name>/v<version>/series.h5
 ```
 
-It contains `time_myr`, `snapshot_id`, and one group per diagnostic choice.
+It contains `time`, `snapshot_id`, and one group per diagnostic choice.
 Each choice group contains its declared output datasets and method metadata.
 Every output dataset stores its canonical unit as an HDF5 attribute.
 
