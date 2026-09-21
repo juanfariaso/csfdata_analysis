@@ -194,6 +194,10 @@ def compute_time_series(
         "pc": units.pc,
         "Msun": units.MSun,
         "km/s": units.kms,
+        "km/s/pc": units.kms / units.pc,
+        "pc*km/s": units.pc * units.kms,
+        "pc^2": units.pc**2,
+        "km^2/s^2": units.kms**2,
         "1": units.none,
     }
     unsupported_units = sorted(

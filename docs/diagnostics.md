@@ -18,9 +18,39 @@ mass-weighted Lagrangian radii, and the number of valid stars within each
 corresponding radius. Thus `r_l50` is the half-mass radius and `n_l50` is the
 number of valid stars within or at that radius.
 
-A diagnostic is a versioned definition of scalar measurements calculated from
+A diagnostic is a versioned definition of derived measurements calculated from
 one AMUSE particle set. The runner evaluates the same diagnostic for every
 snapshot of a simulation and writes one standardized time series.
+
+## Radial Velocity
+
+`radial_velocity_3d v1` measures internal stellar expansion or contraction in
+three dimensions. For each standard `center` choice, it subtracts the mean
+bulk velocity separately within the all-star sample and each cumulative
+Lagrangian region, then projects individual velocities along the outward
+centre-relative radial direction. Positive values therefore indicate outward
+motion.
+
+The all-star fields are `n_vr`, `mean_vr`, `median_vr`, `sigma_vr`,
+`mean_vr_over_sigma_vr`, and `median_vr_over_sigma_vr`. The same six fields
+are stored for every standard Lagrangian suffix, for example `mean_vr_l50`.
+Radii and enclosed star counts remain in `lagrangian_radii v1` and are not
+duplicated by this diagnostic.
+
+## Kappa
+
+`kappa_3d v1` measures Cartesian stellar expansion slopes. It fits `vx` versus
+`x`, `vy` versus `y`, and `vz` versus `z` using valid stars strictly outside
+`r50`. Here `r50` is the half-number radius: the 50th percentile of
+centre-relative stellar distances by number. It is therefore distinct from
+`r_l50`, which is the half-mass Lagrangian radius stored by
+`lagrangian_radii v1`.
+
+The diagnostic is calculated for the standard `origin` and `stellar_com`
+centre choices. Each result records the three slopes, their `r2` values,
+coordinate--velocity covariances, coordinate and velocity variances, and
+one- and three-dimensional residual velocity dispersions. It does not apply a
+bound-star selection in version 1.
 
 ## Module Layout
 
@@ -56,7 +86,7 @@ lagrangian_radii = TimeSeriesDiagnostic(
     evaluation_choices=(
         EvaluationChoice(
             name="stellar_com",
-            metadata={"method": "mass_weighted_stellar_center_of_mass"},
+            metadata={},
             outputs={"r_l10": "pc", "r_l50": "pc", "r_l90": "pc"},
         ),
     ),

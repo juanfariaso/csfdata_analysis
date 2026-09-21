@@ -130,18 +130,12 @@ LAGRANGIAN_RADII_V1 = TimeSeriesDiagnostic(
     evaluation_choices=(
         EvaluationChoice(
             name="origin",
-            metadata={
-                "method": "coordinate_origin",
-                "particle_selection": "finite_positive_mass_stars",
-            },
+            metadata={},
             outputs=LAGRANGIAN_OUTPUTS,
         ),
         EvaluationChoice(
             name="stellar_com",
-            metadata={
-                "method": "mass_weighted_stellar_center_of_mass",
-                "particle_selection": "finite_positive_mass_stars",
-            },
+            metadata={},
             outputs=LAGRANGIAN_OUTPUTS,
         ),
     ),

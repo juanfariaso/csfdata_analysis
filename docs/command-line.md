@@ -42,6 +42,25 @@ csfdata analysis compute lagrangian_radii \
   --no-prompt
 ```
 
+For example, compute the three-dimensional radial-velocity diagnostic across
+the same selected collection:
+
+```bash
+csfdata analysis compute radial_velocity_3d \
+  --catalogue /path/to/catalogue \
+  --workers 12 \
+  --no-prompt
+```
+
+Compute the coordinate-wise kappa expansion slopes in the same way:
+
+```bash
+csfdata analysis compute kappa_3d \
+  --catalogue /path/to/catalogue \
+  --workers 12 \
+  --no-prompt
+```
+
 Use repeated filters for a subset. Numeric ranges use inclusive `LOWER:UPPER`
 syntax:
 
