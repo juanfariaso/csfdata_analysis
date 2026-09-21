@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 import numpy
 import pandas
@@ -17,14 +17,14 @@ DiagnosticKey = tuple[str, str]
 
 def load_time_series(
     simulations: Sequence[CatalogueSimulation],
-    diagnostics: Mapping[DiagnosticKey, Mapping[str, object]],
+    diagnostics: dict[DiagnosticKey, dict[str, object]],
     allow_missing: bool = False,
 ) -> dict[DiagnosticKey, pandas.DataFrame]:
     """Load selected fields from one or more completed diagnostics.
 
     Args:
         simulations: Catalogue simulations selected by ``load_simulations``.
-        diagnostics: Mapping from ``(name, version)`` to a selection mapping.
+        diagnostics: Dictionary from ``(name, version)`` to a selection dictionary.
             Each selection defines ``"choices"`` as an exact choice mapping
             and ``"fields"`` as a non-empty sequence of output names.
         allow_missing: Whether to omit simulations without a completed selected
@@ -57,15 +57,15 @@ def load_time_series(
             or not all(isinstance(value, str) and value for value in identity)
         ):
             raise ValueError("Diagnostic identities must be non-empty (name, version) tuples.")
-        if not isinstance(selection, Mapping):
-            raise ValueError(f"Diagnostic selection for {identity!r} must be a mapping.")
+        if not isinstance(selection, dict):
+            raise ValueError(f"Diagnostic selection for {identity!r} must be a dictionary.")
         choices = selection.get("choices")
         fields = selection.get("fields")
-        if not isinstance(choices, Mapping) or not all(
+        if not isinstance(choices, dict) or not all(
             isinstance(name, str) and isinstance(value, str)
             for name, value in choices.items()
         ):
-            raise ValueError(f"Diagnostic selection for {identity!r} needs string choices.")
+            raise ValueError(f"Diagnostic selection for {identity!r} needs a string choices dictionary.")
         if (
             not isinstance(fields, Sequence)
             or isinstance(fields, str)
@@ -121,7 +121,7 @@ def load_time_series(
 
 
 def interpolate_time_series(
-    data: Mapping[DiagnosticKey, pandas.DataFrame],
+    data: dict[DiagnosticKey, pandas.DataFrame],
     times_myr: Sequence[float],
 ) -> dict[DiagnosticKey, pandas.DataFrame]:
     """Linearly interpolate selected diagnostics onto one physical-time grid.
@@ -184,7 +184,7 @@ def interpolate_time_series(
 
 
 def aggregate_time_series(
-    data: Mapping[DiagnosticKey, pandas.DataFrame],
+    data: dict[DiagnosticKey, pandas.DataFrame],
     group_by: Sequence[str] = (),
 ) -> dict[DiagnosticKey, pandas.DataFrame]:
     """Calculate ensemble mean and standard deviation at every stored time.

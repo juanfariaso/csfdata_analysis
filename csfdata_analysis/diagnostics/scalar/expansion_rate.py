@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import numpy as np
 from amuse.units import units
 from csfdata.catalogue import CatalogueSimulation
@@ -131,8 +129,8 @@ def fit_expansion_rate(
 
 def compute_expansion_rate(
     simulation: CatalogueSimulation,
-    choices: Mapping[str, str],
-) -> Mapping[str, float | int]:
+    choices: dict[str, str],
+) -> dict[str, float | int]:
     """Compute one choice-specific expansion-rate result for a simulation.
 
     Args:

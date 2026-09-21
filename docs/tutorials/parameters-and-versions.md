@@ -12,7 +12,7 @@ Assume we decide to include the radius enclosing 99 percent of stellar mass.
 The output name is `r_l99`; its canonical unit remains `pc` in the diagnostic
 schema and HDF5 attribute, not in the name.
 
-1. Add `"r_l99": "pc"` to the `outputs` mapping of every relevant
+1. Add `"r_l99": "pc"` to the `outputs` dictionary of every relevant
    `EvaluationChoice`.
 2. Update `measure_lagrangian_radii` so every choice returns an AMUSE quantity
    named `r_l99`.

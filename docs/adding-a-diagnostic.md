@@ -107,7 +107,7 @@ Declare a versioned
 [`TimeSeriesDiagnostic`](reference/csfdata_analysis/diagnostics/base.md#csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic)
 with one
 [`EvaluationChoice`](reference/csfdata_analysis/diagnostics/base.md#csfdata_analysis.diagnostics.base.EvaluationChoice)
-per stored evaluation group. The `metadata` mapping becomes HDF5 attributes.
+per stored evaluation group. The `metadata` dictionary becomes HDF5 attributes.
 `choice_names` references registered global choices from
 [`csfdata_analysis.choices`](reference/csfdata_analysis/choices.md).
 
@@ -236,8 +236,8 @@ Their evaluator signature is:
 ```python
 def evaluate(
     simulation: CatalogueSimulation,
-    choices: Mapping[str, str],
-) -> Mapping[str, float | int]:
+    choices: dict[str, str],
+) -> dict[str, float | int]:
     ...
 ```
 

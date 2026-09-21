@@ -102,6 +102,10 @@ receive `NaN`. Every summary table contains `n_simulations` plus
 combinations. `n_simulations` counts simulations with finite values for every
 field selected in that diagnostic table.
 
+For a seed ensemble, omit `seed_index` from the initial `load_simulations`
+filters and from `group_by`. Include every parameter that defines the physical
+model in `group_by`; rows that differ only in seed are then averaged together.
+
 ## Select Diagnostic Slices
 
 Select linearly interpolated derived values at one time. A normalization makes

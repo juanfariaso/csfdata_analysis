@@ -1,6 +1,5 @@
 """Standardized diagnostic definitions and automatic module registration."""
 
-from collections.abc import Mapping
 from hashlib import sha256
 from importlib import import_module, util
 from pkgutil import iter_modules
@@ -233,7 +232,7 @@ for registered_diagnostic in DIAGNOSTICS.values():
 def ensure_collection_diagnostics(
     collection_root: Path,
     diagnostics: tuple[TimeSeriesDiagnostic | ScalarDiagnostic, ...],
-    available_diagnostics: Mapping[
+    available_diagnostics: dict[
         tuple[str, str], TimeSeriesDiagnostic | ScalarDiagnostic
     ] | None = None,
 ) -> Path:

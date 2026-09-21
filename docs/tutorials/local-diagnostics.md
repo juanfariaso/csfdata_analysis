@@ -44,8 +44,6 @@ create:
 ```
 
 ```python
-from collections.abc import Mapping
-
 from amuse.datamodel import Particles
 from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.diagnostics import DiagnosticField, DiagnosticRequirement
@@ -64,7 +62,7 @@ def measure_maximum_radius(particles: Particles):
         particles: AMUSE stellar particles for one simulation snapshot.
 
     Returns:
-        One result mapping for every declared evaluation choice.
+        One result dictionary for every declared evaluation choice.
     """
     radii = (particles.x**2 + particles.y**2 + particles.z**2).sqrt()
     return {
@@ -96,14 +94,14 @@ MAXIMUM_RADIUS_V1 = TimeSeriesDiagnostic(
 
 def measure_final_maximum_radius(
     simulation: CatalogueSimulation,
-    choices: Mapping[str, str],
+    choices: dict[str, str],
 ) -> dict[str, float]:
     """Read one completed time series and return its final scalar value.
 
     Args:
         simulation: Catalogue simulation whose derived results are available.
         choices: Concrete registered choices selected by the scalar runner.
-            This example has no choice dimensions, so the mapping is empty.
+            This example has no choice dimensions, so the dictionary is empty.
 
     Returns:
         The declared scalar output in its canonical unit.
@@ -142,7 +140,7 @@ intentionally different:
 - A `TimeSeriesDiagnostic` evaluator receives `particles` for one snapshot and
   returns all declared evaluation-choice results.
 - A `ScalarDiagnostic` evaluator receives `simulation` and `choices`, then
-  returns one mapping of declared scalar fields.
+  returns one dictionary of declared scalar fields.
 
 `choice_names` and `requires` are optional definition arguments for both
 types. Omit them when the diagnostic has no registered scientific choices or

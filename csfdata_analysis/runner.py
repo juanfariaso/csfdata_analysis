@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
@@ -98,7 +98,7 @@ def compute_time_series(
     dry_run: bool = False,
     overwrite: bool = False,
     output_path: Path | None = None,
-    identity: Mapping[str, str | int] | None = None,
+    identity: dict[str, str | int] | None = None,
     progress: Callable[[int, int, str], None] | None = None,
 ) -> SimulationReport:
     """Compute one diagnostic time series for one imported simulation.
@@ -291,7 +291,7 @@ def compute_scalar_diagnostic(
     simulation: CatalogueSimulation,
     diagnostic: ScalarDiagnostic,
     overwrite: bool = False,
-    available_diagnostics: Mapping[
+    available_diagnostics: dict[
         tuple[str, str], TimeSeriesDiagnostic | ScalarDiagnostic
     ] | None = None,
 ) -> ScalarReport:

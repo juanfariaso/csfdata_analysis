@@ -6,7 +6,7 @@ diagnostics combine completed diagnostic products into scalar simulation values.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
@@ -20,11 +20,11 @@ from csfdata.catalogue.diagnostics import (
 )
 
 
-SnapshotEvaluator = Callable[[Particles], Mapping[str, Mapping[str, Quantity]]]
+SnapshotEvaluator = Callable[[Particles], dict[str, dict[str, Quantity]]]
 """Type of a function that evaluates all choices for one AMUSE particle set."""
 
 
-ScalarEvaluator = Callable[[CatalogueSimulation, Mapping[str, str]], Mapping[str, float | int]]
+ScalarEvaluator = Callable[[CatalogueSimulation, dict[str, str]], dict[str, float | int]]
 """Type of a function that evaluates one scalar diagnostic choice combination."""
 
 
@@ -35,13 +35,13 @@ class EvaluationChoice:
     Args:
         name: Stable result-group identifier, such as ``"stellar_com"``.
         metadata: Method details written as HDF5 attributes for this choice.
-        outputs: Mapping from standardized output names to their canonical unit
+        outputs: Dictionary from standardized output names to their canonical unit
             strings, such as ``{"r_l50": "pc"}``.
     """
 
     name: str
-    metadata: Mapping[str, str]
-    outputs: Mapping[str, str]
+    metadata: dict[str, str]
+    outputs: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -78,7 +78,7 @@ class TimeSeriesDiagnostic:
     description: str
     evaluate: SnapshotEvaluator
     evaluation_choices: tuple[EvaluationChoice, ...]
-    field_descriptions: Mapping[str, str]
+    field_descriptions: dict[str, str]
     choice_names: tuple[str, ...] = ()
     requires: tuple[DiagnosticRequirement, ...] = ()
 

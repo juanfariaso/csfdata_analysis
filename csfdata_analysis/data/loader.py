@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from pathlib import Path
 
 from csfdata.catalogue import CatalogueSimulation, file_sha256, find_simulations, is_lite_catalogue, read_lite_source
@@ -13,7 +12,7 @@ from csfdata.catalogue.metadata import read_simulation_metadata
 def load_simulations(
     catalogue_root: Path | str,
     collection_id: str | None = None,
-    filters: Mapping[str, str | int | float | bool | tuple[float | None, float | None]] | None = None,
+    filters: dict[str, str | int | float | bool | tuple[float | None, float | None]] | None = None,
 ) -> tuple[CatalogueSimulation, ...]:
     """Load catalogue simulations selected by collection and parameter filters.
 
@@ -35,7 +34,7 @@ def configuration_values(simulation: CatalogueSimulation) -> dict[str, str | int
         simulation: Catalogue simulation whose top-level ``config.yaml`` is read.
 
     Returns:
-        Mapping from parameter names to known scalar values.
+        Dictionary from parameter names to known scalar values.
     """
     configuration = read_simulation_configuration(simulation.path / "config.yaml")
     return {

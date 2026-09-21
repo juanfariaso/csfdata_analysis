@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 import numpy
 import pandas
@@ -15,7 +15,7 @@ from csfdata_analysis.data.series import DiagnosticKey
 
 
 def select_time_series_slice(
-    data: Mapping[DiagnosticKey, pandas.DataFrame],
+    data: dict[DiagnosticKey, pandas.DataFrame],
     time: float,
     normalization: str | None = None,
 ) -> dict[DiagnosticKey, pandas.DataFrame]:
