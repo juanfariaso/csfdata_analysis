@@ -106,7 +106,7 @@ derived/diagnostics/maximum_radius/v1/series.h5
 ## 4. Local Scalar Diagnostics
 
 Local scalar diagnostics use the same `DIAGNOSTICS` convention. Their evaluator
-receives the imported simulation path and one concrete choice mapping, then
+receives a `CatalogueSimulation` and one concrete choice mapping, then
 returns the declared scalar fields. The generic scalar runner writes the
 standard `derived/scalar_diagnostics.yaml` format and automatically reads the
 same local `analysis.yaml` configuration. Run it with the same collection

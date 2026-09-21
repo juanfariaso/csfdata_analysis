@@ -231,6 +231,19 @@ LAGRANGIAN_RADII_V2 = TimeSeriesDiagnostic(
 Scalar diagnostics read completed diagnostic products and write compact values
 to `derived/scalar_diagnostics.yaml`. Their default-choice fields are indexed
 with simulation configuration parameters and can be used in the same query.
+Their evaluator signature is:
+
+```python
+def evaluate(
+    simulation: CatalogueSimulation,
+    choices: Mapping[str, str],
+) -> Mapping[str, float | int]:
+    ...
+```
+
+The simulation object provides the lazy `simulation.diagnostics` interface for
+reading required time-series and scalar products without constructing internal
+paths.
 
 ### 1. Define Inputs, Choices, And Fields
 
@@ -311,8 +324,7 @@ csfdata_analysis/runner.py
 
 ```python
 compute_scalar_diagnostic(
-    simulation_root,
-    collection_root,
+    simulation,
     EXPANSION_RATE_V1,
 )
 ```
@@ -335,8 +347,7 @@ csfdata_analysis/runner.py
 
 ```python
 results = compute_scalar_diagnostic(
-    simulation_root,
-    collection_root,
+    simulation,
     EXPANSION_RATE_V1,
 )
 ```

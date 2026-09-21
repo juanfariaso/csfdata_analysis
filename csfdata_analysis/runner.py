@@ -13,6 +13,7 @@ from amuse.datamodel import Particles
 from amuse.units import units
 
 from csfdata.adapters.base import SimulationAdapter
+from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.diagnostics import (
     ScalarDiagnosticResult,
     ScalarValue,
@@ -283,8 +284,7 @@ def compute_time_series(
 
 
 def compute_scalar_diagnostic(
-    simulation_root: Path,
-    collection_root: Path,
+    simulation: CatalogueSimulation,
     diagnostic: ScalarDiagnostic,
     overwrite: bool = False,
     available_diagnostics: Mapping[
@@ -294,10 +294,8 @@ def compute_scalar_diagnostic(
     """Compute every missing choice combination of one scalar diagnostic.
 
     Args:
-        simulation_root: Imported simulation directory where scalar results
-            are stored.
-        collection_root: Parent collection directory containing
-            ``diagnostics.yaml``.
+        simulation: Indexed catalogue simulation where scalar results are
+            stored and whose published diagnostics can be read.
         diagnostic: Versioned scalar diagnostic to evaluate.
         overwrite: Whether existing results for this diagnostic version and
             choice combination may be replaced.
@@ -320,6 +318,8 @@ def compute_scalar_diagnostic(
         calculation. It registers the declared collection schema before
         computing so the core writer can validate every generated result.
     """
+    simulation_root = simulation.path
+    collection_root = simulation.diagnostics.collection_root
     registry = available_diagnostics
     if registry is None:
         configuration_root = collection_root
@@ -379,7 +379,7 @@ def compute_scalar_diagnostic(
         selected_choices = tuple(zip(diagnostic.choice_names, combination, strict=True))
         if selected_choices in existing_by_choices and not overwrite:
             continue
-        calculated_values = diagnostic.evaluate(simulation_root, dict(selected_choices))
+        calculated_values = diagnostic.evaluate(simulation, dict(selected_choices))
         declared_fields = {field.name: field for field in diagnostic.fields}
         if set(calculated_values) != set(declared_fields):
             raise ValueError(

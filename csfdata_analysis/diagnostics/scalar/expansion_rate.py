@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from pathlib import Path
 
-import h5py
 import numpy as np
 from amuse.units import units
+from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.diagnostics import (
     DiagnosticField,
     DiagnosticRequirement,
@@ -131,13 +130,13 @@ def fit_expansion_rate(
 
 
 def compute_expansion_rate(
-    simulation_root: Path,
+    simulation: CatalogueSimulation,
     choices: Mapping[str, str],
 ) -> Mapping[str, float | int]:
     """Compute one choice-specific expansion-rate result for a simulation.
 
     Args:
-        simulation_root: Imported simulation directory containing completed
+        simulation: Catalogue simulation containing completed
             ``lagrangian_radii v1`` results.
         choices: Concrete ``center`` and ``lagrangian_radius`` selections.
 
@@ -145,44 +144,27 @@ def compute_expansion_rate(
         Scalar expansion-rate fields in their declared canonical units.
 
     Raises:
-        FileNotFoundError: If the required Lagrangian-radii result is absent.
-        ValueError: If the choices or required HDF5 result are invalid or
-            incomplete.
+        KeyError: If the required Lagrangian-radii result or selected choice is
+            unavailable.
+        ValueError: If the choices do not match the diagnostic contract.
     """
     if set(choices) != {"center", "lagrangian_radius"}:
         raise ValueError("Expansion rate requires center and lagrangian_radius choices.")
     center = choices["center"]
     radius_name = choices["lagrangian_radius"]
-    series_path = (
-        simulation_root
-        / "derived"
-        / "diagnostics"
-        / "lagrangian_radii"
-        / "v1"
-        / "series.h5"
+    # The core simulation interface resolves paths, validates completion, and
+    # returns only the selected stored datasets without exposing HDF5 layout.
+    radii = simulation.diagnostics.time_series[("lagrangian_radii", "v1")]
+    data = radii.read(
+        choices={"center": center},
+        fields=(radius_name, "n_stars"),
     )
-    if not series_path.is_file():
-        raise FileNotFoundError(f"Lagrangian-radii result is missing: {series_path}")
 
-    # Read only the datasets used by this scalar fit from the selected stored
-    # centre group; the generic runner remains independent of HDF5 layout.
-    with h5py.File(series_path, "r") as series_file:
-        if not bool(series_file.attrs.get("complete", False)):
-            raise ValueError(f"Lagrangian-radii result is incomplete: {series_path}")
-        if series_file.attrs.get("diagnostic_name") != "lagrangian_radii":
-            raise ValueError(f"Unexpected diagnostic result: {series_path}")
-        if int(series_file.attrs.get("diagnostic_version", -1)) != 1:
-            raise ValueError(f"Unexpected diagnostic version: {series_path}")
-        try:
-            time_myr = np.asarray(series_file["time_myr"], dtype=float)
-            radius_pc = np.asarray(series_file["choices"][center][radius_name], dtype=float)
-            n_stars = np.asarray(series_file["choices"][center]["n_stars"], dtype=float)
-        except KeyError as error:
-            raise ValueError(
-                f"Lagrangian-radii result does not contain {center}/{radius_name}."
-            ) from error
-
-    return fit_expansion_rate(time_myr, radius_pc, n_stars)
+    return fit_expansion_rate(
+        np.asarray(data["time_myr"], dtype=float),
+        np.asarray(data[radius_name], dtype=float),
+        np.asarray(data["n_stars"], dtype=float),
+    )
 
 
 

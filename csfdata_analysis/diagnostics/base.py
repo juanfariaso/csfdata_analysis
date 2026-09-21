@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
 from amuse.datamodel import Particles
 from amuse.units.quantities import Quantity
+from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.diagnostics import (
     DiagnosticDefinition,
     DiagnosticField,
@@ -23,7 +24,7 @@ SnapshotEvaluator = Callable[[Particles], Mapping[str, Mapping[str, Quantity]]]
 """Type of a function that evaluates all choices for one AMUSE particle set."""
 
 
-ScalarEvaluator = Callable[[Path, Mapping[str, str]], Mapping[str, float | int]]
+ScalarEvaluator = Callable[[CatalogueSimulation, Mapping[str, str]], Mapping[str, float | int]]
 """Type of a function that evaluates one scalar diagnostic choice combination."""
 
 
@@ -141,7 +142,7 @@ class ScalarDiagnostic:
         name: Stable diagnostic identifier.
         version: Scientific and output-schema version.
         description: Human-readable scientific purpose of the diagnostic.
-        evaluate: Function that receives one imported simulation directory and
+        evaluate: Function that receives one :class:`CatalogueSimulation` and
             concrete choice values, then returns the declared scalar fields in
             their canonical units.
         fields: Scalar output fields written into

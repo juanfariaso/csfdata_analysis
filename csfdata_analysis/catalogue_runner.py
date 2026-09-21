@@ -239,8 +239,7 @@ def compute_scalar_catalogue_simulation(
         diagnostic = scalar_diagnostic(diagnostic_name, diagnostic_directories)
         registry = load_diagnostics(diagnostic_directories)
         report = compute_scalar_diagnostic(
-            simulation.path,
-            simulation.path.parent.parent,
+            simulation,
             diagnostic,
             overwrite,
             registry,

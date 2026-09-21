@@ -45,7 +45,7 @@ def test_scalar_diagnostic_declares_fields_and_requirements() -> None:
         name="example_summary",
         version=1,
         description="Example scalar diagnostic used only for tests.",
-        evaluate=lambda simulation_root, choices: {"example_value": 0.0},
+        evaluate=lambda simulation, choices: {"example_value": 0.0},
         fields=(DiagnosticField("example_value", "Example scalar value.", "km/s"),),
         requires=(DiagnosticRequirement("example_series", "v1"),),
     )

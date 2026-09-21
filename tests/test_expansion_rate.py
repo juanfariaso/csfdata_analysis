@@ -75,14 +75,14 @@ def test_scalar_runner_registers_and_writes_every_choice(tmp_path: Path) -> None
                     data=np.asarray((0.2, 0.4, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)),
                 )
 
-    direct_result = compute_expansion_rate(
-        simulation_root,
-        {"center": "stellar_com", "lagrangian_radius": "r_l50"},
-    )
+    simulation = CatalogueSimulation("example-grid", "0000", simulation_root, "dcaf")
     report = compute_scalar_diagnostic(
-        simulation_root,
-        collection_root,
+        simulation,
         EXPANSION_RATE_V1,
+    )
+    direct_result = compute_expansion_rate(
+        simulation,
+        {"center": "stellar_com", "lagrangian_radius": "r_l50"},
     )
     collection_diagnostics = read_collection_diagnostics(
         collection_root / "diagnostics.yaml"
@@ -106,7 +106,7 @@ def test_scalar_runner_registers_and_writes_every_choice(tmp_path: Path) -> None
     }
 
     results = compute_scalar_collection(
-        (CatalogueSimulation("example-grid", "0000", simulation_root, "dcaf"),),
+        (simulation,),
         "expansion_rate",
     )
 
