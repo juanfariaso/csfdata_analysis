@@ -9,7 +9,7 @@
       
       
       
-        <link rel="prev" href="../../time-series-format/">
+        <link rel="prev" href="../accessing-data/">
       
       
         <link rel="next" href="../parameters-and-versions/">
@@ -435,6 +435,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessing-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accessing The Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -509,10 +537,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-define-a-local-time-series-diagnostic" class="md-nav__link">
+  <a href="#2-define-local-diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Define A Local Time-Series Diagnostic
+        2. Define Local Diagnostics
       
     </span>
   </a>
@@ -520,10 +548,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-run-it-across-a-collection" class="md-nav__link">
+  <a href="#3-run-them-across-a-collection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Run It Across A Collection
+        3. Run Them Across A Collection
       
     </span>
   </a>
@@ -531,21 +559,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-local-scalar-diagnostics" class="md-nav__link">
+  <a href="#4-promote-a-diagnostic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Local Scalar Diagnostics
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-promote-a-diagnostic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Promote A Diagnostic
+        4. Promote A Diagnostic
       
     </span>
   </a>
@@ -1660,10 +1677,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-define-a-local-time-series-diagnostic" class="md-nav__link">
+  <a href="#2-define-local-diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Define A Local Time-Series Diagnostic
+        2. Define Local Diagnostics
       
     </span>
   </a>
@@ -1671,10 +1688,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-run-it-across-a-collection" class="md-nav__link">
+  <a href="#3-run-them-across-a-collection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Run It Across A Collection
+        3. Run Them Across A Collection
       
     </span>
   </a>
@@ -1682,21 +1699,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-local-scalar-diagnostics" class="md-nav__link">
+  <a href="#4-promote-a-diagnostic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Local Scalar Diagnostics
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-promote-a-diagnostic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Promote A Diagnostic
+        4. Promote A Diagnostic
       
     </span>
   </a>
@@ -1741,22 +1747,37 @@ diagnostic_directories:
 <p><code>analysis.yaml</code> is local machine configuration. It is not imported into the
 full catalogue and is not scientific metadata. Relative paths are permitted
 and are resolved relative to <code>analysis.yaml</code>.</p>
-<h2 id="2-define-a-local-time-series-diagnostic">2. Define A Local Time-Series Diagnostic</h2>
+<h2 id="2-define-local-diagnostics">2. Define Local Diagnostics</h2>
 <p>Every <code>.py</code> file in a configured diagnostic directory must define a non-empty
 <code>DIAGNOSTICS</code> tuple. The loader stops with an error if a file omits that tuple,
 contains an unsupported object, or duplicates an existing diagnostic name and
 version.</p>
-<p>For example, create:</p>
+<p>One module may contain both time-series and scalar diagnostics. For example,
+create:</p>
 <pre><code class="language-text">/path/to/project/csfdata_diagnostics/maximum_radius.py
 </code></pre>
-<pre><code class="language-python">from amuse.datamodel import Particles
-from amuse.units import units
+<pre><code class="language-python">from collections.abc import Mapping
 
-from csfdata_analysis.diagnostics import EvaluationChoice, TimeSeriesDiagnostic
+from amuse.datamodel import Particles
+from csfdata.catalogue import CatalogueSimulation
+from csfdata.catalogue.diagnostics import DiagnosticField, DiagnosticRequirement
+
+from csfdata_analysis.diagnostics import (
+    EvaluationChoice,
+    ScalarDiagnostic,
+    TimeSeriesDiagnostic,
+)
 
 
 def measure_maximum_radius(particles: Particles):
-    &quot;&quot;&quot;Measure the largest stellar distance from the coordinate origin.&quot;&quot;&quot;
+    &quot;&quot;&quot;Measure the largest stellar distance from the coordinate origin.
+
+    Args:
+        particles: AMUSE stellar particles for one simulation snapshot.
+
+    Returns:
+        One result mapping for every declared evaluation choice.
+    &quot;&quot;&quot;
     radii = (particles.x**2 + particles.y**2 + particles.z**2).sqrt()
     return {
         &quot;origin&quot;: {
@@ -1773,21 +1794,73 @@ MAXIMUM_RADIUS_V1 = TimeSeriesDiagnostic(
     evaluation_choices=(
         EvaluationChoice(
             name=&quot;origin&quot;,
-            metadata={&quot;center&quot;: &quot;origin&quot;},
+            metadata={},
             outputs={&quot;maximum_radius&quot;: &quot;pc&quot;},
         ),
     ),
     field_descriptions={
         &quot;maximum_radius&quot;: &quot;Largest stellar distance from the coordinate origin.&quot;,
     },
+    choice_names=(),  # Optional: registered scientific choices affecting this result.
+    requires=(),  # Optional: completed diagnostic versions required first.
 )
 
-DIAGNOSTICS = (MAXIMUM_RADIUS_V1,)
+
+def measure_final_maximum_radius(
+    simulation: CatalogueSimulation,
+    choices: Mapping[str, str],
+) -&gt; dict[str, float]:
+    &quot;&quot;&quot;Read one completed time series and return its final scalar value.
+
+    Args:
+        simulation: Catalogue simulation whose derived results are available.
+        choices: Concrete registered choices selected by the scalar runner.
+            This example has no choice dimensions, so the mapping is empty.
+
+    Returns:
+        The declared scalar output in its canonical unit.
+    &quot;&quot;&quot;
+    maximum_radius = simulation.diagnostics.time_series[(&quot;maximum_radius&quot;, &quot;v1&quot;)]
+    data = maximum_radius.read(fields=(&quot;maximum_radius&quot;,))
+    return {&quot;final_maximum_radius&quot;: float(data[&quot;maximum_radius&quot;][-1])}
+
+
+FINAL_MAXIMUM_RADIUS_V1 = ScalarDiagnostic(
+    name=&quot;final_maximum_radius&quot;,
+    version=1,
+    description=&quot;Final maximum stellar radius from the origin.&quot;,
+    evaluate=measure_final_maximum_radius,
+    fields=(
+        DiagnosticField(
+            &quot;final_maximum_radius&quot;,
+            &quot;Maximum stellar radius at the final stored time.&quot;,
+            &quot;pc&quot;,
+        ),
+    ),
+    choice_names=(),  # Optional: registered scientific choices affecting this result.
+    requires=(
+        DiagnosticRequirement(&quot;maximum_radius&quot;, &quot;v1&quot;),
+    ),  # Optional: completed diagnostics required before this evaluator runs.
+)
+
+
+DIAGNOSTICS = (MAXIMUM_RADIUS_V1, FINAL_MAXIMUM_RADIUS_V1)
 </code></pre>
-<p>The individual variable name <code>MAXIMUM_RADIUS_V1</code> is only for human readability.
-The loader reads <code>DIAGNOSTICS</code> and validates its contents.</p>
-<h2 id="3-run-it-across-a-collection">3. Run It Across A Collection</h2>
-<p>Run the standard collection command from a machine with access to the lite
+<p>The individual variable names are only for human readability. The loader reads
+<code>DIAGNOSTICS</code> and validates its contents. The two evaluator signatures are
+intentionally different:</p>
+<ul>
+<li>A <code>TimeSeriesDiagnostic</code> evaluator receives <code>particles</code> for one snapshot and
+  returns all declared evaluation-choice results.</li>
+<li>A <code>ScalarDiagnostic</code> evaluator receives <code>simulation</code> and <code>choices</code>, then
+  returns one mapping of declared scalar fields.</li>
+</ul>
+<p><code>choice_names</code> and <code>requires</code> are optional definition arguments for both
+types. Omit them when the diagnostic has no registered scientific choices or
+no diagnostic dependencies. A scalar diagnostic that reads a time-series
+result should declare that dependency in <code>requires</code>.</p>
+<h2 id="3-run-them-across-a-collection">3. Run Them Across A Collection</h2>
+<p>Run the time-series diagnostic first from a machine with access to the lite
 catalogue and its configured diagnostic directory:</p>
 <pre><code class="language-bash">csfdata analysis compute maximum_radius \
   --catalogue /path/to/lite-catalogue \
@@ -1796,26 +1869,23 @@ catalogue and its configured diagnostic directory:</p>
 </code></pre>
 <p>The runner loads the local module in the parent process and in each worker. It
 registers the selected diagnostic in the collection's <code>diagnostics.yaml</code> before
-writing any results. Results use the standard location:</p>
+writing one HDF5 series per simulation:</p>
 <pre><code class="language-text">collections/&lt;collection-id&gt;/simulations/&lt;simulation-id&gt;/
 derived/diagnostics/maximum_radius/v1/series.h5
 </code></pre>
-<h2 id="4-local-scalar-diagnostics">4. Local Scalar Diagnostics</h2>
-<p>Local scalar diagnostics use the same <code>DIAGNOSTICS</code> convention. Their evaluator
-receives a <code>CatalogueSimulation</code> and one concrete choice mapping, then
-returns the declared scalar fields. The generic scalar runner writes the
-standard <code>derived/scalar_diagnostics.yaml</code> format and automatically reads the
-same local <code>analysis.yaml</code> configuration. Run it with the same collection
-command:</p>
-<pre><code class="language-bash">csfdata analysis compute maximum_radius \
+<p>Then run the scalar diagnostic. Its declared requirement makes the command
+fail clearly if <code>maximum_radius v1</code> is incomplete for any selected simulation:</p>
+<pre><code class="language-bash">csfdata analysis compute final_maximum_radius \
   --catalogue /path/to/lite-catalogue \
+  --filter collection=example-collection \
   --workers 4
 </code></pre>
-<p>Once scalar results are available, rebuild the core index to make the default
+<p>The scalar runner writes the standard <code>derived/scalar_diagnostics.yaml</code> file.
+Once scalar results are available, rebuild the core index to make the default
 choice values available to catalogue queries:</p>
 <pre><code class="language-bash">csfdata index-catalogue /path/to/lite-catalogue --collection example-collection
 </code></pre>
-<h2 id="5-promote-a-diagnostic">5. Promote A Diagnostic</h2>
+<h2 id="4-promote-a-diagnostic">4. Promote A Diagnostic</h2>
 <p>Keep diagnostics local while they are exploratory or project-specific. Move a
 diagnostic into <code>csfdata_analysis</code> when it needs maintained documentation,
 shared tests, or stable reuse by other projects. The technical procedure is in
