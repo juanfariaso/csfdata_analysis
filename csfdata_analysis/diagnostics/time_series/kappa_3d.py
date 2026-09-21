@@ -145,8 +145,8 @@ def measure_kappa_3d(
             fitted_axes = np.isfinite(kappa)
             if np.any(fitted_axes):
                 residual_outer = (
-                    centred_velocities[outer, fitted_axes]
-                    - relative_positions[outer, fitted_axes] * kappa[fitted_axes]
+                    centred_velocities[outer][:, fitted_axes]
+                    - relative_positions[outer][:, fitted_axes] * kappa[fitted_axes]
                 )
                 residual_all = (
                     centred_velocities[:, fitted_axes]
