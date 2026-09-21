@@ -46,6 +46,7 @@ nav:
   - Runner: runner.md
   - Time-Series Format: time-series-format.md
   - Tutorials:
+      - Accessing The Data: tutorials/accessing-data.md
       - Running Local Diagnostics: tutorials/local-diagnostics.md
       - Parameters And Versions: tutorials/parameters-and-versions.md
   - Development:

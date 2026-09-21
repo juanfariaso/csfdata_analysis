@@ -1,5 +1,6 @@
 """Tests for standardized three-dimensional kappa expansion slopes."""
 
+import numpy as np
 import pytest
 from amuse.datamodel import Particles
 from amuse.units import units

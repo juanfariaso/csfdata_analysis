@@ -32,6 +32,8 @@ and configuration fingerprint. Raw files are never modified.
   describes collections, validation, import, indexing, and lite catalogues.
 - [Data Interfaces](data.md) describes loading time series into Pandas and
   selecting normalized snapshot slices.
+- [Accessing The Data](tutorials/accessing-data.md) is a compact reference for
+  inspecting and reading one simulation's diagnostics.
 - [Diagnostics](diagnostics.md) describes standardized analysis products.
 - [Command Line](command-line.md) documents collection-wide computation and
   safe derived-data import.
