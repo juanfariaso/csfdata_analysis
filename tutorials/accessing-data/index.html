@@ -509,6 +509,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#select-raw-snapshot-slices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Select Raw Snapshot Slices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#read-a-time-series" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1677,6 +1688,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#select-raw-snapshot-slices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Select Raw Snapshot Slices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#read-a-time-series" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1727,8 +1749,9 @@
 
 
 <h1 id="accessing-the-data">Accessing The Data</h1>
-<p>This page is a short reference for reading already calculated diagnostic data.
-It does not compute diagnostics or load raw particle snapshots.</p>
+<p>This page is a short reference for reading already calculated diagnostic data
+and selecting raw snapshot paths. It does not compute diagnostics or load
+particle data into memory.</p>
 <h2 id="inspect-one-simulation">Inspect One Simulation</h2>
 <p>Select simulations through the catalogue index, then inspect the first result:</p>
 <pre><code class="language-python">from csfdata_analysis.data import load_simulations
@@ -1745,6 +1768,21 @@ print(simulation.diagnostics)
 <p><code>simulation.diagnostics</code> is lazy: printing it shows available time-series and
 scalar diagnostic versions, fields, choices, and result paths without loading
 their numerical arrays.</p>
+<h2 id="select-raw-snapshot-slices">Select Raw Snapshot Slices</h2>
+<p>Use the selected simulations to find the nearest stored raw snapshot at one
+physical or normalized time:</p>
+<pre><code class="language-python">from csfdata_analysis.data import select_snapshot_slice
+
+snapshot_slice = select_snapshot_slice(
+    simulations,
+    time=1.5,
+    normalization=&quot;tff&quot;,
+)
+</code></pre>
+<p>With <code>normalization="tff"</code>, the target time is <code>1.5 * tff</code> separately for
+each simulation. <code>snapshot_slice</code> is a Pandas table containing the selected
+<code>snapshot_path</code>, requested physical time, actual snapshot time, and its offset.
+It only identifies files; it does not read AMUSE particles.</p>
 <h2 id="read-a-time-series">Read A Time Series</h2>
 <p>Select a diagnostic by <code>(name, version)</code>, inspect it, then request one stored
 choice and the fields needed for the analysis:</p>
