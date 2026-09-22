@@ -11,7 +11,7 @@ import yaml
 from tqdm import tqdm
 
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import find_simulations, read_lite_source
+from csfdata.catalogue import find_simulations
 from csfdata_analysis.catalogue_runner import (
     clear_time_series,
     compute_collection,
@@ -127,10 +127,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
     )
     import_parser = subcommands.add_parser(
         "import-derived",
-        help="Safely import completed derived results from one lite catalogue.",
+        help="Safely import completed derived results between catalogues.",
     )
-    import_parser.add_argument("lite_catalogue", type=Path)
-    import_parser.add_argument("--catalogue", type=Path, required=True)
+    import_parser.add_argument("source_catalogue", type=Path)
+    import_parser.add_argument("destination_catalogue", type=Path)
+    import_parser.add_argument(
+        "--collection",
+        help="One source collection to import; omit to import every source collection.",
+    )
     import_parser.add_argument("--overwrite", action="store_true")
     import_parser.add_argument("--dry-run", action="store_true")
     options = parser.parse_args(arguments)
@@ -390,8 +394,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
 
     if options.command == "import-derived":
         return import_derived_command(
-            options.lite_catalogue,
-            options.catalogue,
+            options.source_catalogue,
+            options.destination_catalogue,
+            collection_id=options.collection,
             overwrite=options.overwrite,
             dry_run=options.dry_run,
             parser=import_parser,
@@ -435,17 +440,20 @@ def main(arguments: Sequence[str] | None = None) -> int:
 
 
 def import_derived_command(
-    lite_catalogue: Path,
+    source_catalogue: Path,
     destination_catalogue: Path,
+    collection_id: str | None = None,
     overwrite: bool = False,
     dry_run: bool = False,
     parser: argparse.ArgumentParser | None = None,
 ) -> int:
-    """Import complete results from one lite catalogue into its full source.
+    """Import complete results from one catalogue into another.
 
     Args:
-        lite_catalogue: Working lite catalogue containing derived HDF5 files.
-        destination_catalogue: Recorded full source catalogue to receive results.
+        source_catalogue: Full or lite catalogue containing derived HDF5 files.
+        destination_catalogue: Catalogue that receives compatible results.
+        collection_id: Optional one collection ID to import. ``None`` imports
+            every source collection.
         overwrite: Whether existing destination files may be replaced.
         dry_run: Whether to report actions without copying results.
         parser: Optional CLI parser used to present validation errors.
@@ -454,11 +462,8 @@ def import_derived_command(
         Zero after reporting copied, skipped, and unsafe results.
     """
     try:
-        source = read_lite_source(lite_catalogue)
-        simulations_root = lite_catalogue / "collections" / source.collection_id / "simulations"
-        total = sum(path.is_dir() for path in simulations_root.iterdir())
         with tqdm(
-            total=total,
+            total=0,
             desc="Importing derived data",
             unit="simulation",
             dynamic_ncols=True,
@@ -466,12 +471,14 @@ def import_derived_command(
         ) as progress_bar:
             def update_progress(number: int, total: int, label: str) -> None:
                 """Advance the derived-data import bar after one simulation."""
+                progress_bar.total = total
                 progress_bar.set_postfix_str(label)
                 progress_bar.update(1)
 
             report = import_derived(
-                lite_catalogue,
+                source_catalogue,
                 destination_catalogue,
+                collection_id=collection_id,
                 overwrite=overwrite,
                 dry_run=dry_run,
                 progress=update_progress,

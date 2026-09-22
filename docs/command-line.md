@@ -181,17 +181,30 @@ writes results only inside the lite catalogue.
 
 ## Import Derived Results
 
-After computation, run this from a node that can write to the full catalogue:
+The first catalogue path is always the source and the second is always the
+destination. Run this from a node that can write to the destination catalogue:
 
 ```bash
-csfdata analysis import-derived /path/to/lite-catalogue \
-  --catalogue /path/to/source-catalogue
+csfdata analysis import-derived \
+  /path/to/source-catalogue \
+  /path/to/destination-catalogue
+```
+
+When `--collection` is omitted, every collection in the source is considered.
+Restrict an import to one collection when needed:
+
+```bash
+csfdata analysis import-derived \
+  /path/to/source-catalogue \
+  /path/to/destination-catalogue \
+  --collection example-grid-v1
 ```
 
 Only completed HDF5 files with matching collection, simulation, and
-configuration identities are copied. Existing destination files are skipped by
-default. Use `--dry-run` to inspect actions, or `--overwrite` to explicitly
-replace existing compatible results.
+configuration identities are copied. A lite source is additionally restricted
+to the full catalogue recorded in its `lite.yaml` provenance file. Existing
+destination files are skipped by default. Use `--dry-run` to inspect actions,
+or `--overwrite` to explicitly replace existing compatible results.
 
 ## One Simulation
 

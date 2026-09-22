@@ -1,6 +1,7 @@
 """Tests for safe import of lite-catalogue derived data."""
 
 from pathlib import Path
+import shutil
 
 import h5py
 
@@ -59,3 +60,47 @@ optional_parameters: []
     assert destination.is_file()
     assert import_derived(lite, full).skipped_paths == (destination,)
     assert import_derived(lite, full, overwrite=True).copied_paths == (destination,)
+
+
+def test_import_derived_accepts_a_full_catalogue_source(tmp_path: Path) -> None:
+    """A full source imports every compatible collection by default."""
+    source = tmp_path / "source"
+    simulation = source / "collections" / "grid" / "simulations" / "0001"
+    simulation.mkdir(parents=True)
+    (simulation.parent.parent / "collection.yaml").write_text(
+        """schema_version: 1
+id: grid
+importer: dcaf
+config_schema_version: 1
+required_parameters: []
+optional_parameters: []
+""",
+        encoding="utf-8",
+    )
+    write_simulation_metadata(
+        SimulationMetadata("0001", "grid", "dcaf", "host", tmp_path / "run", Path("run"), "2026-01-01T00:00:00Z"),
+        simulation / "metadata.yaml",
+    )
+    write_simulation_configuration(
+        SimulationConfiguration((ConfigurationParameter("tff", 1.0, "Myr", "explicit"),), ()),
+        simulation / "config.yaml",
+    )
+    destination = tmp_path / "destination"
+    shutil.copytree(source, destination)
+
+    result = simulation / "derived" / "diagnostics" / "test" / "v1" / "series.h5"
+    result.parent.mkdir(parents=True)
+    with h5py.File(result, "w") as output:
+        output.attrs["complete"] = True
+        output.attrs["format_schema_version"] = 2
+        output.attrs["collection_id"] = "grid"
+        output.attrs["simulation_id"] = "0001"
+        output.attrs["config_sha256"] = file_sha256(simulation / "config.yaml")
+        output.attrs["diagnostic_name"] = "test"
+        output.attrs["diagnostic_version"] = 1
+
+    report = import_derived(source, destination)
+
+    assert report.copied_paths == (
+        destination / "collections" / "grid" / "simulations" / "0001" / result.relative_to(simulation),
+    )
