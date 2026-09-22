@@ -111,9 +111,12 @@ def main(arguments: Sequence[str] | None = None) -> int:
     simulation_parser.add_argument("--overwrite", action="store_true")
     clear_parser = subcommands.add_parser(
         "clear-derived",
-        help="Remove one selected time-series diagnostic from a lite catalogue.",
+        help="Remove one or all built-in time-series diagnostics from a lite catalogue.",
     )
-    clear_parser.add_argument("diagnostic", choices=sorted(TIME_SERIES_DIAGNOSTICS))
+    clear_parser.add_argument(
+        "diagnostic",
+        help="Built-in time-series diagnostic name, or all.",
+    )
     clear_parser.add_argument("--catalogue", type=Path, required=True)
     clear_parser.add_argument(
         "--filter",
@@ -350,6 +353,16 @@ def main(arguments: Sequence[str] | None = None) -> int:
 
     if options.command == "clear-derived":
         try:
+            if options.diagnostic == "all":
+                diagnostic_names = tuple(sorted(TIME_SERIES_DIAGNOSTICS))
+            elif options.diagnostic in TIME_SERIES_DIAGNOSTICS:
+                diagnostic_names = (options.diagnostic,)
+            else:
+                raise ValueError(
+                    "Unknown time-series diagnostic: "
+                    f"{options.diagnostic}. Use one of "
+                    f"{', '.join(sorted(TIME_SERIES_DIAGNOSTICS))}, or all."
+                )
             collection_id, filters = parse_filters(options.filter or ())
             simulations = find_simulations(
                 options.catalogue,
@@ -359,7 +372,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
             if not simulations:
                 print("No simulations matched the supplied filters.")
                 return 0
-            print(f"Diagnostic: {options.diagnostic}")
+            print(
+                "Diagnostics: "
+                + ("all built-in time-series diagnostics" if options.diagnostic == "all" else options.diagnostic)
+            )
             print(f"Selected simulations: {len(simulations)}")
             if not options.no_prompt:
                 try:
@@ -370,8 +386,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
                     print("Cancelled.")
                     return 0
             with tqdm(
-                total=len(simulations),
-                desc=f"Clearing {options.diagnostic}",
+                total=len(simulations) * len(diagnostic_names),
+                desc="Clearing derived data",
                 unit="simulation",
                 dynamic_ncols=True,
                 leave=True,
@@ -381,12 +397,18 @@ def main(arguments: Sequence[str] | None = None) -> int:
                     progress_bar.set_postfix_str(label)
                     progress_bar.update(1)
 
-                removed_paths = clear_time_series(
-                    options.catalogue,
-                    simulations,
-                    options.diagnostic,
-                    progress=update_progress,
-                )
+                removed_paths = []
+                for diagnostic_name in diagnostic_names:
+                    # Clear each standardized time-series path while retaining
+                    # scalar YAML results and unrelated local analysis files.
+                    removed_paths.extend(
+                        clear_time_series(
+                            options.catalogue,
+                            simulations,
+                            diagnostic_name,
+                            progress=update_progress,
+                        )
+                    )
         except (FileNotFoundError, OSError, ValueError) as error:
             clear_parser.error(str(error))
         print(f"Removed: {len(removed_paths)}")

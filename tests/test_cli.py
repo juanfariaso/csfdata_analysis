@@ -157,6 +157,37 @@ def test_clear_derived_requires_confirmation_before_removing(
     )
 
     output = capsys.readouterr().out
-    assert "Diagnostic: lagrangian_radii" in output
+    assert "Diagnostics: lagrangian_radii" in output
     assert "Selected simulations: 1" in output
     assert "Cancelled." in output
+
+
+def test_clear_derived_all_dispatches_every_builtin_time_series(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    """The all choice clears each supported time-series diagnostic once."""
+    simulation = CatalogueSimulation("first", "0001", Path("/tmp/first"), "dcaf")
+    cleared: list[str] = []
+    monkeypatch.setattr(cli, "find_simulations", lambda *args, **kwargs: (simulation,))
+
+    def clear_series(lite_catalogue, simulations, diagnostic_name, **kwargs):
+        """Record the diagnostic selected by the aggregate clear command."""
+        cleared.append(diagnostic_name)
+        return ()
+
+    monkeypatch.setattr(cli, "clear_time_series", clear_series)
+
+    assert (
+        cli.main(
+            [
+                "clear-derived",
+                "all",
+                "--catalogue",
+                "/tmp/catalogue",
+                "--no-prompt",
+            ]
+        )
+        == 0
+    )
+
+    assert cleared == sorted(cli.TIME_SERIES_DIAGNOSTICS)

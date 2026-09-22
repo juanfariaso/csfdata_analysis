@@ -149,7 +149,7 @@ csfdata analysis compute lagrangian_radii \
 
 ## Clear Derived Results
 
-Remove a time-series diagnostic without recomputing it immediately:
+Remove one built-in time-series diagnostic without recomputing it immediately:
 
 ```bash
 csfdata analysis clear-derived lagrangian_radii \
@@ -157,11 +157,21 @@ csfdata analysis clear-derived lagrangian_radii \
   --filter collection=dcaf-grid-v1
 ```
 
+Use `all` to remove every built-in time-series diagnostic selected by the
+filters:
+
+```bash
+csfdata analysis clear-derived all \
+  --catalogue /path/to/lite-catalogue \
+  --filter collection=dcaf-grid-v1
+```
+
 This command is intentionally restricted to lite catalogues. It removes only
 the selected diagnostic's versioned `series.h5` file for matching simulations;
-other diagnostics and all raw data are preserved. The command shows the number
-of selected simulations and asks for confirmation. Use `--no-prompt` only in a
-non-interactive job after checking the selection.
+`all` removes every such built-in time-series file. Scalar diagnostics and all
+raw data are preserved. The command shows the number of selected simulations
+and asks for confirmation. Use `--no-prompt` only in a non-interactive job
+after checking the selection.
 
 ## Lite Catalogue Time-Series Diagnostic
 
@@ -200,11 +210,20 @@ csfdata analysis import-derived \
   --collection example-grid-v1
 ```
 
-Only completed HDF5 files with matching collection, simulation, and
-configuration identities are copied. A lite source is additionally restricted
-to the full catalogue recorded in its `lite.yaml` provenance file. Existing
-destination files are skipped by default. Use `--dry-run` to inspect actions,
-or `--overwrite` to explicitly replace existing compatible results.
+Completed HDF5 time-series files with matching collection, simulation, and
+configuration identities are copied. Scalar diagnostic values are merged by
+diagnostic version and scientific choices; their compatible collection
+definitions are imported at the same time so the destination can index and
+query them. A lite source is additionally restricted to the full catalogue
+recorded in its `lite.yaml` provenance file. Existing destination results are
+skipped by default. Use `--dry-run` to inspect actions, or `--overwrite` to
+explicitly replace existing compatible results.
+
+Rebuild the destination index after importing scalar diagnostics:
+
+```bash
+csfdata index-catalogue /path/to/destination-catalogue
+```
 
 ## One Simulation
 

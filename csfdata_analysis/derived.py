@@ -1,4 +1,4 @@
-"""Safely import completed time-series products between catalogues."""
+"""Safely import completed derived products between catalogues."""
 
 from __future__ import annotations
 
@@ -11,6 +11,16 @@ from uuid import uuid4
 import h5py
 
 from csfdata.catalogue import file_sha256, is_lite_catalogue, read_lite_source
+from csfdata.catalogue.diagnostics import (
+    CollectionDiagnostics,
+    SimulationScalarDiagnostics,
+    collection_diagnostics_path,
+    read_collection_diagnostics,
+    read_simulation_scalar_diagnostics,
+    simulation_scalar_diagnostics_path,
+    write_collection_diagnostics,
+    write_simulation_scalar_diagnostics,
+)
 from csfdata.catalogue.metadata import read_simulation_metadata
 
 
@@ -37,7 +47,7 @@ def import_derived(
     dry_run: bool = False,
     progress: Callable[[int, int, str], None] | None = None,
 ) -> DerivedImportReport:
-    """Import completed HDF5 diagnostics between compatible catalogues.
+    """Import completed time-series and scalar diagnostics between catalogues.
 
     Args:
         source_catalogue: Full or lite catalogue containing derived results.
@@ -63,10 +73,12 @@ def import_derived(
     Notes:
         The first catalogue argument is always the source and the second is
         always the destination. A lite source remains restricted to the full
-        catalogue recorded in its provenance file. Only final ``series.h5``
-        files carrying the required complete identity attributes are eligible.
-        Existing results are skipped by default; ``overwrite=True`` is required
-        to replace them.
+        catalogue recorded in its provenance file. Time-series results must be
+        final ``series.h5`` files carrying the required complete identity
+        attributes. Scalar results are merged by diagnostic version and choice
+        combination after their collection declarations are checked. Existing
+        results are skipped by default; ``overwrite=True`` is required to
+        replace them.
     """
     source_catalogue = source_catalogue.resolve()
     destination_catalogue = destination_catalogue.resolve()
@@ -121,17 +133,74 @@ def import_derived(
         source_simulations = source_collection / "simulations"
         if not source_simulations.is_dir():
             raise FileNotFoundError(f"Source collection has no simulations directory: {source_simulations}")
+
+        # Derived scalar values need their published field and choice schemas.
+        # Merge compatible source declarations before considering any result.
+        source_diagnostics_path = collection_diagnostics_path(source_collection)
+        destination_diagnostics_path = collection_diagnostics_path(destination_collection)
+        source_diagnostics = (
+            read_collection_diagnostics(source_diagnostics_path)
+            if source_diagnostics_path.is_file()
+            else None
+        )
+        destination_diagnostics = (
+            read_collection_diagnostics(destination_diagnostics_path)
+            if destination_diagnostics_path.is_file()
+            else CollectionDiagnostics((), ())
+        )
+        if source_diagnostics is not None:
+            choices = {choice.name: choice for choice in destination_diagnostics.choices}
+            definitions = {
+                (definition.name, definition.version): definition
+                for definition in destination_diagnostics.diagnostics
+            }
+            changed = False
+            for choice in source_diagnostics.choices:
+                existing_choice = choices.get(choice.name)
+                if existing_choice is None:
+                    choices[choice.name] = choice
+                    changed = True
+                elif existing_choice != choice:
+                    raise ValueError(
+                        f"Collection choice definition differs: {current_collection_id}/{choice.name}."
+                    )
+            for definition in source_diagnostics.diagnostics:
+                key = (definition.name, definition.version)
+                existing_definition = definitions.get(key)
+                if existing_definition is None:
+                    definitions[key] = definition
+                    changed = True
+                elif existing_definition != definition:
+                    raise ValueError(
+                        "Collection diagnostic definition differs: "
+                        f"{current_collection_id}/{definition.name} {definition.version}."
+                    )
+            destination_diagnostics = CollectionDiagnostics(
+                tuple(choices.values()),
+                tuple(definitions.values()),
+            )
+            if changed and not dry_run:
+                # Declarations make imported scalar values interpretable by the
+                # core index, so install the complete merged contract first.
+                staging_path = (
+                    destination_diagnostics_path.parent
+                    / f".{destination_diagnostics_path.name}.{uuid4().hex}.tmp"
+                )
+                write_collection_diagnostics(destination_diagnostics, staging_path)
+                staging_path.replace(destination_diagnostics_path)
         collections.append(
             (
                 current_collection_id,
                 destination_collection,
                 tuple(sorted(path for path in source_simulations.iterdir() if path.is_dir())),
+                source_diagnostics,
+                destination_diagnostics,
             )
         )
 
-    total = sum(len(simulations) for _, _, simulations in collections)
+    total = sum(len(simulations) for _, _, simulations, _, _ in collections)
     completed = 0
-    for current_collection_id, destination_collection, simulations in collections:
+    for current_collection_id, destination_collection, simulations, source_diagnostics, destination_diagnostics in collections:
         for source_simulation in simulations:
             completed += 1
             label = f"{current_collection_id}/{source_simulation.name}"
@@ -152,8 +221,6 @@ def import_derived(
                     result_paths = tuple(
                         source_simulation.glob("derived/diagnostics/*/v*/series.h5")
                     )
-                    if not result_paths:
-                        issues.append(f"No completed derived result: {label}")
                     for result_path in result_paths:
                         error = validate_derived_result(
                             result_path,
@@ -178,6 +245,68 @@ def import_derived(
                             shutil.copy2(result_path, staging_path)
                             staging_path.replace(destination_path)
                         copied_paths.append(destination_path)
+
+                    source_scalar_path = simulation_scalar_diagnostics_path(source_simulation)
+                    if source_scalar_path.is_file():
+                        if source_diagnostics is None:
+                            issues.append(
+                                f"Scalar diagnostics have no collection definitions: {label}"
+                            )
+                        else:
+                            source_scalars = read_simulation_scalar_diagnostics(
+                                source_scalar_path,
+                                source_diagnostics,
+                            )
+                            destination_scalar_path = simulation_scalar_diagnostics_path(
+                                destination_simulation
+                            )
+                            destination_scalars = (
+                                read_simulation_scalar_diagnostics(
+                                    destination_scalar_path,
+                                    destination_diagnostics,
+                                )
+                                if destination_scalar_path.is_file()
+                                else None
+                            )
+                            existing = {
+                                (
+                                    result.diagnostic_name,
+                                    result.diagnostic_version,
+                                    result.choices,
+                                ): result
+                                for result in (destination_scalars.results if destination_scalars else ())
+                            }
+                            replacements = []
+                            skipped_scalar = False
+                            for result in source_scalars.results:
+                                key = (
+                                    result.diagnostic_name,
+                                    result.diagnostic_version,
+                                    result.choices,
+                                )
+                                if key in existing and not overwrite:
+                                    skipped_scalar = True
+                                    continue
+                                existing[key] = result
+                                replacements.append(result)
+                            if replacements:
+                                if not dry_run:
+                                    destination_scalar_path.parent.mkdir(parents=True, exist_ok=True)
+                                    staging_path = (
+                                        destination_scalar_path.parent
+                                        / f".{destination_scalar_path.name}.{uuid4().hex}.tmp"
+                                    )
+                                    write_simulation_scalar_diagnostics(
+                                        SimulationScalarDiagnostics(tuple(existing.values())),
+                                        destination_diagnostics,
+                                        staging_path,
+                                    )
+                                    staging_path.replace(destination_scalar_path)
+                                copied_paths.append(destination_scalar_path)
+                            elif skipped_scalar:
+                                skipped_paths.append(destination_scalar_path)
+                    if not result_paths and not source_scalar_path.is_file():
+                        issues.append(f"No completed derived result: {label}")
             if progress is not None:
                 progress(completed, total, label)
     return DerivedImportReport(tuple(copied_paths), tuple(skipped_paths), tuple(issues))
@@ -192,7 +321,7 @@ def validate_derived_result(
     """Validate the completion and identity attributes of one HDF5 result.
 
     Args:
-        result_path: Final ``series.h5`` file from a lite catalogue.
+        result_path: Final ``series.h5`` file from the source catalogue.
         collection_id: Expected parent collection ID.
         simulation_id: Expected parent simulation ID.
         config_sha256: Expected hash of the copied canonical configuration.
