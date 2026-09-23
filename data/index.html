@@ -363,10 +363,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#core-diagnostic-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Diagnostic Access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#load-time-series" class="md-nav__link">
     <span class="md-ellipsis">
       
         Load Time Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-a-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load A Collection
       
     </span>
   </a>
@@ -1719,10 +1741,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#core-diagnostic-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Diagnostic Access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#load-time-series" class="md-nav__link">
     <span class="md-ellipsis">
       
         Load Time Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-a-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load A Collection
       
     </span>
   </a>
@@ -1791,9 +1835,16 @@
 
 
 <h1 id="data-interfaces">Data Interfaces</h1>
-<p><code>csfdata_analysis.data</code> provides small, explicit interfaces for selecting
-catalogue simulations, loading derived time series into Pandas, and selecting
-raw snapshot slices. It does not create diagnostics or move files.</p>
+<p>This page describes two compatible data-access layers:</p>
+<ul>
+<li><strong>Core CSFData</strong> provides lightweight catalogue simulation objects and lazy,
+  dependency-light diagnostic reads as NumPy arrays.</li>
+<li><strong>CSFData Analysis</strong> builds on those objects to provide Pandas tables,
+  time-series interpolation and aggregation, and raw snapshot selection.</li>
+</ul>
+<p>Neither layer creates diagnostics or moves files. Use the core layer when a
+script needs direct access to one stored result; use the analysis layer for
+interactive plotting and working with multiple diagnostics or simulations.</p>
 <h2 id="full-and-lite-catalogues">Full And Lite Catalogues</h2>
 <p>Every data function receives one catalogue root path. With a full catalogue,
 that path contains both the index and the raw simulation data. With a lite
@@ -1821,34 +1872,79 @@ simulations = load_simulations(
 <p>Do not include <code>seed_index</code> when selecting an ensemble that should be averaged
 across seeds. The returned objects contain catalogue IDs and paths; they do
 not load snapshot particles or HDF5 values.</p>
+<h2 id="core-diagnostic-access">Core Diagnostic Access</h2>
+<p>The returned simulation object exposes lazy stored diagnostics through core
+CSFData. A diagnostic name selects its latest collection-declared version,
+currently <code>v1</code>. This reads NumPy arrays directly and does not require
+Pandas:</p>
+<pre><code class="language-python">simulation = simulations[0]
+
+radii = simulation.diagnostics.time_series[&quot;lagrangian_radii&quot;]
+raw = radii.read(
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    fields=(&quot;r_l50&quot;, &quot;n_l50&quot;),
+)
+
+time = raw[&quot;time&quot;]
+half_mass_radius = raw[&quot;r_l50&quot;]
+</code></pre>
+<p>Omit <code>fields</code> to read every result field. The exact version remains available
+when needed for comparison or reproducibility:</p>
+<pre><code class="language-python">radii_v1 = simulation.diagnostics.time_series[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
+</code></pre>
 <h2 id="load-time-series">Load Time Series</h2>
-<p>Load one or more fields from one or more stored diagnostics. The return value
-is a dictionary keyed by <code>(diagnostic_name, version)</code>, with one wide Pandas
-table per diagnostic:</p>
+<p>The CSFData Analysis layer loads one or more stored diagnostics from one
+simulation into one Pandas table. All fields are loaded by default. Diagnostic
+names resolve to their latest collection-declared versions, currently <code>v1</code>.
+Choices use their registered defaults unless the analysis makes an explicit
+scientific selection:</p>
 <pre><code class="language-python">from csfdata_analysis.data.series import load_time_series
 
 data = load_time_series(
-    simulations,
-    diagnostics={
-        (&quot;lagrangian_radii&quot;, &quot;v1&quot;): {
-            &quot;choices&quot;: {&quot;center&quot;: &quot;stellar_com&quot;},
-            &quot;fields&quot;: (&quot;r_l50&quot;, &quot;n_l50&quot;),
-        },
-        (&quot;radial_velocity_3d&quot;, &quot;v1&quot;): {
-            &quot;choices&quot;: {&quot;center&quot;: &quot;stellar_com&quot;},
-            &quot;fields&quot;: (&quot;mean_vr&quot;, &quot;sigma_vr&quot;),
-        },
-    },
+    simulations[0],
+    diagnostics=(&quot;lagrangian_radii&quot;, &quot;radial_velocity_3d&quot;),
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
 )
 
-radii = data[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
-velocity = data[(&quot;radial_velocity_3d&quot;, &quot;v1&quot;)]
+data.plot(x=&quot;time&quot;, y=&quot;r_l50&quot;)
 </code></pre>
-<p>Every table includes <code>collection_id</code>, <code>simulation_id</code>, all known canonical
-configuration parameters, selected scientific choices, <code>time</code>, and its
-requested output fields. By default, the function stops if any selected
-simulation lacks a completed matching result. Use <code>allow_missing=True</code> only
-for an explicitly partial exploratory selection.</p>
+<p>The table has one shared <code>time</code> column and the selected output fields. The
+loader verifies that every requested diagnostic has exactly the same stored
+time coordinate and fails rather than silently interpolating a mismatch. Its
+<code>attrs</code> record the resolved diagnostic versions, choices, and fields.</p>
+<p>Use <code>fields</code> only when reading every result field would be unnecessary:</p>
+<pre><code class="language-python">data = load_time_series(
+    simulations[0],
+    diagnostics=(&quot;lagrangian_radii&quot;, &quot;radial_velocity_3d&quot;),
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    diagnostic_choices={&quot;lagrangian_radii&quot;: {&quot;center&quot;: &quot;origin&quot;}},
+    fields={
+        &quot;lagrangian_radii&quot;: (&quot;r_l50&quot;, &quot;n_l50&quot;),
+        &quot;radial_velocity_3d&quot;: (&quot;mean_vr&quot;,),
+    },
+)
+</code></pre>
+<p>Global choices apply to every diagnostic that uses them. A
+diagnostic-specific choice overrides the global value for that one diagnostic.
+Globally declared choices that do not affect a diagnostic are ignored; a typo
+or an irrelevant diagnostic-specific choice raises an error.</p>
+<h2 id="load-a-collection">Load A Collection</h2>
+<p><code>load_collection_time_series</code> uses the same names, global choices,
+diagnostic-specific overrides, and optional field selection as
+<code>load_time_series</code>. It returns one long Pandas table: each row is one stored
+time from one simulation, with stable IDs and canonical configuration values.
+Use it before interpolation and aggregation across simulations:</p>
+<pre><code class="language-python">from csfdata_analysis.data.series import load_collection_time_series
+
+data = load_collection_time_series(
+    simulations,
+    diagnostics=&quot;lagrangian_radii&quot;,
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    fields={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+)
+</code></pre>
+<p>The older exact-version dictionary form is still accepted for compatibility,
+but new analysis should use the concise form above.</p>
 <h2 id="align-and-summarize">Align And Summarize</h2>
 <p>Different simulations may have different snapshot times. Align them explicitly
 before calculating an ensemble mean or standard deviation:</p>
@@ -1862,21 +1958,22 @@ aligned = interpolate_time_series(
 )
 
 summary = aggregate_time_series(aligned)
-radii_summary = summary[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
 </code></pre>
 <p>Interpolation is linear and occurs independently for every simulation. The
 function never extrapolates: target times outside a simulation's stored range
-receive <code>NaN</code>. Every summary table contains <code>n_simulations</code> plus
+receive <code>NaN</code>. The summary table contains <code>n_simulations</code> plus
 <code>&lt;field&gt;_mean</code> and <code>&lt;field&gt;_std</code> columns. Use <code>group_by=("tff", "sfe")</code> with
 <code>aggregate_time_series</code> to produce separate ensembles for configuration-value
 combinations. <code>n_simulations</code> counts simulations with finite values for every
-field selected in that diagnostic table.</p>
+selected field.</p>
 <p>For a seed ensemble, omit <code>seed_index</code> from the initial <code>load_simulations</code>
 filters and from <code>group_by</code>. Include every parameter that defines the physical
 model in <code>group_by</code>; rows that differ only in seed are then averaged together.</p>
 <h2 id="select-diagnostic-slices">Select Diagnostic Slices</h2>
-<p>Select linearly interpolated derived values at one time. A normalization makes
-the requested time relative to a canonical Myr-valued configuration parameter:</p>
+<p><code>select_time_series_slice</code> currently uses the legacy dictionary-of-diagnostic-
+tables interface. It selects linearly interpolated derived values at one time.
+A normalization makes the requested time relative to a canonical Myr-valued
+configuration parameter:</p>
 <pre><code class="language-python">from csfdata_analysis.data.slices import select_time_series_slice
 
 slices = select_time_series_slice(
@@ -1889,6 +1986,9 @@ radii_slice = slices[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
 </code></pre>
 <p>Every resulting row contains one simulation's requested physical time and
 interpolated output fields. Values outside its stored time range are <code>NaN</code>.</p>
+<p>For the concise collection DataFrame interface, first use
+<code>interpolate_time_series</code> with an explicit time grid, then select the desired
+rows with ordinary Pandas filtering.</p>
 <h2 id="select-snapshot-slices">Select Snapshot Slices</h2>
 <p>Select the nearest stored raw snapshot for every simulation without loading
 AMUSE particles:</p>

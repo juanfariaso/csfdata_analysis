@@ -1245,6 +1245,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.diagnostics_in_dependency_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        diagnostics_in_dependency_order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#csfdata_analysis.diagnostics.time_series_diagnostic" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1903,6 +1914,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.diagnostics_in_dependency_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        diagnostics_in_dependency_order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#csfdata_analysis.diagnostics.time_series_diagnostic" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2038,7 +2060,15 @@
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            time_series_diagnostic(name, directories=()) (csfdata_analysis.diagnostics.time_series_diagnostic)" href="#csfdata_analysis.diagnostics.time_series_diagnostic">time_series_diagnostic</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            diagnostics_in_dependency_order(diagnostics) (csfdata_analysis.diagnostics.diagnostics_in_dependency_order)" href="#csfdata_analysis.diagnostics.diagnostics_in_dependency_order">diagnostics_in_dependency_order</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Return registered diagnostics ordered after their requirements.</p>
+                </div>
+              </td>
+            </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="            time_series_diagnostic(name, directories=(), version=None) (csfdata_analysis.diagnostics.time_series_diagnostic)" href="#csfdata_analysis.diagnostics.time_series_diagnostic">time_series_diagnostic</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Return the latest registered time-series diagnostic with one name.</p>
@@ -2046,7 +2076,7 @@
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            scalar_diagnostic(name, directories=()) (csfdata_analysis.diagnostics.scalar_diagnostic)" href="#csfdata_analysis.diagnostics.scalar_diagnostic">scalar_diagnostic</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            scalar_diagnostic(name, directories=(), version=None) (csfdata_analysis.diagnostics.scalar_diagnostic)" href="#csfdata_analysis.diagnostics.scalar_diagnostic">scalar_diagnostic</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Return the latest registered scalar diagnostic with one name.</p>
@@ -3773,8 +3803,249 @@ name/version identity.</p>
 <div class="doc doc-object doc-function">
 
 
+<h2 id="csfdata_analysis.diagnostics.diagnostics_in_dependency_order" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">diagnostics_in_dependency_order</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return registered diagnostics ordered after their requirements.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>diagnostics</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="tuple">tuple</span>[<span title="str">str</span>, <span title="str">str</span>], <a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
+
+
+  
+      dataclass
+   (csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic)" href="base/#csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic">TimeSeriesDiagnostic</a> | <a class="autorefs autorefs-internal" title="            ScalarDiagnostic
+
+
+  
+      dataclass
+   (csfdata_analysis.diagnostics.base.ScalarDiagnostic)" href="base/#csfdata_analysis.diagnostics.base.ScalarDiagnostic">ScalarDiagnostic</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Registered diagnostics keyed by <code>(name, version)</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            TimeSeriesDiagnostic
+
+
+  
+      dataclass
+   (csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic)" href="base/#csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic">TimeSeriesDiagnostic</a> | <a class="autorefs autorefs-internal" title="            ScalarDiagnostic
+
+
+  
+      dataclass
+   (csfdata_analysis.diagnostics.base.ScalarDiagnostic)" href="base/#csfdata_analysis.diagnostics.base.ScalarDiagnostic">ScalarDiagnostic</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Every registered diagnostic, with each declared requirement placed</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code>...</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>before the diagnostic that needs it.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If a requirement is unregistered or the requirements form
+a cycle.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <p>Diagnostics without a dependency are ordered by name and version. This
+gives catalogue-wide updates a repeatable execution order while still
+allowing independent diagnostics to run in any scientifically valid
+order.</p>
+</details>
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">diagnostics_in_dependency_order</span><span class="p">(</span>
+    <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return registered diagnostics ordered after their requirements.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        diagnostics: Registered diagnostics keyed by ``(name, version)``.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Every registered diagnostic, with each declared requirement placed</span>
+<span class="sd">        before the diagnostic that needs it.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If a requirement is unregistered or the requirements form</span>
+<span class="sd">            a cycle.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Diagnostics without a dependency are ordered by name and version. This</span>
+<span class="sd">        gives catalogue-wide updates a repeatable execution order while still</span>
+<span class="sd">        allowing independent diagnostics to run in any scientifically valid</span>
+<span class="sd">        order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">)</span>
+    <span class="n">ordered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">completed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">ready</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">diagnostic</span> <span class="ow">in</span> <span class="n">pending</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">required</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="p">(</span><span class="n">requirement</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">requirement</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">requirement</span> <span class="ow">in</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">requires</span>
+            <span class="p">}</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="n">required</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Diagnostic </span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> v</span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> requires &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;unregistered diagnostics: </span><span class="si">{</span><span class="n">names</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">required</span> <span class="o">&lt;=</span> <span class="n">completed</span><span class="p">:</span>
+                <span class="n">ready</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">diagnostic</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ready</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> v</span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">diagnostic</span> <span class="ow">in</span> <span class="n">pending</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic requirements contain a cycle: </span><span class="si">{</span><span class="n">names</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">diagnostic</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ready</span><span class="p">):</span>
+            <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diagnostic</span><span class="p">)</span>
+            <span class="n">completed</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">pending</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h2 id="csfdata_analysis.diagnostics.time_series_diagnostic" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">time_series_diagnostic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="o">=</span><span class="p">())</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">time_series_diagnostic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="o">=</span><span class="p">(),</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
@@ -3825,6 +4096,23 @@ name/version identity.</p>
             </td>
             <td>
                   <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>version</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional exact version identifier, such as <code>"v1"</code>. <code>None</code>
+selects the highest registered version.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -3884,38 +4172,46 @@ name/version identity.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">time_series_diagnostic</span><span class="p">(</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">time_series_diagnostic</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">directories</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeriesDiagnostic</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the latest registered time-series diagnostic with one name.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        name: Stable diagnostic name.</span>
 <span class="sd">        directories: Trusted local directories added to built-in diagnostics.</span>
+<span class="sd">        version: Optional exact version identifier, such as ``&quot;v1&quot;``. ``None``</span>
+<span class="sd">            selects the highest registered version.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        The highest available version of the named time-series diagnostic.</span>
@@ -3926,7 +4222,9 @@ name/version identity.</p>
     <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">diagnostic</span>
         <span class="k">for</span> <span class="n">diagnostic</span> <span class="ow">in</span> <span class="n">load_diagnostics</span><span class="p">(</span><span class="n">directories</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diagnostic</span><span class="p">,</span> <span class="n">TimeSeriesDiagnostic</span><span class="p">)</span> <span class="ow">and</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diagnostic</span><span class="p">,</span> <span class="n">TimeSeriesDiagnostic</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;v</span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">==</span> <span class="n">version</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown time-series diagnostic: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -3941,7 +4239,7 @@ name/version identity.</p>
 
 
 <h2 id="csfdata_analysis.diagnostics.scalar_diagnostic" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">scalar_diagnostic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="o">=</span><span class="p">())</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">scalar_diagnostic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="o">=</span><span class="p">(),</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
@@ -3992,6 +4290,23 @@ name/version identity.</p>
             </td>
             <td>
                   <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>version</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional exact version identifier, such as <code>"v1"</code>. <code>None</code>
+selects the highest registered version.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -4051,38 +4366,46 @@ name/version identity.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalar_diagnostic</span><span class="p">(</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalar_diagnostic</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">directories</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ScalarDiagnostic</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the latest registered scalar diagnostic with one name.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        name: Stable diagnostic name.</span>
 <span class="sd">        directories: Trusted local directories added to built-in diagnostics.</span>
+<span class="sd">        version: Optional exact version identifier, such as ``&quot;v1&quot;``. ``None``</span>
+<span class="sd">            selects the highest registered version.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        The highest available version of the named scalar diagnostic.</span>
@@ -4093,7 +4416,9 @@ name/version identity.</p>
     <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">diagnostic</span>
         <span class="k">for</span> <span class="n">diagnostic</span> <span class="ow">in</span> <span class="n">load_diagnostics</span><span class="p">(</span><span class="n">directories</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diagnostic</span><span class="p">,</span> <span class="n">ScalarDiagnostic</span><span class="p">)</span> <span class="ow">and</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diagnostic</span><span class="p">,</span> <span class="n">ScalarDiagnostic</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;v</span><span class="si">{</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">==</span> <span class="n">version</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown scalar diagnostic: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -4279,71 +4604,7 @@ scientific meaning of already stored data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/diagnostics/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
-<span class="normal">267</span>
-<span class="normal">268</span>
-<span class="normal">269</span>
-<span class="normal">270</span>
-<span class="normal">271</span>
-<span class="normal">272</span>
-<span class="normal">273</span>
-<span class="normal">274</span>
-<span class="normal">275</span>
-<span class="normal">276</span>
-<span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
-<span class="normal">281</span>
-<span class="normal">282</span>
-<span class="normal">283</span>
-<span class="normal">284</span>
-<span class="normal">285</span>
-<span class="normal">286</span>
-<span class="normal">287</span>
-<span class="normal">288</span>
-<span class="normal">289</span>
-<span class="normal">290</span>
-<span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">296</span>
 <span class="normal">297</span>
 <span class="normal">298</span>
 <span class="normal">299</span>
@@ -4385,7 +4646,71 @@ scientific meaning of already stored data.</p>
 <span class="normal">335</span>
 <span class="normal">336</span>
 <span class="normal">337</span>
-<span class="normal">338</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">ensure_collection_diagnostics</span><span class="p">(</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">ensure_collection_diagnostics</span><span class="p">(</span>
     <span class="n">collection_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TimeSeriesDiagnostic</span> <span class="o">|</span> <span class="n">ScalarDiagnostic</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
     <span class="n">available_diagnostics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>

@@ -1718,7 +1718,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>Safely import completed derived products from a lite catalogue.</p>
+        <p>Safely import completed derived products between catalogues.</p>
 
 
 
@@ -1739,10 +1739,10 @@
       </thead>
       <tbody>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            import_derived(lite_catalogue, destination_catalogue, overwrite=False, dry_run=False, progress=None) (csfdata_analysis.derived.import_derived)" href="#csfdata_analysis.derived.import_derived">import_derived</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            import_derived(source_catalogue, destination_catalogue, collection_id=None, overwrite=False, dry_run=False, progress=None) (csfdata_analysis.derived.import_derived)" href="#csfdata_analysis.derived.import_derived">import_derived</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Import completed HDF5 diagnostics from one lite catalogue.</p>
+                  <p>Import completed time-series and scalar diagnostics between catalogues.</p>
                 </div>
               </td>
             </tr>
@@ -1865,19 +1865,19 @@
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>csfdata_analysis/derived.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
-<span class="normal">22</span>
-<span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
 <span class="normal">28</span>
-<span class="normal">29</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DerivedImportReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Summary of one derived-data import attempt.</span>
 
@@ -1919,14 +1919,14 @@
 
 
 <h2 id="csfdata_analysis.derived.import_derived" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">import_derived</span><span class="p">(</span><span class="n">lite_catalogue</span><span class="p">,</span> <span class="n">destination_catalogue</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">import_derived</span><span class="p">(</span><span class="n">source_catalogue</span><span class="p">,</span> <span class="n">destination_catalogue</span><span class="p">,</span> <span class="n">collection_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>Import completed HDF5 diagnostics from one lite catalogue.</p>
+        <p>Import completed time-series and scalar diagnostics between catalogues.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1942,14 +1942,14 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>lite_catalogue</code>
+                <code>source_catalogue</code>
             </td>
             <td>
                   <code><span title="pathlib.Path">Path</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Lite collection created by <code>csfdata import-lite</code>.</p>
+                <p>Full or lite catalogue containing derived results.</p>
               </div>
             </td>
             <td>
@@ -1965,11 +1965,28 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Full catalogue that owns the matching collection.</p>
+                <p>Catalogue that receives matching results.</p>
               </div>
             </td>
             <td>
                 <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>collection_id</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional one collection ID to import. <code>None</code> imports
+every collection present in <code>source_catalogue</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -2013,7 +2030,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional callback invoked after each lite simulation is
+                <p>Optional callback invoked after each source simulation is
 inspected. It receives the completed count, total count, and
 <code>collection_id/simulation_id</code> label.</p>
               </div>
@@ -2069,8 +2086,9 @@ inspected. It receives the completed count, total count, and
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If the destination is not the source catalogue recorded by
-the lite import or its collection definition has changed.</p>
+                <p>If source and destination are incompatible, the requested
+collection is absent, or a lite source does not target its recorded
+full catalogue.</p>
               </div>
             </td>
           </tr>
@@ -2080,7 +2098,8 @@ the lite import or its collection definition has changed.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If required lite or destination collection files are absent.</p>
+                <p>If required source or destination collection files
+are absent.</p>
               </div>
             </td>
           </tr>
@@ -2090,24 +2109,19 @@ the lite import or its collection definition has changed.</p>
 
 <details class="notes" open>
   <summary>Notes</summary>
-  <p>Only final <code>series.h5</code> files carrying the required complete identity
-attributes are eligible. Existing results are skipped by default;
-<code>overwrite=True</code> is required to replace them.</p>
+  <p>The first catalogue argument is always the source and the second is
+always the destination. A lite source remains restricted to the full
+catalogue recorded in its provenance file. Time-series results must be
+final <code>series.h5</code> files carrying the required complete identity
+attributes. Scalar results are merged by diagnostic version and choice
+combination after their collection declarations are checked. Existing
+results are skipped by default; <code>overwrite=True</code> is required to
+replace them.</p>
 </details>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/derived.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 32</span>
-<span class="normal"> 33</span>
-<span class="normal"> 34</span>
-<span class="normal"> 35</span>
-<span class="normal"> 36</span>
-<span class="normal"> 37</span>
-<span class="normal"> 38</span>
-<span class="normal"> 39</span>
-<span class="normal"> 40</span>
-<span class="normal"> 41</span>
-<span class="normal"> 42</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
 <span class="normal"> 43</span>
 <span class="normal"> 44</span>
 <span class="normal"> 45</span>
@@ -2193,21 +2207,208 @@ attributes are eligible. Existing results are skipped by default;
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
-<span class="normal">128</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived</span><span class="p">(</span>
-    <span class="n">lite_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived</span><span class="p">(</span>
+    <span class="n">source_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">destination_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">progress</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DerivedImportReport</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Import completed HDF5 diagnostics from one lite catalogue.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Import completed time-series and scalar diagnostics between catalogues.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        lite_catalogue: Lite collection created by ``csfdata import-lite``.</span>
-<span class="sd">        destination_catalogue: Full catalogue that owns the matching collection.</span>
+<span class="sd">        source_catalogue: Full or lite catalogue containing derived results.</span>
+<span class="sd">        destination_catalogue: Catalogue that receives matching results.</span>
+<span class="sd">        collection_id: Optional one collection ID to import. ``None`` imports</span>
+<span class="sd">            every collection present in ``source_catalogue``.</span>
 <span class="sd">        overwrite: Whether completed destination results may be replaced.</span>
 <span class="sd">        dry_run: Whether to report actions without copying files.</span>
-<span class="sd">        progress: Optional callback invoked after each lite simulation is</span>
+<span class="sd">        progress: Optional callback invoked after each source simulation is</span>
 <span class="sd">            inspected. It receives the completed count, total count, and</span>
 <span class="sd">            ``collection_id/simulation_id`` label.</span>
 
@@ -2215,80 +2416,251 @@ attributes are eligible. Existing results are skipped by default;
 <span class="sd">        Copied and skipped paths plus every result that could not be imported.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If the destination is not the source catalogue recorded by</span>
-<span class="sd">            the lite import or its collection definition has changed.</span>
-<span class="sd">        FileNotFoundError: If required lite or destination collection files are absent.</span>
+<span class="sd">        ValueError: If source and destination are incompatible, the requested</span>
+<span class="sd">            collection is absent, or a lite source does not target its recorded</span>
+<span class="sd">            full catalogue.</span>
+<span class="sd">        FileNotFoundError: If required source or destination collection files</span>
+<span class="sd">            are absent.</span>
 
 <span class="sd">    Notes:</span>
-<span class="sd">        Only final ``series.h5`` files carrying the required complete identity</span>
-<span class="sd">        attributes are eligible. Existing results are skipped by default;</span>
-<span class="sd">        ``overwrite=True`` is required to replace them.</span>
+<span class="sd">        The first catalogue argument is always the source and the second is</span>
+<span class="sd">        always the destination. A lite source remains restricted to the full</span>
+<span class="sd">        catalogue recorded in its provenance file. Time-series results must be</span>
+<span class="sd">        final ``series.h5`` files carrying the required complete identity</span>
+<span class="sd">        attributes. Scalar results are merged by diagnostic version and choice</span>
+<span class="sd">        combination after their collection declarations are checked. Existing</span>
+<span class="sd">        results are skipped by default; ``overwrite=True`` is required to</span>
+<span class="sd">        replace them.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lite_catalogue</span> <span class="o">=</span> <span class="n">lite_catalogue</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">source_catalogue</span> <span class="o">=</span> <span class="n">source_catalogue</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="n">destination_catalogue</span> <span class="o">=</span> <span class="n">destination_catalogue</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">read_lite_source</span><span class="p">(</span><span class="n">lite_catalogue</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">destination_catalogue</span> <span class="o">!=</span> <span class="n">source</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Destination catalogue does not match the source recorded by the lite import.&quot;</span>
+    <span class="k">if</span> <span class="n">source_catalogue</span> <span class="o">==</span> <span class="n">destination_catalogue</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Source and destination catalogues must be different.&quot;</span><span class="p">)</span>
+    <span class="n">source_collections_root</span> <span class="o">=</span> <span class="n">source_catalogue</span> <span class="o">/</span> <span class="s2">&quot;collections&quot;</span>
+    <span class="n">destination_collections_root</span> <span class="o">=</span> <span class="n">destination_catalogue</span> <span class="o">/</span> <span class="s2">&quot;collections&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">source_collections_root</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source catalogue has no collections directory: </span><span class="si">{</span><span class="n">source_collections_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">destination_collections_root</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Destination catalogue has no collections directory: </span><span class="si">{</span><span class="n">destination_collections_root</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
-    <span class="n">lite_collection</span> <span class="o">=</span> <span class="n">lite_catalogue</span> <span class="o">/</span> <span class="s2">&quot;collections&quot;</span> <span class="o">/</span> <span class="n">source</span><span class="o">.</span><span class="n">collection_id</span>
-    <span class="n">destination_collection</span> <span class="o">=</span> <span class="n">destination_catalogue</span> <span class="o">/</span> <span class="s2">&quot;collections&quot;</span> <span class="o">/</span> <span class="n">source</span><span class="o">.</span><span class="n">collection_id</span>
-    <span class="k">if</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">destination_collection</span> <span class="o">/</span> <span class="s2">&quot;collection.yaml&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">source</span><span class="o">.</span><span class="n">collection_sha256</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Destination collection configuration differs from the lite import.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_lite_catalogue</span><span class="p">(</span><span class="n">source_catalogue</span><span class="p">):</span>
+        <span class="n">lite_source</span> <span class="o">=</span> <span class="n">read_lite_source</span><span class="p">(</span><span class="n">source_catalogue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">destination_catalogue</span> <span class="o">!=</span> <span class="n">lite_source</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Destination catalogue does not match the source recorded by the lite import.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">collection_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">collection_id</span> <span class="o">!=</span> <span class="n">lite_source</span><span class="o">.</span><span class="n">collection_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Requested collection does not match the collection recorded by the lite import.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">collection_ids</span> <span class="o">=</span> <span class="p">(</span><span class="n">lite_source</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,)</span>
+    <span class="k">elif</span> <span class="n">collection_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">collection_ids</span> <span class="o">=</span> <span class="p">(</span><span class="n">collection_id</span><span class="p">,)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">collection_ids</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">sorted</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">source_collections_root</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
+        <span class="p">)</span>
 
     <span class="n">copied_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">skipped_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">issues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">lite_simulations</span> <span class="o">=</span> <span class="n">lite_collection</span> <span class="o">/</span> <span class="s2">&quot;simulations&quot;</span>
-    <span class="n">simulations</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
-        <span class="nb">sorted</span><span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">lite_simulations</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">simulation_number</span><span class="p">,</span> <span class="n">lite_simulation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">simulations</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">destination_simulation</span> <span class="o">=</span> <span class="n">destination_collection</span> <span class="o">/</span> <span class="s2">&quot;simulations&quot;</span> <span class="o">/</span> <span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">destination_simulation</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing destination simulation: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">progress</span><span class="p">(</span><span class="n">simulation_number</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulations</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">read_simulation_metadata</span><span class="p">(</span><span class="n">lite_simulation</span> <span class="o">/</span> <span class="s2">&quot;metadata.yaml&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">read_simulation_metadata</span><span class="p">(</span>
-            <span class="n">destination_simulation</span> <span class="o">/</span> <span class="s2">&quot;metadata.yaml&quot;</span>
-        <span class="p">):</span>
-            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation metadata differs: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">progress</span><span class="p">(</span><span class="n">simulation_number</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulations</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="n">configuration_sha256</span> <span class="o">=</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">lite_simulation</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">configuration_sha256</span> <span class="o">!=</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">destination_simulation</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">):</span>
-            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation configuration differs: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">progress</span><span class="p">(</span><span class="n">simulation_number</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulations</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="n">result_paths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;derived/diagnostics/*/v*/series.h5&quot;</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result_paths</span><span class="p">:</span>
-            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No completed derived result: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">result_path</span> <span class="ow">in</span> <span class="n">result_paths</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">validate_derived_result</span><span class="p">(</span>
-                <span class="n">result_path</span><span class="p">,</span>
-                <span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span>
-                <span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">configuration_sha256</span><span class="p">,</span>
+    <span class="n">collections</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">current_collection_id</span> <span class="ow">in</span> <span class="n">collection_ids</span><span class="p">:</span>
+        <span class="n">source_collection</span> <span class="o">=</span> <span class="n">source_collections_root</span> <span class="o">/</span> <span class="n">current_collection_id</span>
+        <span class="n">destination_collection</span> <span class="o">=</span> <span class="n">destination_collections_root</span> <span class="o">/</span> <span class="n">current_collection_id</span>
+        <span class="n">source_configuration</span> <span class="o">=</span> <span class="n">source_collection</span> <span class="o">/</span> <span class="s2">&quot;collection.yaml&quot;</span>
+        <span class="n">destination_configuration</span> <span class="o">=</span> <span class="n">destination_collection</span> <span class="o">/</span> <span class="s2">&quot;collection.yaml&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_configuration</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source collection configuration is missing: </span><span class="si">{</span><span class="n">source_configuration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">destination_configuration</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Destination collection configuration is missing: </span><span class="si">{</span><span class="n">destination_configuration</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="n">relative_path</span> <span class="o">=</span> <span class="n">result_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">lite_simulation</span><span class="p">)</span>
-            <span class="n">destination_path</span> <span class="o">=</span> <span class="n">destination_simulation</span> <span class="o">/</span> <span class="n">relative_path</span>
-            <span class="k">if</span> <span class="n">destination_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
-                <span class="n">skipped_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
-                <span class="n">destination_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">staging_path</span> <span class="o">=</span> <span class="n">destination_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">destination_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="si">}</span><span class="s2">.tmp&quot;</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">result_path</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
-                <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
-            <span class="n">copied_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">progress</span><span class="p">(</span><span class="n">simulation_number</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulations</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">lite_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">source_configuration</span><span class="p">)</span> <span class="o">!=</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">destination_configuration</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Collection configuration differs: </span><span class="si">{</span><span class="n">current_collection_id</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">source_simulations</span> <span class="o">=</span> <span class="n">source_collection</span> <span class="o">/</span> <span class="s2">&quot;simulations&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_simulations</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source collection has no simulations directory: </span><span class="si">{</span><span class="n">source_simulations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Derived scalar values need their published field and choice schemas.</span>
+        <span class="c1"># Merge compatible source declarations before considering any result.</span>
+        <span class="n">source_diagnostics_path</span> <span class="o">=</span> <span class="n">collection_diagnostics_path</span><span class="p">(</span><span class="n">source_collection</span><span class="p">)</span>
+        <span class="n">destination_diagnostics_path</span> <span class="o">=</span> <span class="n">collection_diagnostics_path</span><span class="p">(</span><span class="n">destination_collection</span><span class="p">)</span>
+        <span class="n">source_diagnostics</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">read_collection_diagnostics</span><span class="p">(</span><span class="n">source_diagnostics_path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">source_diagnostics_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">destination_diagnostics</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">read_collection_diagnostics</span><span class="p">(</span><span class="n">destination_diagnostics_path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">destination_diagnostics_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+            <span class="k">else</span> <span class="n">CollectionDiagnostics</span><span class="p">((),</span> <span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">source_diagnostics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">choices</span> <span class="o">=</span> <span class="p">{</span><span class="n">choice</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">choice</span> <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">destination_diagnostics</span><span class="o">.</span><span class="n">choices</span><span class="p">}</span>
+            <span class="n">definitions</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">version</span><span class="p">):</span> <span class="n">definition</span>
+                <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">destination_diagnostics</span><span class="o">.</span><span class="n">diagnostics</span>
+            <span class="p">}</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">source_diagnostics</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+                <span class="n">existing_choice</span> <span class="o">=</span> <span class="n">choices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">choice</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">existing_choice</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">choices</span><span class="p">[</span><span class="n">choice</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">choice</span>
+                    <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">existing_choice</span> <span class="o">!=</span> <span class="n">choice</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Collection choice definition differs: </span><span class="si">{</span><span class="n">current_collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">choice</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">source_diagnostics</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+                <span class="n">existing_definition</span> <span class="o">=</span> <span class="n">definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">existing_definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">definitions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">definition</span>
+                    <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">existing_definition</span> <span class="o">!=</span> <span class="n">definition</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Collection diagnostic definition differs: &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">definition</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">definition</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+            <span class="n">destination_diagnostics</span> <span class="o">=</span> <span class="n">CollectionDiagnostics</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="n">choices</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="n">definitions</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">changed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+                <span class="c1"># Declarations make imported scalar values interpretable by the</span>
+                <span class="c1"># core index, so install the complete merged contract first.</span>
+                <span class="n">staging_path</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">destination_diagnostics_path</span><span class="o">.</span><span class="n">parent</span>
+                    <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">destination_diagnostics_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="si">}</span><span class="s2">.tmp&quot;</span>
+                <span class="p">)</span>
+                <span class="n">write_collection_diagnostics</span><span class="p">(</span><span class="n">destination_diagnostics</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
+                <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_diagnostics_path</span><span class="p">)</span>
+        <span class="n">collections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">current_collection_id</span><span class="p">,</span>
+                <span class="n">destination_collection</span><span class="p">,</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">source_simulations</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())),</span>
+                <span class="n">source_diagnostics</span><span class="p">,</span>
+                <span class="n">destination_diagnostics</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">simulations</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">simulations</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">)</span>
+    <span class="n">completed</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">current_collection_id</span><span class="p">,</span> <span class="n">destination_collection</span><span class="p">,</span> <span class="n">simulations</span><span class="p">,</span> <span class="n">source_diagnostics</span><span class="p">,</span> <span class="n">destination_diagnostics</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">source_simulation</span> <span class="ow">in</span> <span class="n">simulations</span><span class="p">:</span>
+            <span class="n">completed</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">source_simulation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">destination_simulation</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">destination_collection</span> <span class="o">/</span> <span class="s2">&quot;simulations&quot;</span> <span class="o">/</span> <span class="n">source_simulation</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">destination_simulation</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing destination simulation: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">read_simulation_metadata</span><span class="p">(</span><span class="n">source_simulation</span> <span class="o">/</span> <span class="s2">&quot;metadata.yaml&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">read_simulation_metadata</span><span class="p">(</span>
+                <span class="n">destination_simulation</span> <span class="o">/</span> <span class="s2">&quot;metadata.yaml&quot;</span>
+            <span class="p">):</span>
+                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation metadata differs: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">configuration_sha256</span> <span class="o">=</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">source_simulation</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">configuration_sha256</span> <span class="o">!=</span> <span class="n">file_sha256</span><span class="p">(</span><span class="n">destination_simulation</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">):</span>
+                    <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation configuration differs: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result_paths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                        <span class="n">source_simulation</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;derived/diagnostics/*/v*/series.h5&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">result_path</span> <span class="ow">in</span> <span class="n">result_paths</span><span class="p">:</span>
+                        <span class="n">error</span> <span class="o">=</span> <span class="n">validate_derived_result</span><span class="p">(</span>
+                            <span class="n">result_path</span><span class="p">,</span>
+                            <span class="n">current_collection_id</span><span class="p">,</span>
+                            <span class="n">source_simulation</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                            <span class="n">configuration_sha256</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                            <span class="k">continue</span>
+                        <span class="n">relative_path</span> <span class="o">=</span> <span class="n">result_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">source_simulation</span><span class="p">)</span>
+                        <span class="n">destination_path</span> <span class="o">=</span> <span class="n">destination_simulation</span> <span class="o">/</span> <span class="n">relative_path</span>
+                        <span class="k">if</span> <span class="n">destination_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                            <span class="n">skipped_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
+                            <span class="k">continue</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+                            <span class="n">destination_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">staging_path</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">destination_path</span><span class="o">.</span><span class="n">parent</span>
+                                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">destination_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="si">}</span><span class="s2">.tmp&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">result_path</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
+                            <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
+                        <span class="n">copied_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
+
+                    <span class="n">source_scalar_path</span> <span class="o">=</span> <span class="n">simulation_scalar_diagnostics_path</span><span class="p">(</span><span class="n">source_simulation</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">source_scalar_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">source_diagnostics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Scalar diagnostics have no collection definitions: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">source_scalars</span> <span class="o">=</span> <span class="n">read_simulation_scalar_diagnostics</span><span class="p">(</span>
+                                <span class="n">source_scalar_path</span><span class="p">,</span>
+                                <span class="n">source_diagnostics</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">destination_scalar_path</span> <span class="o">=</span> <span class="n">simulation_scalar_diagnostics_path</span><span class="p">(</span>
+                                <span class="n">destination_simulation</span>
+                            <span class="p">)</span>
+                            <span class="n">destination_scalars</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">read_simulation_scalar_diagnostics</span><span class="p">(</span>
+                                    <span class="n">destination_scalar_path</span><span class="p">,</span>
+                                    <span class="n">destination_diagnostics</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="k">if</span> <span class="n">destination_scalar_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                                <span class="k">else</span> <span class="kc">None</span>
+                            <span class="p">)</span>
+                            <span class="n">existing</span> <span class="o">=</span> <span class="p">{</span>
+                                <span class="p">(</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">diagnostic_name</span><span class="p">,</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">diagnostic_version</span><span class="p">,</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">choices</span><span class="p">,</span>
+                                <span class="p">):</span> <span class="n">result</span>
+                                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="p">(</span><span class="n">destination_scalars</span><span class="o">.</span><span class="n">results</span> <span class="k">if</span> <span class="n">destination_scalars</span> <span class="k">else</span> <span class="p">())</span>
+                            <span class="p">}</span>
+                            <span class="n">replacements</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="n">skipped_scalar</span> <span class="o">=</span> <span class="kc">False</span>
+                            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">source_scalars</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+                                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">diagnostic_name</span><span class="p">,</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">diagnostic_version</span><span class="p">,</span>
+                                    <span class="n">result</span><span class="o">.</span><span class="n">choices</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">existing</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                                    <span class="n">skipped_scalar</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="k">continue</span>
+                                <span class="n">existing</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+                                <span class="n">replacements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">replacements</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+                                    <span class="n">destination_scalar_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                    <span class="n">staging_path</span> <span class="o">=</span> <span class="p">(</span>
+                                        <span class="n">destination_scalar_path</span><span class="o">.</span><span class="n">parent</span>
+                                        <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">destination_scalar_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="si">}</span><span class="s2">.tmp&quot;</span>
+                                    <span class="p">)</span>
+                                    <span class="n">write_simulation_scalar_diagnostics</span><span class="p">(</span>
+                                        <span class="n">SimulationScalarDiagnostics</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span>
+                                        <span class="n">destination_diagnostics</span><span class="p">,</span>
+                                        <span class="n">staging_path</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                    <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
+                                <span class="n">copied_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
+                            <span class="k">elif</span> <span class="n">skipped_scalar</span><span class="p">:</span>
+                                <span class="n">skipped_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">result_paths</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">source_scalar_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                        <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No completed derived result: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">progress</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">DerivedImportReport</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">copied_paths</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">skipped_paths</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">issues</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2330,7 +2702,7 @@ attributes are eligible. Existing results are skipped by default;
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Final <code>series.h5</code> file from a lite catalogue.</p>
+                <p>Final <code>series.h5</code> file from the source catalogue.</p>
               </div>
             </td>
             <td>
@@ -2414,52 +2786,52 @@ attributes are eligible. Existing results are skipped by default;
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/derived.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_derived_result</span><span class="p">(</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_derived_result</span><span class="p">(</span>
     <span class="n">result_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">simulation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2468,7 +2840,7 @@ attributes are eligible. Existing results are skipped by default;
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate the completion and identity attributes of one HDF5 result.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        result_path: Final ``series.h5`` file from a lite catalogue.</span>
+<span class="sd">        result_path: Final ``series.h5`` file from the source catalogue.</span>
 <span class="sd">        collection_id: Expected parent collection ID.</span>
 <span class="sd">        simulation_id: Expected parent simulation ID.</span>
 <span class="sd">        config_sha256: Expected hash of the copied canonical configuration.</span>

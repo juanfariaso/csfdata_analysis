@@ -336,6 +336,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#update-all-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update All Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#local-diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1719,6 +1730,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#update-all-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update All Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#local-diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1854,6 +1876,22 @@ values by default:</p>
   --filter collection=dcaf-grid-v1 \
   --workers 12
 </code></pre>
+<h2 id="update-all-diagnostics">Update All Diagnostics</h2>
+<p>Update every registered built-in and configured local diagnostic for a
+catalogue selection:</p>
+<pre><code class="language-bash">csfdata analysis update-diagnostics \
+  --catalogue /path/to/catalogue \
+  --filter collection=example-grid-v1 \
+  --workers 12
+</code></pre>
+<p>The command loads built-in and configured local diagnostics, orders them after
+their declared requirements, then processes every selected simulation. Current
+completed results are skipped. Missing, incomplete, and outdated time-series
+results are recomputed and atomically replaced. This is the command to use
+after an output-format update such as the <code>time_myr</code> to <code>time</code> migration.</p>
+<p>Use <code>--overwrite</code> only when every selected result should be recomputed,
+including already-current results. The command asks for confirmation unless
+<code>--no-prompt</code> is supplied for a non-interactive job.</p>
 <h2 id="local-diagnostics">Local Diagnostics</h2>
 <p>The same command runs trusted local diagnostics configured by an <code>analysis.yaml</code>
 file at the catalogue root:</p>
@@ -1879,16 +1917,23 @@ atomically installed only after the full calculation succeeds:</p>
   --overwrite
 </code></pre>
 <h2 id="clear-derived-results">Clear Derived Results</h2>
-<p>Remove a time-series diagnostic without recomputing it immediately:</p>
+<p>Remove one built-in time-series diagnostic without recomputing it immediately:</p>
 <pre><code class="language-bash">csfdata analysis clear-derived lagrangian_radii \
+  --catalogue /path/to/lite-catalogue \
+  --filter collection=dcaf-grid-v1
+</code></pre>
+<p>Use <code>all</code> to remove every built-in time-series diagnostic selected by the
+filters:</p>
+<pre><code class="language-bash">csfdata analysis clear-derived all \
   --catalogue /path/to/lite-catalogue \
   --filter collection=dcaf-grid-v1
 </code></pre>
 <p>This command is intentionally restricted to lite catalogues. It removes only
 the selected diagnostic's versioned <code>series.h5</code> file for matching simulations;
-other diagnostics and all raw data are preserved. The command shows the number
-of selected simulations and asks for confirmation. Use <code>--no-prompt</code> only in a
-non-interactive job after checking the selection.</p>
+<code>all</code> removes every such built-in time-series file. Scalar diagnostics and all
+raw data are preserved. The command shows the number of selected simulations
+and asks for confirmation. Use <code>--no-prompt</code> only in a non-interactive job
+after checking the selection.</p>
 <h2 id="lite-catalogue-time-series-diagnostic">Lite Catalogue Time-Series Diagnostic</h2>
 <p>For a lite catalogue created by <code>csfdata import-lite</code>, omit the collection
 filter. The lite catalogue contains exactly one collection and records the
@@ -1901,14 +1946,30 @@ full catalogue that owns its raw snapshots:</p>
 and canonical configuration still match before reading each raw snapshot. It
 writes results only inside the lite catalogue.</p>
 <h2 id="import-derived-results">Import Derived Results</h2>
-<p>After computation, run this from a node that can write to the full catalogue:</p>
-<pre><code class="language-bash">csfdata analysis import-derived /path/to/lite-catalogue \
-  --catalogue /path/to/source-catalogue
+<p>The first catalogue path is always the source and the second is always the
+destination. Run this from a node that can write to the destination catalogue:</p>
+<pre><code class="language-bash">csfdata analysis import-derived \
+  /path/to/source-catalogue \
+  /path/to/destination-catalogue
 </code></pre>
-<p>Only completed HDF5 files with matching collection, simulation, and
-configuration identities are copied. Existing destination files are skipped by
-default. Use <code>--dry-run</code> to inspect actions, or <code>--overwrite</code> to explicitly
-replace existing compatible results.</p>
+<p>When <code>--collection</code> is omitted, every collection in the source is considered.
+Restrict an import to one collection when needed:</p>
+<pre><code class="language-bash">csfdata analysis import-derived \
+  /path/to/source-catalogue \
+  /path/to/destination-catalogue \
+  --collection example-grid-v1
+</code></pre>
+<p>Completed HDF5 time-series files with matching collection, simulation, and
+configuration identities are copied. Scalar diagnostic values are merged by
+diagnostic version and scientific choices; their compatible collection
+definitions are imported at the same time so the destination can index and
+query them. A lite source is additionally restricted to the full catalogue
+recorded in its <code>lite.yaml</code> provenance file. Existing destination results are
+skipped by default. Use <code>--dry-run</code> to inspect actions, or <code>--overwrite</code> to
+explicitly replace existing compatible results.</p>
+<p>Rebuild the destination index after importing scalar diagnostics:</p>
+<pre><code class="language-bash">csfdata index-catalogue /path/to/destination-catalogue
+</code></pre>
 <h2 id="one-simulation">One Simulation</h2>
 <p>Use the direct command while developing or debugging one imported simulation:</p>
 <pre><code class="language-bash">csfdata analysis compute-simulation \
