@@ -24,9 +24,9 @@ print(simulation.diagnostics)
 ```
 
 [`simulation.diagnostics`](https://juanfariaso.github.io/csfdata/reference/csfdata/catalogue/registry/#csfdata.catalogue.registry.CatalogueSimulation.diagnostics)
-is lazy: printing it shows available time-series and scalar diagnostic
-versions, fields, choices, and result paths without loading their numerical
-arrays.
+is lazy: printing it shows a compact inventory of available time-series and
+scalar diagnostic versions, fields, default choices, and stored choice values
+without loading their numerical arrays.
 
 ## Select Raw Snapshot Slices
 
@@ -91,11 +91,12 @@ catalogue diagnostic.
 
 ## Read A Time Series
 
-Select a diagnostic by `(name, version)`, inspect it, then request one stored
-choice and the fields needed for the analysis:
+Select a diagnostic by name to use its latest collection-declared version,
+inspect it, then request one stored choice and the fields needed for the
+analysis. The explicit `(name, version)` form remains available when needed:
 
 ```python
-radii = simulation.diagnostics.time_series[("lagrangian_radii", "v1")]
+radii = simulation.diagnostics.time_series["lagrangian_radii"]
 print(radii)
 
 data = radii.read(
@@ -111,6 +112,23 @@ Time-series reads return NumPy arrays. A
 [`SimulationDiagnostic`](https://juanfariaso.github.io/csfdata/reference/csfdata/catalogue/diagnostics/#csfdata.catalogue.diagnostics.SimulationDiagnostic)
 provides `fields`, `choices`, and `available_choices` to inspect what is
 available before reading.
+
+For plotting data from one simulation, use the analysis-layer
+[`load_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.load_time_series)
+function. It loads all requested diagnostic fields by default into one Pandas
+table with a shared ``time`` column:
+
+```python
+from csfdata_analysis.data import load_time_series
+
+data = load_time_series(
+    simulation,
+    diagnostics=("lagrangian_radii", "radial_velocity_3d"),
+    choices={"center": "stellar_com"},
+)
+
+data.plot(x="time", y="r_l50")
+```
 
 ## Read A Scalar Diagnostic
 
@@ -128,7 +146,7 @@ expansion_rate = values["dRdt"]
 ## Work Across A Collection
 
 For plotting or statistics across many simulations,
-[`load_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.load_time_series)
+[`load_collection_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.load_collection_time_series)
 loads the desired diagnostic field into a Pandas table,
 [`interpolate_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.interpolate_time_series)
 aligns its output times, and
@@ -142,8 +160,8 @@ import numpy as np
 from csfdata_analysis.data import (
     aggregate_time_series,
     interpolate_time_series,
+    load_collection_time_series,
     load_simulations,
-    load_time_series,
 )
 
 simulations = load_simulations(
@@ -151,14 +169,11 @@ simulations = load_simulations(
     collection_id="collection-id",
 )
 
-series = load_time_series(
+series = load_collection_time_series(
     simulations,
-    diagnostics={
-        ("lagrangian_radii", "v1"): {
-            "choices": {"center": "stellar_com"},
-            "fields": ("r_l50",),
-        },
-    },
+    diagnostics="lagrangian_radii",
+    choices={"center": "stellar_com"},
+    fields={"lagrangian_radii": ("r_l50",)},
 )
 
 aligned = interpolate_time_series(
@@ -171,7 +186,6 @@ summary = aggregate_time_series(
     group_by=("tff", "sfe", "fret_max", "texp_over_tff", "Mstars"),
 )
 
-radii_summary = summary[("lagrangian_radii", "v1")]
 ```
 
 Each summary row represents one exact combination of the listed parameters at

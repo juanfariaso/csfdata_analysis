@@ -6,6 +6,7 @@ import math
 import h5py
 from pytest import approx
 
+import csfdata.catalogue.diagnostics as catalogue_diagnostics
 from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.configuration import (
     ConfigurationParameter,
@@ -23,6 +24,7 @@ from csfdata.catalogue.diagnostics import (
 from csfdata_analysis.data.series import (
     aggregate_time_series,
     interpolate_time_series,
+    load_collection_time_series,
     load_time_series,
 )
 from csfdata_analysis.data.slices import select_snapshot_slice, select_time_series_slice
@@ -72,6 +74,84 @@ def test_load_align_aggregate_and_slice_multiple_time_series(tmp_path: Path) -> 
     assert summary[("radii", "v1")].iloc[2]["n_simulations"] == 0
     assert list(sliced[("velocity", "v1")]["time"]) == [0.5, 1.0]
     assert list(sliced[("velocity", "v1")]["mean_vr"]) == [3.0, 8.0]
+
+
+def test_load_one_simulation_merges_default_and_overridden_diagnostics(tmp_path: Path) -> None:
+    """One simulation loads one shared table with resolved diagnostic choices."""
+    simulation = _write_simulation(tmp_path, "0001", 1.0)
+    _write_time_series(simulation, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+    _write_time_series(simulation, "velocity", {"mean_vr": (2.0, 6.0)})
+    velocity_path = simulation.path / "derived/diagnostics/velocity/v1/series.h5"
+    with h5py.File(velocity_path, "a") as output:
+        origin = output["choices"].create_group("origin")
+        origin.create_dataset("mean_vr", data=(4.0, 8.0))
+
+    data = load_time_series(
+        simulation,
+        ("radii", "velocity"),
+        choices={"center": "stellar_com"},
+        diagnostic_choices={"velocity": {"center": "origin"}},
+        fields={"velocity": ("mean_vr",)},
+    )
+
+    assert list(data.columns) == ["time", "r50", "n_stars", "mean_vr"]
+    assert list(data["mean_vr"]) == [4.0, 8.0]
+    assert data.attrs["diagnostics"] == (("radii", "v1"), ("velocity", "v1"))
+    assert data.attrs["choices"] == {
+        "radii": {"center": "stellar_com"},
+        "velocity": {"center": "origin"},
+    }
+    assert data.attrs["fields"] == {
+        "radii": ("r50", "n_stars"),
+        "velocity": ("mean_vr",),
+    }
+
+
+def test_load_align_and_aggregate_a_collection_with_concise_selection(tmp_path: Path) -> None:
+    """Collection tables use concise selections and retain grouping metadata."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    _write_time_series(first, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+    _write_time_series(second, "radii", {"r50": (2.0, 6.0), "n_stars": (10.0, 20.0)})
+
+    series = load_collection_time_series(
+        (first, second),
+        "radii",
+        fields={"radii": ("r50",)},
+    )
+    aligned = interpolate_time_series(series, (0.0, 1.0, 3.0))
+    summary = aggregate_time_series(aligned, group_by=("tff",))
+
+    assert list(series.columns) == ["collection_id", "simulation_id", "tff", "time", "r50"]
+    assert series.attrs["data_fields"] == ("r50",)
+    first_values = list(aligned[aligned["simulation_id"] == "0001"]["r50"])
+    assert first_values[:2] == [1.0, 2.0]
+    assert math.isnan(first_values[2])
+    assert summary.iloc[1]["r50_mean"] == approx(2.0)
+    assert summary.iloc[1]["n_simulations"] == 1
+
+
+def test_collection_loading_reads_each_schema_once(tmp_path: Path, monkeypatch) -> None:
+    """One collection schema is parsed once during a concise collection load."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    for simulation in (first, second):
+        _write_time_series(simulation, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+
+    calls = 0
+    read_collection_diagnostics = catalogue_diagnostics.read_collection_diagnostics
+
+    def count_schema_reads(path: Path):
+        """Count collection-schema reads while preserving normal parsing."""
+        nonlocal calls
+        calls += 1
+        return read_collection_diagnostics(path)
+
+    monkeypatch.setattr(catalogue_diagnostics, "read_collection_diagnostics", count_schema_reads)
+
+    load_collection_time_series((first, second), "radii")
+
+    assert calls == 1
 
 
 def test_select_snapshot_slice_uses_a_normalized_time(tmp_path: Path) -> None:
