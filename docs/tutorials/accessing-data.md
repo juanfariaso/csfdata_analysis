@@ -7,11 +7,11 @@ particle data into memory.
 ## Inspect One Simulation
 
 Select simulations through the catalogue index with
-[`load_simulations`](../reference/csfdata_analysis/data/loader.md#csfdata_analysis.data.loader.load_simulations),
+[`load_simulations`](../reference/csfdata_analysis/datamodel/simulations.md#csfdata_analysis.datamodel.simulations.load_simulations),
 then inspect the first result:
 
 ```python
-from csfdata_analysis.data import load_simulations
+from csfdata_analysis.datamodel import load_simulations
 
 simulations = load_simulations(
     "/path/to/catalogue",
@@ -32,10 +32,10 @@ without loading their numerical arrays.
 
 First select the simulations through ordinary catalogue filters. Then pass that
 explicit selection to
-[`select_snapshot_slice`](../reference/csfdata_analysis/data/slices.md#csfdata_analysis.data.slices.select_snapshot_slice):
+[`select_snapshot_slice`](../reference/csfdata_analysis/datamodel/slices.md#csfdata_analysis.datamodel.slices.select_snapshot_slice):
 
 ```python
-from csfdata_analysis.data import load_simulations, select_snapshot_slice
+from csfdata_analysis.datamodel import load_simulations, select_snapshot_slice
 
 simulations = load_simulations(
     "/path/to/catalogue",
@@ -69,7 +69,7 @@ to load that one D-CAF snapshot:
 ```python
 from pathlib import Path
 
-from csfdata_analysis.data import load_simulations, select_snapshot_slice
+from csfdata_analysis.datamodel import load_simulations, select_snapshot_slice
 from csfdata_analysis.readers import read_stars
 
 simulations = load_simulations(
@@ -114,12 +114,12 @@ provides `fields`, `choices`, and `available_choices` to inspect what is
 available before reading.
 
 For plotting data from one simulation, use the analysis-layer
-[`load_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.load_time_series)
+[`load_time_series`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.load_time_series)
 function. It loads all requested diagnostic fields by default into one Pandas
 table with a shared ``time`` column:
 
 ```python
-from csfdata_analysis.data import load_time_series
+from csfdata_analysis.datamodel import load_time_series
 
 data = load_time_series(
     simulation,
@@ -146,18 +146,18 @@ expansion_rate = values["dRdt"]
 ## Work Across A Collection
 
 For plotting or statistics across many simulations,
-[`load_collection_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.load_collection_time_series)
+[`load_collection_time_series`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.load_collection_time_series)
 loads the desired diagnostic field into a Pandas table,
-[`interpolate_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.interpolate_time_series)
+[`interpolate_time_series`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.interpolate_time_series)
 aligns its output times, and
-[`aggregate_time_series`](../reference/csfdata_analysis/data/series.md#csfdata_analysis.data.series.aggregate_time_series)
+[`aggregate_time_series`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.aggregate_time_series)
 summarizes it. This example averages simulations that share physical parameters
 but differ in random seed. It deliberately does not filter on `seed_index`:
 
 ```python
 import numpy as np
 
-from csfdata_analysis.data import (
+from csfdata_analysis.datamodel import (
     aggregate_time_series,
     interpolate_time_series,
     load_collection_time_series,

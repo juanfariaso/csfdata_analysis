@@ -10,8 +10,8 @@ import yaml
 
 from csfdata.catalogue import is_lite_catalogue, read_lite_source
 from csfdata_analysis.cli import parse_filters
-from csfdata_analysis.data.loader import load_simulations, source_simulation
-from csfdata_analysis.data.slices import select_snapshot_slice
+from csfdata_analysis.datamodel.simulations import load_simulations, source_simulation
+from csfdata_analysis.datamodel.slices import select_snapshot_slice
 
 
 def create_slice_manifest(

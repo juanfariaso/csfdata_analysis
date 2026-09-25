@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
   "amuse-framework",
   "csfdata>=0.1.0",
+  "matplotlib>=3.8",
   "pandas>=2.0",
 ]
 

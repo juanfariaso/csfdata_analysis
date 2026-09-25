@@ -10,8 +10,8 @@ import pandas
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import CatalogueSimulation
 from csfdata.catalogue.configuration import read_simulation_configuration
-from csfdata_analysis.data.loader import source_simulation
-from csfdata_analysis.data.series import DiagnosticKey
+from csfdata_analysis.datamodel.simulations import source_simulation
+from csfdata_analysis.datamodel.series import DiagnosticKey
 
 
 def select_time_series_slice(

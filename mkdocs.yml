@@ -41,12 +41,14 @@ nav:
   - Home: index.md
   - Diagnostics: diagnostics.md
   - Command Line: command-line.md
-  - Data Interfaces: data.md
+  - Data Model: data.md
+  - Plotting: plotting.md
   - Readers: readers.md
   - Runner: runner.md
   - Time-Series Format: time-series-format.md
   - Tutorials:
       - Accessing The Data: tutorials/accessing-data.md
+      - Plotting A Seed Ensemble: tutorials/plotting-seed-ensemble.md
       - Running Local Diagnostics: tutorials/local-diagnostics.md
       - Parameters And Versions: tutorials/parameters-and-versions.md
   - Development:

@@ -1,4 +1,4 @@
-# Data Interfaces
+# Data Model
 
 This page describes two compatible data-access layers:
 
@@ -10,6 +10,19 @@ This page describes two compatible data-access layers:
 Neither layer creates diagnostics or moves files. Use the core layer when a
 script needs direct access to one stored result; use the analysis layer for
 interactive plotting and working with multiple diagnostics or simulations.
+
+## Module Map
+
+`csfdata_analysis.datamodel` is the researcher-facing bridge from stored
+catalogue records to convenient Pandas views:
+
+- `simulations`: `SimulationSet`, simulation selection, configuration values, and full/lite source
+  resolution.
+- `series`: time-evolving diagnostic tables, alignment, and seed aggregation.
+- `scalars`: one-row-per-simulation scalar diagnostic tables.
+- `slices`: fixed-time diagnostic and raw-snapshot selections.
+- `snapshots`: reserved for future particle-snapshot data operations.
+- `inventory`: declared diagnostic versions and their completed-result coverage.
 
 ## Full And Lite Catalogues
 
@@ -33,10 +46,11 @@ operations stop safely rather than guessing a different location.
 
 ## Load Simulations
 
-Use the core catalogue index to select lightweight simulation references:
+Use the core catalogue index to create a
+[`SimulationSet`](reference/csfdata_analysis/datamodel/simulations.md#csfdata_analysis.datamodel.simulations.SimulationSet):
 
 ```python
-from csfdata_analysis.data.loader import load_simulations
+from csfdata_analysis.datamodel import load_simulations
 
 simulations = load_simulations(
     "/path/to/catalogue",
@@ -46,8 +60,84 @@ simulations = load_simulations(
 ```
 
 Do not include `seed_index` when selecting an ensemble that should be averaged
-across seeds. The returned objects contain catalogue IDs and paths; they do
-not load snapshot particles or HDF5 values.
+across seeds. A `SimulationSet` is read-only and behaves like an ordered
+sequence of core simulations:
+
+```python
+len(simulations)
+simulation = simulations[0]
+smaller_selection = simulations[:10]
+```
+
+It also provides convenient wrappers for the ordinary analysis tables:
+
+```python
+parameters = simulations.parameters()
+series = simulations.series("lagrangian_radii")
+scalars = simulations.scalars("expansion_rate")
+snapshots = simulations.snapshot_slice(time=1.5, normalization="tff")
+```
+
+These methods delegate to the specialized modules described above; the set
+itself does not load snapshot particles or diagnostic arrays until requested.
+
+## Inspect Available Diagnostics
+
+[`SimulationSet.inventory`](reference/csfdata_analysis/datamodel/simulations.md#csfdata_analysis.datamodel.simulations.SimulationSet.inventory)
+returns a
+[`DiagnosticInventory`](reference/csfdata_analysis/datamodel/inventory.md#csfdata_analysis.datamodel.inventory.DiagnosticInventory)
+object. It uses the catalogue's SQLite registry rather than reopening every
+simulation result file. Run `csfdata index-catalogue` after adding or importing
+diagnostics; inventory raises an error when the catalogue has not been indexed.
+
+Start by listing the available time-series and scalar diagnostic names:
+
+```python
+inventory = simulations.inventory()
+
+inventory.diagnostics.series
+# ("kappa_3d", "lagrangian_radii", "radial_velocity_3d")
+
+inventory.diagnostics.scalar
+# ("expansion_rate",)
+```
+
+These name lists use the latest registered version of each diagnostic. Inspect
+every registered version when a reproducible analysis needs an explicit one:
+
+```python
+inventory.versions["lagrangian_radii"]
+# ("v1",)
+```
+
+`fields` maps each latest diagnostic name to its stored fields, which makes it
+easy to explore or iterate over the data interface:
+
+```python
+inventory.fields["lagrangian_radii"]
+# ("r_l01", "r_l50", "n_l50", ...)
+
+for diagnostic in inventory.diagnostics.series:
+    print(diagnostic, inventory.fields[diagnostic])
+```
+
+`counts` gives the compact availability table, indexed by diagnostic kind,
+name, and version. `available` is the number of selected simulations with a
+complete indexed result; `total` is the number selected:
+
+```python
+inventory.counts
+
+inventory.counts.loc[("time_series", "lagrangian_radii", "v1")]
+```
+
+Use `data` when ordinary Pandas filtering or custom tabular work is more
+useful. It has one row per declared diagnostic version and includes fields,
+default choices, and coverage counts:
+
+```python
+print(inventory.data[["kind", "diagnostic", "fields", "available", "total"]])
+```
 
 ## Core Diagnostic Access
 
@@ -85,7 +175,7 @@ Choices use their registered defaults unless the analysis makes an explicit
 scientific selection:
 
 ```python
-from csfdata_analysis.data.series import load_time_series
+from csfdata_analysis.datamodel import load_time_series
 
 data = load_time_series(
     simulations[0],
@@ -130,7 +220,7 @@ time from one simulation, with stable IDs and canonical configuration values.
 Use it before interpolation and aggregation across simulations:
 
 ```python
-from csfdata_analysis.data.series import load_collection_time_series
+from csfdata_analysis.datamodel import load_collection_time_series
 
 data = load_collection_time_series(
     simulations,
@@ -143,6 +233,40 @@ data = load_collection_time_series(
 The older exact-version dictionary form is still accepted for compatibility,
 but new analysis should use the concise form above.
 
+## Load Scalar Diagnostics
+
+`load_collection_scalars` returns one Pandas row per simulation. It includes
+the stable IDs, canonical configuration parameters, and selected scalar
+diagnostic values, making the result ready for filtering or scatter plots:
+
+```python
+from csfdata_analysis.datamodel import load_collection_scalars
+
+rates = load_collection_scalars(
+    simulations,
+    diagnostics="expansion_rate",
+    choices={"center": "stellar_com"},
+    fields={"expansion_rate": ("dRdt", "fit_r0", "fit_t0")},
+)
+
+print(rates[["simulation_id", "tff", "sfe", "dRdt"]])
+```
+
+Like time-series loading, names select the latest collection-declared version,
+choices use registered defaults unless overridden, and `fields` may omit
+unneeded outputs. Multiple scalar diagnostics can be loaded together when
+their selected field names do not collide:
+
+```python
+values = load_collection_scalars(
+    simulations,
+    diagnostics=("expansion_rate", "another_scalar_diagnostic"),
+)
+```
+
+Use ordinary Pandas filtering on configuration or scalar columns before
+plotting, for example `rates[rates["dRdt"] > 0.1]`.
+
 ## Align And Summarize
 
 Different simulations may have different snapshot times. Align them explicitly
@@ -151,7 +275,7 @@ before calculating an ensemble mean or standard deviation:
 ```python
 import numpy as np
 
-from csfdata_analysis.data.series import aggregate_time_series, interpolate_time_series
+from csfdata_analysis.datamodel import aggregate_time_series, interpolate_time_series
 
 aligned = interpolate_time_series(
     data,
@@ -169,6 +293,9 @@ receive `NaN`. The summary table contains `n_simulations` plus
 combinations. `n_simulations` counts simulations with finite values for every
 selected field.
 
+Use [Plotting](plotting.md) to draw grouped mean series and their standard
+deviations without repeating the Pandas filtering and Matplotlib loop.
+
 For a seed ensemble, omit `seed_index` from the initial `load_simulations`
 filters and from `group_by`. Include every parameter that defines the physical
 model in `group_by`; rows that differ only in seed are then averaged together.
@@ -181,7 +308,7 @@ A normalization makes the requested time relative to a canonical Myr-valued
 configuration parameter:
 
 ```python
-from csfdata_analysis.data.slices import select_time_series_slice
+from csfdata_analysis.datamodel import select_time_series_slice
 
 slices = select_time_series_slice(
     data,
@@ -205,7 +332,7 @@ Select the nearest stored raw snapshot for every simulation without loading
 AMUSE particles:
 
 ```python
-from csfdata_analysis.data.slices import select_snapshot_slice
+from csfdata_analysis.datamodel import select_snapshot_slice
 
 slices = select_snapshot_slice(
     simulations,

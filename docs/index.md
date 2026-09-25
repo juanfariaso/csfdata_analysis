@@ -30,8 +30,10 @@ and configuration fingerprint. Raw files are never modified.
 
 - [CSFData Catalogue Documentation](https://juanfariaso.github.io/csfdata/)
   describes collections, validation, import, indexing, and lite catalogues.
-- [Data Interfaces](data.md) describes loading time series into Pandas and
+- [Data Model](data.md) describes loading time series into Pandas and
   selecting normalized snapshot slices.
+- [Plotting](plotting.md) describes safe plots of grouped time-series
+  summaries.
 - [Accessing The Data](tutorials/accessing-data.md) is a compact reference for
   inspecting and reading one simulation's diagnostics.
 - [Diagnostics](diagnostics.md) describes standardized analysis products.

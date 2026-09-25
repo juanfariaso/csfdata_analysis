@@ -9,7 +9,7 @@ from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import CatalogueSimulation, file_sha256, is_lite_catalogue
-from csfdata_analysis.data.loader import source_simulation
+from csfdata_analysis.datamodel.simulations import source_simulation
 from csfdata_analysis.diagnostics import (
     TIME_SERIES_DIAGNOSTICS,
     ensure_collection_diagnostics,

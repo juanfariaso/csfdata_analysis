@@ -428,8 +428,7 @@ analysis/run_custom_diagnostic.py
 ```python
 from pathlib import Path
 
-from csfdata_analysis.data.loader import load_simulations
-from csfdata_analysis.data.slices import select_snapshot_slice
+from csfdata_analysis.datamodel import load_simulations, select_snapshot_slice
 from csfdata_analysis.readers import read_stars
 
 from analysis.custom_diagnostics import maximum_radius

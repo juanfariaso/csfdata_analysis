@@ -9,7 +9,7 @@ import numpy
 import pandas
 
 from csfdata.catalogue import CatalogueSimulation, CollectionDiagnostics, SimulationDiagnosticResults
-from csfdata_analysis.data.loader import configuration_values
+from csfdata_analysis.datamodel.simulations import configuration_values
 
 
 DiagnosticKey = tuple[str, str]
@@ -552,5 +552,8 @@ def aggregate_time_series(
             rows.append(row)
         summary = pandas.DataFrame(rows)
         summary.attrs.update(table.attrs)
+        # Preserve the scientific grouping decision so plotting can reject a
+        # figure that would otherwise mix unresolved model parameters.
+        summary.attrs["group_by"] = tuple(group_by)
         summaries[identity] = summary
     return summaries[None] if collection_table else summaries
