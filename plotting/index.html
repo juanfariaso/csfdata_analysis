@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../readers/">
+        <link rel="prev" href="../data/">
       
       
-        <link rel="next" href="../time-series-format/">
+        <link rel="next" href="../readers/">
       
       
         
@@ -23,7 +23,7 @@
     
     
       
-        <title>Runner - Clustererd Star Formation Database - Analysis</title>
+        <title>Plotting - Clustererd Star Formation Database - Analysis</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#runner" class="md-skip">
+        <a href="#plotting" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Runner
+              Plotting
             
           </span>
         </div>
@@ -305,10 +305,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../plotting/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -324,6 +351,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#plot-a-model-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot A Model Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -359,19 +417,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../runner/" class="md-nav__link">
         
   
   
@@ -387,7 +436,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1826,6 +1874,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#plot-a-model-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot A Model Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1841,33 +1908,63 @@
 
 
 
-<h1 id="runner">Runner</h1>
-<p>The runner evaluates one diagnostic over every snapshot of one imported
-simulation. It is the safe per-simulation unit that later collection-level
-parallel execution will use.</p>
-<pre><code class="language-python">report = compute_time_series(
-    simulation_root=simulation_root,
-    diagnostic=lagrangian_radii,
-    adapter=dcaf_adapter,
-    read_snapshot=read_stars,
+<h1 id="plotting">Plotting</h1>
+<p><code>csfdata_analysis.plotting</code> provides small plotting helpers for aggregated
+time-series tables. These helpers never select simulations, align time grids,
+or calculate statistics. Those scientific choices remain explicit in the data
+workflow before plotting.</p>
+<h2 id="plot-a-model-series">Plot A Model Series</h2>
+<p>Load a collection, align its time coordinates, and average the seed ensemble:</p>
+<pre><code class="language-python">import numpy as np
+
+from csfdata_analysis.datamodel import (
+    aggregate_time_series,
+    interpolate_time_series,
+    load_collection_time_series,
+    load_simulations,
+)
+from csfdata_analysis.plotting import plot_time_series
+
+simulations = load_simulations(
+    &quot;/path/to/catalogue&quot;,
+    collection_id=&quot;collection-id&quot;,
+)
+series = load_collection_time_series(
+    simulations,
+    diagnostics=&quot;lagrangian_radii&quot;,
+    fields={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+)
+aligned = interpolate_time_series(series, times=np.arange(0.0, 30.0, 0.1))
+summary = aggregate_time_series(
+    aligned,
+    group_by=(&quot;Mstars&quot;, &quot;tff&quot;, &quot;sfe&quot;, &quot;fret_max&quot;, &quot;texp_over_tff&quot;),
 )
 </code></pre>
-<p>The adapter must be initialized with <code>simulation_root / "raw"</code>. The runner
-uses it to obtain snapshot paths and their model times, while <code>read_stars</code>
-converts D-CAF output to AMUSE particles.</p>
-<p>On success, the runner writes exactly one HDF5 file:</p>
-<pre><code class="language-text">derived/diagnostics/&lt;diagnostic-name&gt;/v&lt;version&gt;/series.h5
+<p>Then fix every model parameter except the one represented by colour:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+
+ax = plot_time_series(
+    summary,
+    y=&quot;r_l50&quot;,
+    x=&quot;time&quot;,
+    fixed={
+        &quot;Mstars&quot;: 1000,
+        &quot;sfe&quot;: 0.1,
+        &quot;fret_max&quot;: 2.0,
+        &quot;texp_over_tff&quot;: 0.5,
+    },
+    color_by=&quot;tff&quot;,
+)
+
+plt.show(block=False)
 </code></pre>
-<p>It contains <code>time</code>, <code>snapshot_id</code>, and one group per diagnostic choice.
-Each choice group contains its declared output datasets and method metadata.
-Every output dataset stores its canonical unit as an HDF5 attribute.</p>
-<p>The runner never modifies <code>raw/</code> or replaces a completed time series. It
-writes a temporary file first and atomically renames it only after all
-snapshots have been evaluated successfully.</p>
-<p>For a lite catalogue, the runner reads snapshots from the recorded full
-catalogue source but receives an alternate output path in the lite catalogue.
-The resulting HDF5 file records the collection ID, simulation ID, canonical
-configuration hash, and a completion flag so it can later be imported safely.</p>
+<p>The function draws one mean line and one standard-deviation band for each
+value of <code>color_by</code>, then returns its Matplotlib <code>Axes</code> for further adjustment.
+It raises an error when another grouped model parameter still varies, rather
+than silently mixing different models in one line.</p>
+<p><code>x</code> defaults to <code>"time"</code>. Pass the name of another existing summary column to
+use it as the horizontal axis, for example <code>x="time_over_tff"</code> when that
+normalized coordinate has been prepared before aggregation.</p>
 
 
 
