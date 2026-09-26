@@ -1123,10 +1123,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#csfdata_analysis.datamodel.slices.select_time_series_slice" class="md-nav__link">
+  <a href="#csfdata_analysis.datamodel.slices.select_time_slice" class="md-nav__link">
     <span class="md-ellipsis">
       
-        select_time_series_slice
+        select_time_slice
       
     </span>
   </a>
@@ -1898,10 +1898,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#csfdata_analysis.datamodel.slices.select_time_series_slice" class="md-nav__link">
+  <a href="#csfdata_analysis.datamodel.slices.select_time_slice" class="md-nav__link">
     <span class="md-ellipsis">
       
-        select_time_series_slice
+        select_time_slice
       
     </span>
   </a>
@@ -1969,18 +1969,18 @@
       </thead>
       <tbody>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            select_time_series_slice(data, time, normalization=None) (csfdata_analysis.datamodel.slices.select_time_series_slice)" href="#csfdata_analysis.datamodel.slices.select_time_series_slice">select_time_series_slice</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            select_time_slice(data, time, normalization=None) (csfdata_analysis.datamodel.slices.select_time_slice)" href="#csfdata_analysis.datamodel.slices.select_time_slice">select_time_slice</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Interpolate diagnostic values for every simulation at one requested time.</p>
+                  <p>Interpolate every selected simulation at one requested time.</p>
                 </div>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            select_snapshot_slice(simulations, time, normalization=None) (csfdata_analysis.datamodel.slices.select_snapshot_slice)" href="#csfdata_analysis.datamodel.slices.select_snapshot_slice">select_snapshot_slice</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            select_snapshot_slice(simulations, time, normalization=None, data=None, mask_field=None) (csfdata_analysis.datamodel.slices.select_snapshot_slice)" href="#csfdata_analysis.datamodel.slices.select_snapshot_slice">select_snapshot_slice</a></code></td>
               <td>
                 <div class="doc-md-description">
-                  <p>Select the nearest stored snapshot for every requested simulation.</p>
+                  <p>Select stored raw snapshots by time, order, or a Boolean time-series mask.</p>
                 </div>
               </td>
             </tr>
@@ -2004,15 +2004,15 @@
 <div class="doc doc-object doc-function">
 
 
-<h2 id="csfdata_analysis.datamodel.slices.select_time_series_slice" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">select_time_series_slice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h2 id="csfdata_analysis.datamodel.slices.select_time_slice" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">select_time_slice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>Interpolate diagnostic values for every simulation at one requested time.</p>
+        <p>Interpolate every selected simulation at one requested time.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2031,7 +2031,7 @@
                 <code>data</code>
             </td>
             <td>
-                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2039,7 +2039,9 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Diagnostic tables returned by :func:<code>load_time_series</code>.</p>
+                <p>A compiled long DataFrame returned by
+:meth:<code>SimulationSet.compile_dataframe</code>, or legacy diagnostic
+tables returned by :func:<code>load_time_series</code>.</p>
               </div>
             </td>
             <td>
@@ -2096,7 +2098,7 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2104,13 +2106,13 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>One row per source simulation in every diagnostic table. Rows include</p>
+                <p>For a compiled DataFrame, one flat row per selected simulation. For</p>
               </div>
             </td>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2118,13 +2120,13 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>the requested physical time and linearly interpolated selected fields.</p>
+                <p>legacy input, one row per simulation in every diagnostic table. Rows</p>
               </div>
             </td>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2132,13 +2134,13 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Values outside the stored time range are <code>NaN</code>; no extrapolation is</p>
+                <p>include the requested physical time, interpolated time-series fields,</p>
               </div>
             </td>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
 
   
       module-attribute
@@ -2146,7 +2148,21 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>performed.</p>
+                <p>and unchanged configuration or scalar columns. Values outside the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span> | <span title="dict">dict</span>[<a class="autorefs autorefs-internal" title="            DiagnosticKey = tuple[str, str]
+
+  
+      module-attribute
+   (csfdata_analysis.datamodel.series.DiagnosticKey)" href="../series/#csfdata_analysis.datamodel.series.DiagnosticKey">DiagnosticKey</a>, <span title="pandas.DataFrame">DataFrame</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>stored time range are <code>NaN</code>; no extrapolation is performed.</p>
               </div>
             </td>
           </tr>
@@ -2180,8 +2196,7 @@ column, or unique ascending simulation times.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/slices.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">17</span>
-<span class="normal">18</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">18</span>
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span>
@@ -2245,15 +2260,29 @@ column, or unique ascending simulation times.</p>
 <span class="normal">79</span>
 <span class="normal">80</span>
 <span class="normal">81</span>
-<span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_time_series_slice</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_time_slice</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate diagnostic values for every simulation at one requested time.</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate every selected simulation at one requested time.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        data: Diagnostic tables returned by :func:`load_time_series`.</span>
+<span class="sd">        data: A compiled long DataFrame returned by</span>
+<span class="sd">            :meth:`SimulationSet.compile_dataframe`, or legacy diagnostic</span>
+<span class="sd">            tables returned by :func:`load_time_series`.</span>
 <span class="sd">        time: Physical target time in Myr, or a dimensionless multiplier when</span>
 <span class="sd">            ``normalization`` is supplied.</span>
 <span class="sd">        normalization: Optional Myr-valued configuration column, such as</span>
@@ -2261,18 +2290,21 @@ column, or unique ascending simulation times.</p>
 <span class="sd">            ``time * normalization``.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        One row per source simulation in every diagnostic table. Rows include</span>
-<span class="sd">        the requested physical time and linearly interpolated selected fields.</span>
-<span class="sd">        Values outside the stored time range are ``NaN``; no extrapolation is</span>
-<span class="sd">        performed.</span>
+<span class="sd">        For a compiled DataFrame, one flat row per selected simulation. For</span>
+<span class="sd">        legacy input, one row per simulation in every diagnostic table. Rows</span>
+<span class="sd">        include the requested physical time, interpolated time-series fields,</span>
+<span class="sd">        and unchanged configuration or scalar columns. Values outside the</span>
+<span class="sd">        stored time range are ``NaN``; no extrapolation is performed.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If a table lacks field metadata, a required normalization</span>
 <span class="sd">            column, or unique ascending simulation times.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">slices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">identity</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">)</span>
+    <span class="n">collection_table</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">{</span><span class="kc">None</span><span class="p">:</span> <span class="n">data</span><span class="p">}</span> <span class="k">if</span> <span class="n">collection_table</span> <span class="k">else</span> <span class="n">data</span>
+    <span class="n">slices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">DiagnosticKey</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">identity</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_fields&quot;</span> <span class="k">if</span> <span class="n">collection_table</span> <span class="k">else</span> <span class="s2">&quot;fields&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> has no declared fields metadata.&quot;</span><span class="p">)</span>
         <span class="n">required</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">}</span>
@@ -2283,13 +2315,17 @@ column, or unique ascending simulation times.</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Diagnostic table </span><span class="si">{</span><span class="n">identity</span><span class="si">!r}</span><span class="s2"> is missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">],</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">],</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">observed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">):</span>
             <span class="c1"># Each simulation may use a different normalized target, but its</span>
             <span class="c1"># source diagnostic still supplies the unique interpolation grid.</span>
             <span class="n">ordered</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
             <span class="n">source_times</span> <span class="o">=</span> <span class="n">ordered</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;collection_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;simulation_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">source_times</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;collection_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ordered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;simulation_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation has duplicate or unordered times: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">target</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">normalization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2308,9 +2344,11 @@ column, or unique ascending simulation times.</p>
                 <span class="p">)</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
         <span class="n">selected</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">selected</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+        <span class="n">selected</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
         <span class="n">selected</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
         <span class="n">slices</span><span class="p">[</span><span class="n">identity</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span>
-    <span class="k">return</span> <span class="n">slices</span>
+    <span class="k">return</span> <span class="n">slices</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">collection_table</span> <span class="k">else</span> <span class="n">slices</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2321,14 +2359,14 @@ column, or unique ascending simulation times.</p>
 
 
 <h2 id="csfdata_analysis.datamodel.slices.select_snapshot_slice" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">select_snapshot_slice</span><span class="p">(</span><span class="n">simulations</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">select_snapshot_slice</span><span class="p">(</span><span class="n">simulations</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_field</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>Select the nearest stored snapshot for every requested simulation.</p>
+        <p>Select stored raw snapshots by time, order, or a Boolean time-series mask.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2363,12 +2401,13 @@ column, or unique ascending simulation times.</p>
                 <code>time</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
+                  <code><span title="float">float</span> | <span title="typing.Literal">Literal</span>[&#39;first&#39;, &#39;last&#39;]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Physical target time in Myr, or a dimensionless multiplier when
-<code>normalization</code> is supplied.</p>
+                <p>Physical target time in Myr, <code>"first"</code>, or <code>"last"</code>. A
+numeric value is a dimensionless multiplier when <code>normalization</code>
+is supplied.</p>
               </div>
             </td>
             <td>
@@ -2385,7 +2424,42 @@ column, or unique ascending simulation times.</p>
             <td>
               <div class="doc-md-description">
                 <p>Optional canonical configuration parameter in Myr, such
-as <code>"tff"</code>. Each target becomes <code>time * normalization</code>.</p>
+as <code>"tff"</code>. Each numeric target becomes <code>time * normalization</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>data</code>
+            </td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional time-series table containing <code>collection_id</code>,
+<code>simulation_id</code>, and <code>time</code>. It supplies candidate times when
+provided; all its rows are eligible unless <code>mask_field</code> is set.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mask_field</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional Boolean column in <code>data</code>. Only rows where this
+field is <code>True</code> remain candidate times for a simulation.</p>
               </div>
             </td>
             <td>
@@ -2411,7 +2485,7 @@ as <code>"tff"</code>. Each target becomes <code>time * normalization</code>.</p
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Table containing each simulation ID, selected snapshot path, requested</p>
+                <p>Table containing each simulation ID, selected snapshot path, selected</p>
               </div>
             </td>
           </tr>
@@ -2444,8 +2518,10 @@ as <code>"tff"</code>. Each target becomes <code>time * normalization</code>.</p
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If a simulation is not D-CAF, has no snapshots, or lacks a
-known Myr-valued normalization parameter.</p>
+                <p>If the selection is malformed, supplied data has no
+eligible time for a selected simulation, a simulation is not
+D-CAF, has no snapshots, or lacks a known Myr-valued normalization
+parameter.</p>
               </div>
             </td>
           </tr>
@@ -2455,19 +2531,7 @@ known Myr-valued normalization parameter.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/slices.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 85</span>
-<span class="normal"> 86</span>
-<span class="normal"> 87</span>
-<span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 97</span>
 <span class="normal"> 98</span>
 <span class="normal"> 99</span>
 <span class="normal">100</span>
@@ -2514,33 +2578,136 @@ known Myr-valued normalization parameter.</p>
 <span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span>
-<span class="normal">144</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_snapshot_slice</span><span class="p">(</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_snapshot_slice</span><span class="p">(</span>
     <span class="n">simulations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">],</span>
-    <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">],</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mask_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select the nearest stored snapshot for every requested simulation.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select stored raw snapshots by time, order, or a Boolean time-series mask.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        simulations: Catalogue simulations selected by ``load_simulations``.</span>
-<span class="sd">        time: Physical target time in Myr, or a dimensionless multiplier when</span>
-<span class="sd">            ``normalization`` is supplied.</span>
+<span class="sd">        time: Physical target time in Myr, ``&quot;first&quot;``, or ``&quot;last&quot;``. A</span>
+<span class="sd">            numeric value is a dimensionless multiplier when ``normalization``</span>
+<span class="sd">            is supplied.</span>
 <span class="sd">        normalization: Optional canonical configuration parameter in Myr, such</span>
-<span class="sd">            as ``&quot;tff&quot;``. Each target becomes ``time * normalization``.</span>
+<span class="sd">            as ``&quot;tff&quot;``. Each numeric target becomes ``time * normalization``.</span>
+<span class="sd">        data: Optional time-series table containing ``collection_id``,</span>
+<span class="sd">            ``simulation_id``, and ``time``. It supplies candidate times when</span>
+<span class="sd">            provided; all its rows are eligible unless ``mask_field`` is set.</span>
+<span class="sd">        mask_field: Optional Boolean column in ``data``. Only rows where this</span>
+<span class="sd">            field is ``True`` remain candidate times for a simulation.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Table containing each simulation ID, selected snapshot path, requested</span>
+<span class="sd">        Table containing each simulation ID, selected snapshot path, selected</span>
 <span class="sd">        physical time, stored snapshot time, and signed time offset in Myr.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If a simulation is not D-CAF, has no snapshots, or lacks a</span>
-<span class="sd">            known Myr-valued normalization parameter.</span>
+<span class="sd">        ValueError: If the selection is malformed, supplied data has no</span>
+<span class="sd">            eligible time for a selected simulation, a simulation is not</span>
+<span class="sd">            D-CAF, has no snapshots, or lacks a known Myr-valued normalization</span>
+<span class="sd">            parameter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;time must be a number, &#39;first&#39;, or &#39;last&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normalization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;normalization applies only when time is numeric.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;time must be a number, &#39;first&#39;, or &#39;last&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">required_columns</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;collection_id&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">mask_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">required_columns</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mask_field</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">required_columns</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">required_columns</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot selection data is missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mask_field requires a time-series data table.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_bool_dtype</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">mask_field</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mask_field </span><span class="si">{</span><span class="n">mask_field</span><span class="si">!r}</span><span class="s2"> must contain Boolean values.&quot;</span><span class="p">)</span>
+
     <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">simulation</span> <span class="ow">in</span> <span class="n">simulations</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">importer</span> <span class="o">!=</span> <span class="s2">&quot;dcaf&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported catalogue importer: </span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">importer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">target_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">target_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">target_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">normalization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">parameter</span> <span class="o">=</span> <span class="n">read_simulation_configuration</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span>
                 <span class="n">normalization</span>
@@ -2559,6 +2726,30 @@ known Myr-valued normalization parameter.</p>
         <span class="n">snapshot_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">adapter</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">snapshots</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">snapshot_time</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">snapshot_time</span> <span class="ow">in</span> <span class="n">snapshot_times</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation has a snapshot without a model time: </span><span class="si">{</span><span class="n">raw_simulation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">)</span>
+                <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">)</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mask_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">candidates</span> <span class="o">=</span> <span class="n">candidates</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">candidates</span><span class="p">[</span><span class="n">mask_field</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="kc">False</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">candidates</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot selection has no eligible time: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">candidate_times</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">candidate_times</span><span class="p">)):</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot selection has invalid times: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">time</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+                <span class="n">target_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">candidate_times</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">time</span> <span class="o">==</span> <span class="s2">&quot;last&quot;</span><span class="p">:</span>
+                <span class="n">target_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">candidate_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">candidate_times</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">candidate_times</span> <span class="o">-</span> <span class="n">target_time</span><span class="p">))])</span>
+        <span class="k">elif</span> <span class="n">time</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+            <span class="n">target_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">snapshot_time</span><span class="p">)</span> <span class="k">for</span> <span class="n">snapshot_time</span> <span class="ow">in</span> <span class="n">snapshot_times</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">time</span> <span class="o">==</span> <span class="s2">&quot;last&quot;</span><span class="p">:</span>
+            <span class="n">target_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">snapshot_time</span><span class="p">)</span> <span class="k">for</span> <span class="n">snapshot_time</span> <span class="ow">in</span> <span class="n">snapshot_times</span><span class="p">)</span>
         <span class="n">selected_path</span><span class="p">,</span> <span class="n">selected_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
             <span class="nb">zip</span><span class="p">(</span><span class="n">snapshots</span><span class="p">,</span> <span class="n">snapshot_times</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">target_time</span><span class="p">),</span>
@@ -2573,7 +2764,10 @@ known Myr-valued normalization parameter.</p>
                 <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">selected_time</span><span class="p">)</span> <span class="o">-</span> <span class="n">target_time</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="n">table</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+    <span class="n">table</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

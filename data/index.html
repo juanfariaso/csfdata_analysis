@@ -429,6 +429,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compile-a-time-series-dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compile A Time-Series DataFrame
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#align-and-summarize" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2090,6 +2101,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compile-a-time-series-dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compile A Time-Series DataFrame
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#align-and-summarize" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2213,6 +2235,64 @@ snapshots = simulations.snapshot_slice(time=1.5, normalization=&quot;tff&quot;)
 </code></pre>
 <p>These methods delegate to the specialized modules described above; the set
 itself does not load snapshot particles or diagnostic arrays until requested.</p>
+<p>Select one existing DataFrame row per represented simulation without
+interpolation:</p>
+<pre><code class="language-python">last_rows = simulations.slice_dataframe(data, time=&quot;last&quot;)
+first_rows = simulations.slice_dataframe(data, time=&quot;first&quot;)
+nearest_rows = simulations.slice_dataframe(data, time=10.0)
+normalized_rows = simulations.slice_dataframe(
+    data,
+    time=1.5,
+    normalization=&quot;tff&quot;,
+)
+</code></pre>
+<p>The input DataFrame may represent a subset of <code>simulations</code>. Every model it
+does contain must match a <code>collection_id</code> and <code>simulation_id</code> in the set.
+An optional Boolean column removes ineligible rows before selection:</p>
+<pre><code class="language-python">event_rows = simulations.slice_dataframe(
+    data,
+    time=&quot;first&quot;,
+    mask_field=&quot;all_stars_present&quot;,
+)
+</code></pre>
+<p>Models with no true mask rows are omitted. Numeric times select the closest
+stored DataFrame row; values are never interpolated. Every other input column
+and the DataFrame attributes are preserved.</p>
+<p>All analysis tables store <code>collection_id</code> and <code>simulation_id</code> as Pandas
+categorical columns. The visible labels and ordinary filtering or grouping
+behaviour remain unchanged, while repeated identifiers use substantially less
+memory for long time-series tables.</p>
+<p>Resolve raw snapshot paths directly from the catalogue snapshot inventory:</p>
+<pre><code class="language-python">snapshot_paths = simulations.get_snapshot_paths(
+    time=1.5,
+    normalization=&quot;tff&quot;,
+    tolerance=0.5,
+)
+
+first_paths = simulations.get_snapshot_paths(time=&quot;first&quot;)
+last_paths = simulations.get_snapshot_paths(time=&quot;last&quot;)
+</code></pre>
+<p>An already prepared DataFrame may supply one or more physical model times. It
+must contain <code>collection_id</code>, <code>simulation_id</code>, and <code>time</code>:</p>
+<pre><code class="language-python">snapshot_paths = simulations.get_snapshot_paths(data_slice, tolerance=0.5)
+</code></pre>
+<p>The result records the requested time, nearest stored snapshot time, offset,
+and the model identity. <code>local_paths</code> and <code>source_paths</code> are lists of
+<code>Path</code> objects, allowing one selection to represent every file required by a
+snapshot. Source paths are relative to <code>source_catalogue_root</code> and retain the
+existing manifest convention; <code>source_hostname</code> identifies the source host.</p>
+<p>Iterate over individual local files while retaining their simulation IDs with
+ordinary Pandas <code>explode</code>:</p>
+<pre><code class="language-python">individual_paths = snapshot_paths.explode(&quot;local_paths&quot;)
+
+for row in individual_paths.itertuples():
+    print(row.collection_id, row.simulation_id, row.local_paths)
+</code></pre>
+<p>A request outside the tolerance or a snapshot unavailable on the local
+filesystem remains in the table with an empty <code>local_paths</code> list and an
+explanatory <code>issue</code>. Remote source paths remain available when the snapshot
+selection itself is valid. This operation reads <code>snapshot-times.yaml</code> and
+does not reopen particle files.</p>
 <h2 id="inspect-available-diagnostics">Inspect Available Diagnostics</h2>
 <p><a href="../reference/csfdata_analysis/datamodel/simulations/#csfdata_analysis.datamodel.simulations.SimulationSet.inventory"><code>SimulationSet.inventory</code></a>
 returns a
@@ -2331,6 +2411,9 @@ but new analysis should use the concise form above.</p>
 <p><code>load_collection_scalars</code> returns one Pandas row per simulation. It includes
 the stable IDs, canonical configuration parameters, and selected scalar
 diagnostic values, making the result ready for filtering or scatter plots:</p>
+<p>For a <code>SimulationSet</code> loaded from an indexed catalogue, scalar values and
+configuration parameters are read from <code>registry.sqlite</code>; no per-simulation
+scalar YAML files are opened.</p>
 <pre><code class="language-python">from csfdata_analysis.datamodel import load_collection_scalars
 
 rates = load_collection_scalars(
@@ -2353,6 +2436,50 @@ their selected field names do not collide:</p>
 </code></pre>
 <p>Use ordinary Pandas filtering on configuration or scalar columns before
 plotting, for example <code>rates[rates["dRdt"] &gt; 0.1]</code>.</p>
+<h2 id="compile-a-time-series-dataframe">Compile A Time-Series DataFrame</h2>
+<p><a href="../reference/csfdata_analysis/datamodel/simulations/#csfdata_analysis.datamodel.simulations.SimulationSet.compile_dataframe"><code>SimulationSet.compile_dataframe</code></a>
+builds one long time-series table with selected scalar values repeated across
+the snapshots of each simulation. It is useful when scalar diagnostics should
+be used directly as filters or plot properties for evolving measurements.</p>
+<pre><code class="language-python">data = simulations.compile_dataframe(
+    series={
+        &quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,),
+        &quot;radial_velocity_3d&quot;: (&quot;median_vr&quot;,),
+    },
+    scalars={
+        &quot;expansion_rate&quot;: (&quot;dRdt&quot;,),
+    },
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+)
+
+expanding = data[data[&quot;dRdt&quot;] &gt; 0.1]
+</code></pre>
+<p><code>series</code> is required: it makes the potentially large time-series load
+explicit. Omit <code>scalars</code> when a plain time-series table is sufficient.</p>
+<p>By default, series rows without a completed scalar fit are retained with
+explicit <code>NaN</code> values:</p>
+<pre><code class="language-python">data = simulations.compile_dataframe(
+    series={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+    scalars={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
+)
+</code></pre>
+<p>Use <code>missing_scalars="error"</code> when a complete scalar sample is required.
+A missing requested time-series diagnostic always remains an error.</p>
+<p><code>choices</code> provides global overrides for every requested diagnostic where the
+choice is relevant. Per-diagnostic overrides remain available when one
+diagnostic needs a different scientific definition:</p>
+<pre><code class="language-python">data = simulations.compile_dataframe(
+    series={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+    scalars={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    series_choices={&quot;lagrangian_radii&quot;: {&quot;center&quot;: &quot;origin&quot;}},
+    scalar_choices={&quot;expansion_rate&quot;: {&quot;center&quot;: &quot;stellar_com&quot;}},
+)
+</code></pre>
+<p>When no choice is supplied, the registered default is used. The output keeps
+the ordinary time-series metadata in <code>data.attrs</code>; selected scalar identities,
+choices, and fields are available in <code>scalar_diagnostics</code>, <code>scalar_choices</code>,
+and <code>scalar_fields</code> there.</p>
 <h2 id="align-and-summarize">Align And Summarize</h2>
 <p>Different simulations may have different snapshot times. Align them explicitly
 before calculating an ensemble mean or standard deviation:</p>
@@ -2380,22 +2507,25 @@ deviations without repeating the Pandas filtering and Matplotlib loop.</p>
 filters and from <code>group_by</code>. Include every parameter that defines the physical
 model in <code>group_by</code>; rows that differ only in seed are then averaged together.</p>
 <h2 id="select-diagnostic-slices">Select Diagnostic Slices</h2>
-<p><code>select_time_series_slice</code> currently uses the legacy dictionary-of-diagnostic-
-tables interface. It selects linearly interpolated derived values at one time.
-A normalization makes the requested time relative to a canonical Myr-valued
-configuration parameter:</p>
-<pre><code class="language-python">from csfdata_analysis.datamodel import select_time_series_slice
+<p><code>select_time_slice</code> selects linearly interpolated derived values at one time.
+For a compiled table, it returns one flat row per simulation, retaining scalar
+and configuration columns. This makes comparisons between a value at a chosen
+time and a scalar diagnostic direct. A normalization makes the requested time
+relative to a canonical Myr-valued configuration parameter:</p>
+<pre><code class="language-python">from csfdata_analysis.datamodel import select_time_slice
 
-slices = select_time_series_slice(
+slice_data = select_time_slice(
     data,
     time=1.5,
     normalization=&quot;tff&quot;,
 )
 
-radii_slice = slices[(&quot;lagrangian_radii&quot;, &quot;v1&quot;)]
+slice_data.plot.scatter(x=&quot;dRdt&quot;, y=&quot;r_l50&quot;)
 </code></pre>
 <p>Every resulting row contains one simulation's requested physical time and
 interpolated output fields. Values outside its stored time range are <code>NaN</code>.</p>
+<p>The earlier dictionary-of-diagnostic-tables interface remains supported. With
+that input, the result is a dictionary with the same diagnostic keys.</p>
 <p>For the concise collection DataFrame interface, first use
 <code>interpolate_time_series</code> with an explicit time grid, then select the desired
 rows with ordinary Pandas filtering.</p>
@@ -2414,6 +2544,22 @@ slices = select_snapshot_slice(
 <code>1.5 * tff</code>. The returned DataFrame records the requested physical time, the
 chosen snapshot path and time, and the signed time offset. This makes the
 nearest-snapshot approximation visible before any later particle analysis.</p>
+<p>Use <code>time="first"</code> or <code>time="last"</code> to select the chronological first
+or last candidate snapshot of every model. Supplying <code>data</code> makes its
+<code>collection_id</code>, <code>simulation_id</code>, and <code>time</code> rows the candidates; a
+Boolean column can optionally limit them further before snapshot selection:</p>
+<pre><code class="language-python">data[&quot;all_stars_present&quot;] = data[&quot;n_stars&quot;] == data.groupby(
+    [&quot;collection_id&quot;, &quot;simulation_id&quot;]
+)[&quot;n_stars&quot;].transform(&quot;max&quot;)
+
+snapshots = simulations.snapshot_slice(
+    time=&quot;first&quot;,
+    data=data,
+    mask_field=&quot;all_stars_present&quot;,
+)
+</code></pre>
+<p>For every simulation, only rows with a true <code>all_stars_present</code> value are
+considered. The first eligible time selects the nearest raw snapshot.</p>
 <h2 id="create-a-transfer-manifest">Create A Transfer Manifest</h2>
 <p>The repository stores a script that turns one collection selection and slice
 rule into a portable YAML manifest plus an exact rsync file list:</p>
