@@ -5,6 +5,7 @@ import math
 import sqlite3
 
 import h5py
+import pandas
 from pytest import approx, raises
 
 import csfdata.catalogue.diagnostics as catalogue_diagnostics
@@ -27,6 +28,7 @@ from csfdata.catalogue.diagnostics import (
     write_collection_diagnostics,
     write_simulation_scalar_diagnostics,
 )
+from csfdata.catalogue.snapshots import SnapshotTime, SnapshotTimeInventory
 from csfdata_analysis.datamodel.scalars import load_collection_scalars
 from csfdata_analysis.datamodel.series import (
     aggregate_time_series,
@@ -34,7 +36,7 @@ from csfdata_analysis.datamodel.series import (
     load_collection_time_series,
     load_time_series,
 )
-from csfdata_analysis.datamodel.slices import select_snapshot_slice, select_time_series_slice
+from csfdata_analysis.datamodel.slices import select_snapshot_slice, select_time_slice
 from csfdata_analysis.datamodel.simulations import SimulationSet, load_simulations
 
 
@@ -67,7 +69,7 @@ def test_load_align_aggregate_and_slice_multiple_time_series(tmp_path: Path) -> 
     )
     aligned = interpolate_time_series(data, (0.0, 1.0, 3.0))
     summary = aggregate_time_series(aligned)
-    sliced = select_time_series_slice(data, 0.5, normalization="tff")
+    sliced = select_time_slice(data, 0.5, normalization="tff")
 
     radii = data[("radii", "v1")]
     assert set(radii["tff"]) == {1.0, 2.0}
@@ -196,9 +198,163 @@ def test_simulation_set_wraps_selected_simulations_and_data_views(tmp_path: Path
     assert len(selection) == 2
     assert selection[0] == first
     assert selection[:1] == SimulationSet(tmp_path / "catalogue", (first,))
-    assert list(selection.parameters()["tff"]) == [1.0, 2.0]
-    assert list(selection.series("radii", fields={"radii": ("r50",)})["r50"]) == [1.0, 3.0, 1.0, 3.0]
-    assert list(selection.scalars("expansion_rate")["dRdt"]) == [0.12, 0.25]
+    parameters = selection.parameters()
+    series = selection.series("radii", fields={"radii": ("r50",)})
+    scalars = selection.scalars("expansion_rate")
+    assert str(parameters["collection_id"].dtype) == "category"
+    assert str(parameters["simulation_id"].dtype) == "category"
+    assert str(series["simulation_id"].dtype) == "category"
+    assert str(scalars["simulation_id"].dtype) == "category"
+    assert list(parameters["tff"]) == [1.0, 2.0]
+    assert list(series["r50"]) == [1.0, 3.0, 1.0, 3.0]
+    assert list(scalars["dRdt"]) == [0.12, 0.25]
+
+
+def test_simulation_set_compiles_series_and_scalar_fields(tmp_path: Path) -> None:
+    """A compiled table repeats one scalar result over each simulation series."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    for simulation in (first, second):
+        _write_time_series(simulation, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+    _write_scalar(first, "expansion_rate", 0.12)
+    _write_scalar(second, "expansion_rate", 0.25)
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+
+    data = selection.compile_dataframe(
+        series={"radii": ("r50",)},
+        scalars={"expansion_rate": ("dRdt",)},
+    )
+
+    assert list(data["dRdt"]) == [0.12, 0.12, 0.25, 0.25]
+    assert data.attrs["scalar_diagnostics"] == (("expansion_rate", "v1"),)
+    assert data.attrs["scalar_fields"] == {"expansion_rate": ("dRdt",)}
+
+
+def test_simulation_set_slices_existing_dataframe_rows(tmp_path: Path) -> None:
+    """DataFrame slices allow subsets, masks, and nearest normalized times."""
+    first = _write_simulation(tmp_path, "0001", 2.0)
+    second = _write_simulation(tmp_path, "0002", 1.0)
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+    data = pandas.DataFrame(
+        {
+            "collection_id": ["grid", "grid", "grid"],
+            "simulation_id": ["0001", "0001", "0001"],
+            "time": [1.0, 2.0, 3.0],
+            "value": [10.0, 20.0, 30.0],
+            "eligible": [False, True, True],
+        }
+    )
+    data.attrs["example"] = "preserved"
+
+    nearest = selection.slice_dataframe(data, time=1.4, normalization="tff")
+    first_masked = selection.slice_dataframe(
+        data,
+        time="first",
+        mask_field="eligible",
+    )
+    last_masked = selection.slice_dataframe(
+        data,
+        time="last",
+        mask_field="eligible",
+    )
+
+    assert list(nearest["time"]) == [3.0]
+    assert list(first_masked["time"]) == [2.0]
+    assert list(last_masked["time"]) == [3.0]
+    assert nearest.attrs["example"] == "preserved"
+
+
+def test_simulation_set_dataframe_slice_rejects_unknown_simulations(tmp_path: Path) -> None:
+    """A DataFrame may be a subset but cannot introduce unrelated models."""
+    simulation = _write_simulation(tmp_path, "0001", 1.0)
+    selection = SimulationSet(tmp_path / "catalogue", (simulation,))
+    data = pandas.DataFrame(
+        {
+            "collection_id": ["grid"],
+            "simulation_id": ["outside"],
+            "time": [1.0],
+        }
+    )
+
+    with raises(ValueError, match="grid/outside"):
+        selection.slice_dataframe(data, time="last")
+
+
+def test_select_time_slice_returns_one_compiled_row_per_simulation(tmp_path: Path) -> None:
+    """A compiled time slice keeps invariant scalar values ready for comparison."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    for simulation in (first, second):
+        _write_time_series(simulation, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+    _write_scalar(first, "expansion_rate", 0.12)
+    _write_scalar(second, "expansion_rate", 0.25)
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+    data = selection.compile_dataframe(
+        series={"radii": ("r50",)},
+        scalars={"expansion_rate": ("dRdt",)},
+    )
+
+    selected = select_time_slice(data, 0.5, normalization="tff")
+
+    assert list(selected["time"]) == [0.5, 1.0]
+    assert list(selected["r50"]) == [1.5, 2.0]
+    assert list(selected["dRdt"]) == [0.12, 0.25]
+
+
+def test_compiled_dataframe_keeps_series_with_missing_scalar_as_nan(tmp_path: Path) -> None:
+    """Default compiled tables retain series rows whose scalar fit is unavailable."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    for simulation in (first, second):
+        _write_time_series(simulation, "radii", {"r50": (1.0, 3.0), "n_stars": (10.0, 20.0)})
+    _write_scalar(first, "expansion_rate", 0.12)
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+
+    data = selection.compile_dataframe(
+        series={"radii": ("r50",)},
+        scalars={"expansion_rate": ("dRdt",)},
+    )
+
+    assert list(data["dRdt"][:2]) == [0.12, 0.12]
+    assert all(math.isnan(value) for value in data["dRdt"][2:])
+
+
+def test_series_reports_an_unknown_requested_field_before_scanning_simulations(tmp_path: Path) -> None:
+    """A field typo is not reported as missing data for every simulation."""
+    simulation = _write_simulation(tmp_path, "0001", 1.0)
+    _write_time_series(simulation, "velocity", {"mean_vr": (2.0, 6.0)})
+    selection = SimulationSet(tmp_path / "catalogue", (simulation,))
+
+    with raises(ValueError, match="Unknown fields for time-series diagnostic 'velocity': mean_vrr"):
+        selection.series("velocity", fields={"velocity": ("mean_vrr",)})
+
+
+def test_scalars_reports_an_unknown_requested_field_before_scanning_simulations(tmp_path: Path) -> None:
+    """A scalar field typo is not reported as missing data for every simulation."""
+    simulation = _write_simulation(tmp_path, "0001", 1.0)
+    _write_scalar(simulation, "expansion_rate", 0.12)
+    selection = SimulationSet(tmp_path / "catalogue", (simulation,))
+
+    with raises(ValueError, match="Unknown fields for scalar diagnostic 'expansion_rate': drdt"):
+        selection.scalars("expansion_rate", fields={"expansion_rate": ("drdt",)})
+
+
+def test_simulation_set_scalars_reads_indexed_values(tmp_path: Path) -> None:
+    """Indexed selections read scalar and configuration values from SQLite."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    _write_inventory_registry(
+        tmp_path / "catalogue",
+        first,
+        second,
+        include_second_scalar=True,
+    )
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+
+    values = selection.scalars("expansion_rate")
+
+    assert list(values["tff"]) == [1.0, 2.0]
+    assert list(values["dRdt"]) == [0.12, 0.25]
 
 
 def test_simulation_set_inventory_counts_declared_diagnostic_results(tmp_path: Path) -> None:
@@ -291,6 +447,107 @@ def test_select_snapshot_slice_uses_a_normalized_time(tmp_path: Path) -> None:
     assert slice_data.iloc[0]["time_offset"] == approx(0.2)
 
 
+def test_snapshot_slice_selects_ordered_and_masked_snapshot_times(tmp_path: Path) -> None:
+    """First, last, and masked snapshot selection use each model's time order."""
+    simulation = _write_simulation(tmp_path, "0001", 1.0)
+    raw_output = simulation.path / "raw/dcaf_output"
+    raw_output.mkdir(parents=True)
+    for index, time in enumerate((1.0, 3.0)):
+        with h5py.File(raw_output / f"stars_{index:03}.amuse", "w") as snapshot:
+            group = snapshot.create_group("data/0000000001")
+            group.attrs["model_time"] = time * _MYR_IN_SECONDS
+
+    first = select_snapshot_slice((simulation,), "first")
+    last = select_snapshot_slice((simulation,), "last")
+    from_data = select_snapshot_slice(
+        (simulation,),
+        "last",
+        data=pandas.DataFrame(
+            {
+                "collection_id": ["grid"],
+                "simulation_id": ["0001"],
+                "time": [1.0],
+            }
+        ),
+    )
+    masked = select_snapshot_slice(
+        (simulation,),
+        "first",
+        data=pandas.DataFrame(
+            {
+                "collection_id": ["grid", "grid"],
+                "simulation_id": ["0001", "0001"],
+                "time": [1.0, 3.0],
+                "all_stars_present": [False, True],
+            }
+        ),
+        mask_field="all_stars_present",
+    )
+
+    assert first.iloc[0]["snapshot_time"] == 1.0
+    assert last.iloc[0]["snapshot_time"] == 3.0
+    assert from_data.iloc[0]["snapshot_time"] == 1.0
+    assert masked.iloc[0]["snapshot_time"] == 3.0
+
+
+def test_simulation_set_gets_snapshot_paths_from_time_or_dataframe(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Snapshot paths resolve direct and prepared DataFrame time requests."""
+    simulation = _write_simulation(tmp_path, "0001", 2.0)
+    raw_output = simulation.path / "raw/dcaf_output"
+    raw_output.mkdir(parents=True)
+    paths = []
+    for index in range(2):
+        path = raw_output / f"stars_{index:03}.amuse"
+        path.touch()
+        paths.append(path)
+    inventory = SnapshotTimeInventory(
+        "grid",
+        "test-digest",
+        {
+            "0001": (
+                SnapshotTime(paths[0].relative_to(simulation.path), 1.0, 0),
+                SnapshotTime(paths[1].relative_to(simulation.path), 3.0, 0),
+            )
+        },
+        {},
+    )
+    monkeypatch.setattr(
+        "csfdata_analysis.datamodel.simulations.read_snapshot_times",
+        lambda _root, _collection: inventory,
+    )
+    selection = SimulationSet(tmp_path / "catalogue", (simulation,))
+
+    normalized = selection.get_snapshot_paths(time=1.4, normalization="tff", tolerance=0.5)
+    last = selection.get_snapshot_paths(time="last")
+    prepared = selection.get_snapshot_paths(
+        pandas.DataFrame(
+            {
+                "collection_id": ["grid"],
+                "simulation_id": ["0001"],
+                "time": [1.1],
+            }
+        ),
+        tolerance=0.2,
+    )
+
+    assert normalized.iloc[0]["requested_time"] == 2.8
+    assert normalized.iloc[0]["snapshot_time"] == 3.0
+    assert last.iloc[0]["local_paths"] == [paths[1]]
+    assert last.iloc[0]["source_catalogue_root"] == tmp_path / "catalogue"
+    assert last.iloc[0]["source_paths"] == [
+        Path("collections/grid/simulations/0001/raw/dcaf_output/stars_001.amuse")
+    ]
+    assert prepared.iloc[0]["local_paths"] == [paths[0]]
+    assert prepared.iloc[0]["time_offset"] == approx(-0.1)
+
+    exploded = last.explode("local_paths")
+    assert exploded.iloc[0]["simulation_id"] == "0001"
+    assert exploded.iloc[0]["local_paths"] == paths[1]
+
+
 def _write_simulation(root: Path, simulation_id: str, tff: float) -> CatalogueSimulation:
     """Create one minimal simulation with two published time-series schemas."""
     collection_root = root / "catalogue" / "collections" / "grid"
@@ -303,7 +560,7 @@ def _write_simulation(root: Path, simulation_id: str, tff: float) -> CatalogueSi
                     ChoiceDefinition(
                         "center",
                         "Reference centre for position-dependent measurements.",
-                        ("stellar_com",),
+                        ("origin", "stellar_com"),
                         "stellar_com",
                     ),
                 ),
@@ -399,6 +656,7 @@ def _write_inventory_registry(
     catalogue_root: Path,
     first: CatalogueSimulation,
     second: CatalogueSimulation,
+    include_second_scalar: bool = False,
 ) -> None:
     """Create the minimal indexed diagnostic coverage needed by inventory tests."""
     with sqlite3.connect(catalogue_root / "registry.sqlite") as connection:
@@ -410,7 +668,18 @@ def _write_inventory_registry(
                 name TEXT,
                 diagnostic_name TEXT,
                 diagnostic_version TEXT,
-                choice_key TEXT
+                choice_key TEXT,
+                value_type TEXT,
+                numeric_value REAL,
+                text_value TEXT
+            );
+            CREATE TABLE parameter_values (
+                collection_id TEXT,
+                simulation_id TEXT,
+                name TEXT,
+                value_type TEXT,
+                numeric_value REAL,
+                text_value TEXT
             );
             CREATE TABLE time_series_products (
                 collection_id TEXT,
@@ -421,13 +690,47 @@ def _write_inventory_registry(
             """
         )
         connection.executemany(
+            "INSERT INTO parameter_values VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                ("grid", first.simulation_id, "tff", "number", 1.0, None),
+                ("grid", second.simulation_id, "tff", "number", 2.0, None),
+            ),
+        )
+        scalar_rows = [
+            (
+                "grid",
+                first.simulation_id,
+                "dRdt",
+                "expansion_rate",
+                "v1",
+                '{"center":"stellar_com"}',
+                "number",
+                0.12,
+                None,
+            )
+        ]
+        if include_second_scalar:
+            scalar_rows.append(
+                (
+                    "grid",
+                    second.simulation_id,
+                    "dRdt",
+                    "expansion_rate",
+                    "v1",
+                    '{"center":"stellar_com"}',
+                    "number",
+                    0.25,
+                    None,
+                )
+            )
+        connection.executemany(
+            "INSERT INTO derived_values VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            scalar_rows,
+        )
+        connection.executemany(
             "INSERT INTO time_series_products VALUES (?, ?, ?, ?)",
             (
                 ("grid", first.simulation_id, "radii", "v1"),
                 ("grid", second.simulation_id, "radii", "v1"),
             ),
-        )
-        connection.execute(
-            "INSERT INTO derived_values VALUES (?, ?, ?, ?, ?, ?)",
-            ("grid", first.simulation_id, "dRdt", "expansion_rate", "v1", '{"center":"stellar_com"}'),
         )

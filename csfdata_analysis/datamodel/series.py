@@ -178,6 +178,19 @@ def _load_time_series_from_results(
     if unknown_choices:
         names_text = ", ".join(sorted(unknown_choices))
         raise ValueError(f"choices contains unregistered names: {names_text}.")
+    definitions = {
+        definition.name: definition
+        for definition in results.collection_diagnostics.diagnostics
+        if definition.kind == "time_series"
+    }
+    unknown_diagnostics = set(names) - set(definitions)
+    if unknown_diagnostics:
+        unknown_text = ", ".join(sorted(unknown_diagnostics))
+        available_text = ", ".join(sorted(definitions)) or "none"
+        raise ValueError(
+            f"Unknown time-series diagnostics: {unknown_text}. "
+            f"Available: {available_text}."
+        )
 
     columns: dict[str, numpy.ndarray] = {}
     reference_times: numpy.ndarray | None = None
@@ -185,32 +198,59 @@ def _load_time_series_from_results(
     resolved_choices: dict[str, dict[str, str]] = {}
     resolved_fields: dict[str, tuple[str, ...]] = {}
     for name in names:
-        # Name lookup deliberately resolves the latest collection-declared
-        # version, while the stored identity remains attached to the table.
-        result = results[name]
+        definition = definitions[name]
         selected_choices = {
             choice_name: collection_choices[choice_name].default
-            for choice_name in result.definition.choices
+            for choice_name in definition.choices
         }
         selected_choices.update(
             {
                 choice_name: value
                 for choice_name, value in (choices or {}).items()
-                if choice_name in result.definition.choices
+                if choice_name in definition.choices
             }
         )
         overrides = (diagnostic_choices or {}).get(name, {})
-        unknown_overrides = set(overrides) - set(result.definition.choices)
+        unknown_overrides = set(overrides) - set(definition.choices)
         if unknown_overrides:
             choices_text = ", ".join(sorted(unknown_overrides))
             raise ValueError(f"{name} has irrelevant diagnostic choices: {choices_text}.")
         selected_choices.update(overrides)
-        selected_fields = tuple((fields or {}).get(name, tuple(result.fields)))
+        invalid_choices = {
+            choice_name: value
+            for choice_name, value in selected_choices.items()
+            if value not in collection_choices[choice_name].values
+        }
+        if invalid_choices:
+            choices_text = ", ".join(
+                f"{choice_name}={value!r}"
+                for choice_name, value in invalid_choices.items()
+            )
+            available_text = ", ".join(
+                f"{choice_name}={collection_choices[choice_name].values!r}"
+                for choice_name in invalid_choices
+            )
+            raise ValueError(
+                f"{name} has unavailable choice values: {choices_text}. "
+                f"Available: {available_text}."
+            )
+        selected_fields = tuple((fields or {}).get(name, tuple(field.name for field in definition.fields)))
+        unknown_fields = set(selected_fields) - {field.name for field in definition.fields}
+        if unknown_fields:
+            fields_text = ", ".join(sorted(unknown_fields))
+            available_text = ", ".join(field.name for field in definition.fields)
+            raise ValueError(
+                f"Unknown fields for time-series diagnostic {name!r}: {fields_text}. "
+                f"Available: {available_text}."
+            )
         duplicate_fields = set(columns) & set(selected_fields)
         if duplicate_fields:
             fields_text = ", ".join(sorted(duplicate_fields))
             raise ValueError(f"Selected diagnostic fields collide: {fields_text}.")
 
+        # Name lookup deliberately resolves the latest collection-declared
+        # version, while the stored identity remains attached to the table.
+        result = results[name]
         values = result.read(selected_choices, selected_fields)
         times = values.pop("time")
         if reference_times is None:
@@ -341,6 +381,8 @@ def load_collection_time_series(
             raise ValueError("No selected simulations have completed diagnostic results.")
 
         collection_table = pandas.concat(tables, ignore_index=True)
+        collection_table["collection_id"] = collection_table["collection_id"].astype("category")
+        collection_table["simulation_id"] = collection_table["simulation_id"].astype("category")
         collection_table.attrs.update(reference_attrs or {})
         collection_table.attrs["data_fields"] = tuple(
             field
@@ -423,6 +465,8 @@ def load_collection_time_series(
                 + ", ".join(missing)
             )
         table = pandas.DataFrame(rows)
+        table["collection_id"] = table["collection_id"].astype("category")
+        table["simulation_id"] = table["simulation_id"].astype("category")
         table.attrs["fields"] = tuple(fields)
         table.attrs["choices"] = dict(choices)
         tables[identity] = table
@@ -467,7 +511,11 @@ def interpolate_time_series(
             raise ValueError(f"Diagnostic table {identity!r} is missing columns: {missing}")
 
         rows: list[dict[str, str | int | float | bool]] = []
-        for _, group in table.groupby(["collection_id", "simulation_id"], sort=False):
+        for _, group in table.groupby(
+            ["collection_id", "simulation_id"],
+            sort=False,
+            observed=True,
+        ):
             # A unique ascending source grid is required for one well-defined
             # linear interpolation per simulation and output field.
             ordered = group.sort_values("time")
@@ -491,6 +539,8 @@ def interpolate_time_series(
                     }
                 )
         aligned = pandas.DataFrame(rows)
+        aligned["collection_id"] = aligned["collection_id"].astype("category")
+        aligned["simulation_id"] = aligned["simulation_id"].astype("category")
         aligned.attrs.update(table.attrs)
         aligned_tables[identity] = aligned
     return aligned_tables[None] if collection_table else aligned_tables
@@ -536,7 +586,12 @@ def aggregate_time_series(
         # only when it has finite values for every requested output field.
         grouping = ["collection_id", *group_by, "time"]
         rows: list[dict[str, str | int | float | bool]] = []
-        for values, group in table.groupby(grouping, sort=False, dropna=False):
+        for values, group in table.groupby(
+            grouping,
+            sort=False,
+            dropna=False,
+            observed=True,
+        ):
             group_values = values if isinstance(values, tuple) else (values,)
             row = dict(zip(grouping, group_values, strict=True))
             contributing = group.dropna(subset=list(fields))
@@ -551,6 +606,10 @@ def aggregate_time_series(
                 )
             rows.append(row)
         summary = pandas.DataFrame(rows)
+        if "collection_id" in summary:
+            summary["collection_id"] = summary["collection_id"].astype("category")
+        if "simulation_id" in summary:
+            summary["simulation_id"] = summary["simulation_id"].astype("category")
         summary.attrs.update(table.attrs)
         # Preserve the scientific grouping decision so plotting can reject a
         # figure that would otherwise mix unresolved model parameters.

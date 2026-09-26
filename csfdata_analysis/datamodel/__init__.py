@@ -25,7 +25,7 @@ from csfdata_analysis.datamodel.series import (
 )
 from csfdata_analysis.datamodel.slices import (
     select_snapshot_slice,
-    select_time_series_slice,
+    select_time_slice,
 )
 
 __all__ = [
@@ -41,6 +41,6 @@ __all__ = [
     "load_simulations",
     "load_time_series",
     "select_snapshot_slice",
-    "select_time_series_slice",
+    "select_time_slice",
     "source_simulation",
 ]

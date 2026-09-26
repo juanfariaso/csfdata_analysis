@@ -96,7 +96,11 @@ def plot_time_series(
     # Draw one mean line for each requested model value. A shared colormap
     # makes every standard-deviation band visibly belong to its mean line.
     axis = ax if ax is not None else pyplot.subplots()[1]
-    groups = [(None, selected)] if color_by is None else list(selected.groupby(color_by, sort=True))
+    groups = (
+        [(None, selected)]
+        if color_by is None
+        else list(selected.groupby(color_by, sort=True, observed=True))
+    )
     colors = pyplot.colormaps["viridis"].resampled(len(groups))
     for index, (value, group) in enumerate(groups):
         ordered = group.sort_values(x)
