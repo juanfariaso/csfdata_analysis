@@ -516,7 +516,7 @@ def test_simulation_set_gets_snapshot_paths_from_time_or_dataframe(
     )
     monkeypatch.setattr(
         "csfdata_analysis.datamodel.simulations.read_snapshot_times",
-        lambda _root, _collection: inventory,
+        lambda _root, _collection, _simulation_ids: inventory,
     )
     selection = SimulationSet(tmp_path / "catalogue", (simulation,))
 

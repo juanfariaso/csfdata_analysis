@@ -155,8 +155,8 @@ for row in individual_paths.itertuples():
 A request outside the tolerance or a snapshot unavailable on the local
 filesystem remains in the table with an empty ``local_paths`` list and an
 explanatory ``issue``. Remote source paths remain available when the snapshot
-selection itself is valid. This operation reads ``snapshot-times.yaml`` and
-does not reopen particle files.
+selection itself is valid. This operation queries the collection's
+``snapshot-times.sqlite`` inventory and does not reopen particle files.
 
 ## Inspect Available Diagnostics
 

@@ -433,12 +433,13 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         Raises:
             ValueError: If the selection arguments or input table are invalid,
                 or the table references simulations outside this set.
-            FileNotFoundError: If a collection snapshot inventory is absent.
+            FileNotFoundError: If the catalogue registry is absent.
 
         Notes:
-            Selection uses the collection ``snapshot-times.yaml`` inventory
-            and does not reopen particle files. In a lite catalogue, a locally
-            imported snapshot is preferred before the recorded source path.
+            Selection queries the collection ``snapshot-times.sqlite``
+            inventory and does not reopen particle files. In a lite catalogue,
+            a locally imported snapshot is preferred before the recorded
+            source path.
         """
         if (data is None) == (time is None):
             raise ValueError("Provide exactly one of data or time.")
@@ -506,16 +507,19 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                 inventories[collection_id] = read_snapshot_times(
                     self.catalogue_root,
                     collection_id,
-                )
-            inventory = inventories[collection_id]
+                    [
+                        selected.simulation_id
+                        for selected in self
+                        if selected.collection_id == collection_id
+                    ],
+                ).snapshots
             records = tuple(
                 sorted(
-                    inventory.snapshots.get(simulation_id, ()),
+                    inventories[collection_id].get(simulation_id, ()),
                     key=lambda record: record.time,
                 )
             )
             if not records:
-                issue = "; ".join(inventory.issues.get(simulation_id, ()))
                 rows.append(
                     {
                         "collection_id": collection_id,
@@ -527,7 +531,7 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                         "source_hostname": source_hostname,
                         "source_catalogue_root": source_catalogue_root,
                         "source_paths": [],
-                        "issue": issue or "No readable snapshots are recorded in the inventory.",
+                        "issue": "No snapshots are recorded in the collection inventory.",
                     }
                 )
                 continue
