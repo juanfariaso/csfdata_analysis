@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from itertools import product
 import json
 from pathlib import Path
 import sqlite3
@@ -17,10 +18,11 @@ from csfdata_analysis.datamodel.simulations import configuration_values
 def load_collection_scalars(
     simulations: Sequence[CatalogueSimulation],
     diagnostics: str | Sequence[str],
-    allow_missing: bool = False,
+    allow_missing: bool = True,
     *,
     choices: dict[str, str] | None = None,
     diagnostic_choices: dict[str, dict[str, str]] | None = None,
+    expand_choices: dict[str, Sequence[str]] | None = None,
     fields: dict[str, Sequence[str]] | None = None,
     catalogue_root: Path | str | None = None,
 ) -> pandas.DataFrame:
@@ -30,12 +32,17 @@ def load_collection_scalars(
         simulations: Catalogue simulations selected by ``load_simulations``.
         diagnostics: One scalar diagnostic name or a sequence of names. Each
             name resolves to its latest collection-declared version.
-        allow_missing: Whether to omit simulations without every selected
-            scalar result. By default, missing results raise an error.
+        allow_missing: Whether to retain simulations without every selected
+            scalar result, filling requested scalar fields with ``NaN``. Set
+            this to ``False`` to require a completed result for every selected
+            simulation.
         choices: Optional global choice values. Registered defaults are used
             for relevant choices not supplied here.
         diagnostic_choices: Optional per-diagnostic choice overrides. These
             take precedence over ``choices``.
+        expand_choices: Optional choice names to retain as DataFrame columns.
+            This currently supports one scalar diagnostic at a time. Each
+            selected combination produces one row per simulation.
         fields: Optional selected fields by diagnostic name. Omitted entries
             load every declared field for that diagnostic.
         catalogue_root: Optional indexed catalogue root. When its
@@ -43,10 +50,11 @@ def load_collection_scalars(
             are read from SQLite instead of per-simulation YAML files.
 
     Returns:
-        One Pandas row per selected simulation, containing collection and
-        simulation IDs, canonical configuration values, and selected scalar
-        fields. The table attrs record the resolved diagnostic versions,
-        choices, and fields.
+        One Pandas row per selected simulation, or per selected simulation and
+        expanded choice combination. Rows contain stable IDs, canonical
+        configuration values, expanded choice columns, and selected scalar
+        fields. The table attrs record diagnostic versions, fixed choices,
+        expanded choices, and fields.
 
     Raises:
         ValueError: If selections are malformed, scalar fields collide with
@@ -67,6 +75,103 @@ def load_collection_scalars(
         raise ValueError("diagnostics must contain one or more non-empty diagnostic names.")
     if not names or len(set(names)) != len(names):
         raise ValueError("diagnostics must contain non-empty unique names.")
+    if expand_choices is not None and (
+        not isinstance(expand_choices, dict)
+        or not all(
+            isinstance(name, str)
+            and isinstance(choice_names, Sequence)
+            and not isinstance(choice_names, str)
+            and choice_names
+            and all(isinstance(choice_name, str) and choice_name for choice_name in choice_names)
+            and len(set(choice_names)) == len(choice_names)
+            for name, choice_names in expand_choices.items()
+        )
+    ):
+        raise ValueError(
+            "expand_choices must map diagnostic names to non-empty unique choice-name sequences."
+        )
+    if expand_choices is not None and set(expand_choices) - set(names):
+        raise ValueError("expand_choices contains diagnostics that were not selected.")
+    if expand_choices:
+        if len(names) != 1:
+            raise ValueError("expand_choices currently supports one scalar diagnostic at a time.")
+        if not simulations:
+            raise ValueError("No simulations were selected.")
+
+        # Read the registered choice values once, then reuse the normal scalar
+        # loader for every concrete combination. This keeps indexed and direct
+        # file reads on exactly the same validation path.
+        diagnostic_name = names[0]
+        collection_diagnostics = simulations[0].diagnostics.scalar.collection_diagnostics
+        definition = next(
+            (
+                candidate
+                for candidate in collection_diagnostics.diagnostics
+                if candidate.name == diagnostic_name and candidate.kind == "scalar"
+            ),
+            None,
+        )
+        if definition is None:
+            raise ValueError(f"Unknown scalar diagnostic: {diagnostic_name}.")
+        expanded_names = tuple(expand_choices[diagnostic_name])
+        unknown_expanded = set(expanded_names) - set(definition.choices)
+        if unknown_expanded:
+            choices_text = ", ".join(sorted(unknown_expanded))
+            raise ValueError(
+                f"{diagnostic_name} has irrelevant expanded choices: {choices_text}."
+            )
+        fixed_global = set(choices or {}) & set(expanded_names)
+        fixed_diagnostic = set((diagnostic_choices or {}).get(diagnostic_name, {})) & set(expanded_names)
+        if fixed_global or fixed_diagnostic:
+            choices_text = ", ".join(sorted(fixed_global | fixed_diagnostic))
+            raise ValueError(
+                f"Expanded choices cannot also be fixed: {choices_text}."
+            )
+        choices_by_name = {
+            choice.name: choice
+            for choice in collection_diagnostics.choices
+        }
+        tables = []
+        for values in product(*(choices_by_name[name].values for name in expanded_names)):
+            overrides = dict((diagnostic_choices or {}).get(diagnostic_name, {}))
+            overrides.update(dict(zip(expanded_names, values, strict=True)))
+            try:
+                table = load_collection_scalars(
+                    simulations,
+                    diagnostic_name,
+                    allow_missing=allow_missing,
+                    choices=choices,
+                    diagnostic_choices={diagnostic_name: overrides},
+                    fields=fields,
+                    catalogue_root=catalogue_root,
+                )
+            except ValueError as error:
+                # A fully absent choice combination is expected when callers
+                # allow incomplete scalar coverage; leave it absent from the
+                # long table so Pandas can represent it as NaN after a pivot.
+                if allow_missing and str(error) == "No selected simulations have completed scalar results.":
+                    continue
+                raise
+            for choice_name, value in zip(expanded_names, values, strict=True):
+                table[choice_name] = value
+            tables.append(table)
+
+        if not tables:
+            raise ValueError("No selected simulations have completed scalar results.")
+        expanded = pandas.concat(tables, ignore_index=True)
+        expanded["collection_id"] = expanded["collection_id"].astype("category")
+        expanded["simulation_id"] = expanded["simulation_id"].astype("category")
+        expanded.attrs["diagnostics"] = tables[0].attrs["diagnostics"]
+        expanded.attrs["choices"] = {
+            diagnostic_name: {
+                name: value
+                for name, value in tables[0].attrs["choices"][diagnostic_name].items()
+                if name not in expanded_names
+            }
+        }
+        expanded.attrs["expanded_choices"] = {diagnostic_name: expanded_names}
+        expanded.attrs["fields"] = tables[0].attrs["fields"]
+        return expanded
     if choices is not None and (
         not isinstance(choices, dict)
         or not all(isinstance(name, str) and isinstance(value, str) for name, value in choices.items())
@@ -311,6 +416,26 @@ def load_collection_scalars(
                         "Selected simulations have no completed scalar result: "
                         + ", ".join(missing)
                     )
+                if missing:
+                    missing_keys = {
+                        tuple(item.split("/", maxsplit=1))
+                        for item in missing
+                    }
+                    missing_fields = {
+                        field: float("nan")
+                        for _, _, selected_fields in selected_definitions
+                        for field in selected_fields
+                    }
+                    for simulation in selected:
+                        if (simulation.collection_id, simulation.simulation_id) in missing_keys:
+                            rows.append(
+                                {
+                                    "collection_id": simulation.collection_id,
+                                    "simulation_id": simulation.simulation_id,
+                                    **configurations[simulation.simulation_id],
+                                    **missing_fields,
+                                }
+                            )
 
         if not rows:
             raise ValueError("No selected simulations have completed scalar results.")
@@ -461,6 +586,26 @@ def load_collection_scalars(
 
     if missing and not allow_missing:
         raise KeyError("Selected simulations have no completed scalar result: " + ", ".join(missing))
+    if missing and reference is not None:
+        missing_keys = {
+            tuple(item.split("/", maxsplit=1))
+            for item in missing
+        }
+        missing_fields = {
+            field: float("nan")
+            for selected_fields in reference[2].values()
+            for field in selected_fields
+        }
+        for simulation in simulations:
+            if (simulation.collection_id, simulation.simulation_id) in missing_keys:
+                rows.append(
+                    {
+                        "collection_id": simulation.collection_id,
+                        "simulation_id": simulation.simulation_id,
+                        **configuration_values(simulation),
+                        **missing_fields,
+                    }
+                )
     if not rows:
         raise ValueError("No selected simulations have completed scalar results.")
 

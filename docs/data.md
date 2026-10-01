@@ -78,6 +78,10 @@ scalars = simulations.scalars("expansion_rate")
 snapshots = simulations.snapshot_slice(time=1.5, normalization="tff")
 ```
 
+Scalar loading retains selected simulations when a diagnostic is unavailable.
+The requested scalar fields are then ``NaN``. Pass ``allow_missing=False`` to
+require a completed scalar result for every selected simulation.
+
 These methods delegate to the specialized modules described above; the set
 itself does not load snapshot particles or diagnostic arrays until requested.
 
@@ -137,23 +141,19 @@ snapshot_paths = simulations.get_snapshot_paths(data_slice, tolerance=0.5)
 ```
 
 The result records the requested time, nearest stored snapshot time, offset,
-and the model identity. ``local_paths`` and ``source_paths`` are lists of
-``Path`` objects, allowing one selection to represent every file required by a
-snapshot. Source paths are relative to ``source_catalogue_root`` and retain the
-existing manifest convention; ``source_hostname`` identifies the source host.
+and the model identity. ``local_path`` and ``source_path`` each contain one
+``Path`` or ``None``. Source paths are relative to ``source_catalogue_root``;
+``source_hostname`` identifies the source host.
 
-Iterate over individual local files while retaining their simulation IDs with
-ordinary Pandas ``explode``:
+Iterate over locally available snapshots while retaining their simulation IDs:
 
 ```python
-individual_paths = snapshot_paths.explode("local_paths")
-
-for row in individual_paths.itertuples():
-    print(row.collection_id, row.simulation_id, row.local_paths)
+for row in snapshot_paths.dropna(subset=["local_path"]).itertuples():
+    print(row.collection_id, row.simulation_id, row.local_path)
 ```
 
 A request outside the tolerance or a snapshot unavailable on the local
-filesystem remains in the table with an empty ``local_paths`` list and an
+filesystem remains in the table with ``local_path`` set to ``None`` and an
 explanatory ``issue``. Remote source paths remain available when the snapshot
 selection itself is valid. This operation queries the collection's
 ``snapshot-times.sqlite`` inventory and does not reopen particle files.
@@ -347,6 +347,23 @@ values = load_collection_scalars(
 
 Use ordinary Pandas filtering on configuration or scalar columns before
 plotting, for example `rates[rates["dRdt"] > 0.1]`.
+
+To retain every stored value of one scalar choice, use ``expand_choices``. The
+result is a long table with the expanded choice as an ordinary column:
+
+```python
+rates = simulations.scalars(
+    "expansion_rate",
+    choices={"center": "stellar_com"},
+    expand_choices={"expansion_rate": ("lagrangian_radius",)},
+    fields={"expansion_rate": ("dRdt",)},
+)
+```
+
+Each simulation then has one row for each Lagrangian radius. Fixed choices,
+such as ``center`` above, cannot also be expanded. This initial interface
+expands one scalar diagnostic per call; use ordinary Pandas ``pivot`` when a
+wide table is useful.
 
 ## Compile A Time-Series DataFrame
 

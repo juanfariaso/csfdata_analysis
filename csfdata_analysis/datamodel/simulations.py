@@ -137,19 +137,25 @@ class SimulationSet(Sequence[CatalogueSimulation]):
     def scalars(
         self,
         diagnostics: str | Sequence[str],
-        allow_missing: bool = False,
+        allow_missing: bool = True,
         *,
         choices: dict[str, str] | None = None,
         diagnostic_choices: dict[str, dict[str, str]] | None = None,
+        expand_choices: dict[str, Sequence[str]] | None = None,
         fields: dict[str, Sequence[str]] | None = None,
     ) -> pandas.DataFrame:
         """Load selected scalar diagnostic fields into one Pandas table.
 
         Args:
             diagnostics: One scalar diagnostic name or a sequence of names.
-            allow_missing: Whether to omit simulations without every selected result.
+            allow_missing: Whether to retain simulations without every selected
+                result, filling requested scalar fields with ``NaN``. Set this
+                to ``False`` to require a completed result for every selected
+                simulation.
             choices: Optional global scientific choice selections.
             diagnostic_choices: Optional per-diagnostic choice overrides.
+            expand_choices: Optional per-diagnostic choice names retained as
+                columns in a long scalar table.
             fields: Optional selected fields by diagnostic name.
 
         Returns:
@@ -165,6 +171,7 @@ class SimulationSet(Sequence[CatalogueSimulation]):
             allow_missing,
             choices=choices,
             diagnostic_choices=diagnostic_choices,
+            expand_choices=expand_choices,
             fields=fields,
             catalogue_root=self.catalogue_root,
         )
@@ -427,13 +434,13 @@ class SimulationSet(Sequence[CatalogueSimulation]):
 
         Returns:
             One Pandas row per requested model time, containing stable IDs,
-            requested and stored times, their offset, iterable local and source
-            path lists, source provenance, and any selection issue.
+            requested and stored times, their offset, singular local and source
+            paths, source provenance, and any selection issue.
 
         Raises:
             ValueError: If the selection arguments or input table are invalid,
                 or the table references simulations outside this set.
-            FileNotFoundError: If the catalogue registry is absent.
+            FileNotFoundError: If a collection snapshot inventory is absent.
 
         Notes:
             Selection queries the collection ``snapshot-times.sqlite``
@@ -527,10 +534,10 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                         "requested_time": None if isinstance(requested, str) else float(requested),
                         "snapshot_time": None,
                         "time_offset": None,
-                        "local_paths": [],
+                        "local_path": None,
                         "source_hostname": source_hostname,
                         "source_catalogue_root": source_catalogue_root,
-                        "source_paths": [],
+                        "source_path": None,
                         "issue": "No snapshots are recorded in the collection inventory.",
                     }
                 )
@@ -554,10 +561,10 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                                 "requested_time": target,
                                 "snapshot_time": None,
                                 "time_offset": None,
-                                "local_paths": [],
+                                "local_path": None,
                                 "source_hostname": source_hostname,
                                 "source_catalogue_root": source_catalogue_root,
-                                "source_paths": [],
+                                "source_path": None,
                                 "issue": f"Missing known Myr normalization parameter: {normalization}",
                             }
                         )
@@ -578,13 +585,13 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                 local_path = source_catalogue_root / source_path
 
             issue = None
-            local_paths: list[Path] = []
-            source_paths: list[Path] = [source_path]
+            local_result: Path | None = None
+            source_result: Path | None = source_path
             if tolerance is not None and abs(offset) > tolerance:
                 issue = f"Nearest snapshot is outside the {float(tolerance):g} Myr tolerance."
-                source_paths = []
+                source_result = None
             elif local_path.is_file():
-                local_paths = [local_path]
+                local_result = local_path
             else:
                 issue = "Selected snapshot is not available on the local filesystem."
             rows.append(
@@ -594,10 +601,10 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                     "requested_time": target,
                     "snapshot_time": selected.time,
                     "time_offset": offset,
-                    "local_paths": local_paths,
+                    "local_path": local_result,
                     "source_hostname": source_hostname,
                     "source_catalogue_root": source_catalogue_root,
-                    "source_paths": source_paths,
+                    "source_path": source_result,
                     "issue": issue,
                 }
             )

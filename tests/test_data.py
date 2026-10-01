@@ -1,6 +1,7 @@
 """Tests for the researcher-facing data interfaces."""
 
 from pathlib import Path, PurePosixPath
+from dataclasses import replace
 import math
 import sqlite3
 
@@ -183,6 +184,81 @@ def test_load_collection_scalars_adds_configuration_and_selected_fields(tmp_path
     assert table.attrs["diagnostics"] == (("expansion_rate", "v1"),)
     assert table.attrs["choices"] == {"expansion_rate": {"center": "stellar_com"}}
     assert table.attrs["fields"] == {"expansion_rate": ("dRdt",)}
+
+
+def test_scalar_loading_fills_missing_results_with_nan_by_default(tmp_path: Path) -> None:
+    """Scalar tables retain selected simulations with unavailable values as NaN."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    _write_scalar(first, "expansion_rate", 0.12)
+    selection = SimulationSet(tmp_path / "catalogue", (first, second))
+
+    table = selection.scalars("expansion_rate", fields={"expansion_rate": ("dRdt",)})
+
+    assert list(table["simulation_id"]) == ["0001", "0002"]
+    assert table.loc[table["simulation_id"] == "0001", "dRdt"].item() == 0.12
+    assert math.isnan(table.loc[table["simulation_id"] == "0002", "dRdt"].item())
+
+
+def test_load_collection_scalars_expands_scalar_choice_into_long_table(tmp_path: Path) -> None:
+    """Expanded scalar choices become explicit columns rather than field names."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    collection_root = first.path.parent.parent
+    schema_path = collection_diagnostics_path(collection_root)
+    schema = catalogue_diagnostics.read_collection_diagnostics(schema_path)
+    write_collection_diagnostics(
+        CollectionDiagnostics(
+            schema.choices
+            + (
+                ChoiceDefinition(
+                    "lagrangian_radius",
+                    "Synthetic selected Lagrangian radius.",
+                    ("r_l10", "r_l50"),
+                    "r_l50",
+                ),
+            ),
+            tuple(
+                replace(definition, choices=("center", "lagrangian_radius"))
+                if definition.name == "expansion_rate"
+                else definition
+                for definition in schema.diagnostics
+            ),
+        ),
+        schema_path,
+    )
+    for simulation, values in ((first, (0.1, 0.5)), (second, (0.2, 0.6))):
+        scalar_path = simulation_scalar_diagnostics_path(simulation.path)
+        scalar_path.parent.mkdir(exist_ok=True)
+        write_simulation_scalar_diagnostics(
+            SimulationScalarDiagnostics(
+                tuple(
+                    ScalarDiagnosticResult(
+                        "expansion_rate",
+                        "v1",
+                        (("center", "stellar_com"), ("lagrangian_radius", radius)),
+                        (ScalarValue("dRdt", value, "km/s"),),
+                    )
+                    for radius, value in zip(("r_l10", "r_l50"), values, strict=True)
+                )
+            ),
+            catalogue_diagnostics.read_collection_diagnostics(schema_path),
+            scalar_path,
+        )
+
+    table = load_collection_scalars(
+        (first, second),
+        "expansion_rate",
+        choices={"center": "stellar_com"},
+        expand_choices={"expansion_rate": ("lagrangian_radius",)},
+        fields={"expansion_rate": ("dRdt",)},
+    )
+
+    assert list(table["lagrangian_radius"]) == ["r_l10", "r_l10", "r_l50", "r_l50"]
+    assert list(table["dRdt"]) == [0.1, 0.2, 0.5, 0.6]
+    assert table.attrs["expanded_choices"] == {
+        "expansion_rate": ("lagrangian_radius",)
+    }
 
 
 def test_simulation_set_wraps_selected_simulations_and_data_views(tmp_path: Path) -> None:
@@ -535,17 +611,15 @@ def test_simulation_set_gets_snapshot_paths_from_time_or_dataframe(
 
     assert normalized.iloc[0]["requested_time"] == 2.8
     assert normalized.iloc[0]["snapshot_time"] == 3.0
-    assert last.iloc[0]["local_paths"] == [paths[1]]
+    assert last.iloc[0]["local_path"] == paths[1]
     assert last.iloc[0]["source_catalogue_root"] == tmp_path / "catalogue"
-    assert last.iloc[0]["source_paths"] == [
-        Path("collections/grid/simulations/0001/raw/dcaf_output/stars_001.amuse")
-    ]
-    assert prepared.iloc[0]["local_paths"] == [paths[0]]
+    assert last.iloc[0]["source_path"] == Path(
+        "collections/grid/simulations/0001/raw/dcaf_output/stars_001.amuse"
+    )
+    assert prepared.iloc[0]["local_path"] == paths[0]
     assert prepared.iloc[0]["time_offset"] == approx(-0.1)
 
-    exploded = last.explode("local_paths")
-    assert exploded.iloc[0]["simulation_id"] == "0001"
-    assert exploded.iloc[0]["local_paths"] == paths[1]
+    assert last.iloc[0]["simulation_id"] == "0001"
 
 
 def _write_simulation(root: Path, simulation_id: str, tff: float) -> CatalogueSimulation:
