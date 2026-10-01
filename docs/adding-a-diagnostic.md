@@ -265,6 +265,10 @@ csfdata_analysis/diagnostics/scalar/expansion_rate.py
 and `lagrangian_radius` choices. Its fields are `dRdt`, `fit_t0`, `fit_r0`,
 `r_min`, `r2`, `nrmse_iqr`, `n_points`, and `final_time`.
 
+`number_radius_expansion_rate v1` is declared in the same module and reuses
+the same fit. It reads `lagrangian_number_radii v1` and evaluates `center`
+and `lagrangian_number_radius` choices (`r_n01` through `r_n95`).
+
 </details>
 
 ### 2. Declare The Definition And Evaluator

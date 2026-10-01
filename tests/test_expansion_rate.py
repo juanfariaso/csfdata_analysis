@@ -14,7 +14,9 @@ from csfdata.catalogue.diagnostics import (
 )
 from csfdata_analysis.diagnostics.scalar.expansion_rate import (
     EXPANSION_RATE_V1,
+    NUMBER_RADIUS_EXPANSION_RATE_V1,
     compute_expansion_rate,
+    compute_number_radius_expansion_rate,
     fit_expansion_rate,
 )
 from csfdata_analysis.diagnostics.time_series.lagrangian_radii import (
@@ -112,3 +114,56 @@ def test_scalar_runner_registers_and_writes_every_choice(tmp_path: Path) -> None
     )
 
     assert results[0].status == "skipped"
+
+
+def test_number_radius_expansion_rate_uses_number_lagrangian_series(tmp_path: Path) -> None:
+    """Number-radius fits reuse the shared late-time expansion procedure."""
+    collection_root = tmp_path / "collections" / "example-grid"
+    simulation_root = collection_root / "simulations" / "0000"
+    series_path = (
+        simulation_root
+        / "derived"
+        / "diagnostics"
+        / "lagrangian_number_radii"
+        / "v1"
+        / "series.h5"
+    )
+    series_path.parent.mkdir(parents=True)
+    with h5py.File(series_path, "w") as series_file:
+        series_file.attrs["complete"] = True
+        series_file.attrs["format_schema_version"] = 2
+        series_file.attrs["diagnostic_name"] = "lagrangian_number_radii"
+        series_file.attrs["diagnostic_version"] = 1
+        series_file.create_dataset("time", data=np.arange(10, dtype=float))
+        choices_group = series_file.create_group("choices")
+        for center in ("origin", "stellar_com"):
+            group = choices_group.create_group(center)
+            group.create_dataset(
+                "n_stars",
+                data=np.asarray((1, 2, 3, 4, 5, 5, 5, 5, 5, 5)),
+            )
+            for suffix, _ in LAGRANGIAN_FRACTIONS:
+                group.create_dataset(
+                    f"r_n{suffix[1:]}",
+                    data=np.asarray((0.2, 0.4, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)),
+                )
+
+    simulation = CatalogueSimulation("example-grid", "0000", simulation_root, "dcaf")
+    report = compute_scalar_diagnostic(simulation, NUMBER_RADIUS_EXPANSION_RATE_V1)
+    direct_result = compute_number_radius_expansion_rate(
+        simulation,
+        {"center": "stellar_com", "lagrangian_number_radius": "r_n50"},
+    )
+    collection_diagnostics = read_collection_diagnostics(collection_root / "diagnostics.yaml")
+
+    assert direct_result["dRdt"] == report.results[0].values[0].value
+    assert len(report.results) == 24
+    assert report.written_count == 24
+    assert {(definition.name, definition.version) for definition in collection_diagnostics.diagnostics} == {
+        ("lagrangian_number_radii", "v1"),
+        ("number_radius_expansion_rate", "v1"),
+    }
+    assert {choice.name for choice in collection_diagnostics.choices} == {
+        "center",
+        "lagrangian_number_radius",
+    }

@@ -78,8 +78,31 @@ LAGRANGIAN_RADIUS = Choice(
 """Registered stellar Lagrangian-radius choices for derived parameters."""
 
 
+LAGRANGIAN_NUMBER_RADIUS = Choice(
+    name="lagrangian_number_radius",
+    description="Stellar number-based Lagrangian radius used by a derived measurement.",
+    values=(
+        "r_n01",
+        "r_n05",
+        "r_n10",
+        "r_n20",
+        "r_n30",
+        "r_n40",
+        "r_n50",
+        "r_n60",
+        "r_n70",
+        "r_n80",
+        "r_n90",
+        "r_n95",
+    ),
+    default="r_n50",
+)
+"""Registered number-based Lagrangian-radius choices for derived parameters."""
+
+
 CHOICES = {
     CENTER.name: CENTER,
     LAGRANGIAN_RADIUS.name: LAGRANGIAN_RADIUS,
+    LAGRANGIAN_NUMBER_RADIUS.name: LAGRANGIAN_NUMBER_RADIUS,
 }
 """Registered choices keyed by their stable machine-readable names."""

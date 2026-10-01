@@ -146,18 +146,74 @@ def compute_expansion_rate(
             unavailable.
         ValueError: If the choices do not match the diagnostic contract.
     """
-    if set(choices) != {"center", "lagrangian_radius"}:
-        raise ValueError("Expansion rate requires center and lagrangian_radius choices.")
-    center = choices["center"]
-    radius_name = choices["lagrangian_radius"]
-    # The core simulation interface resolves paths, validates completion, and
-    # returns only the selected stored datasets without exposing HDF5 layout.
-    radii = simulation.diagnostics.time_series[("lagrangian_radii", "v1")]
-    data = radii.read(
-        choices={"center": center},
-        fields=(radius_name, "n_stars"),
+    return compute_lagrangian_expansion_rate(
+        simulation,
+        choices,
+        radius_choice_name="lagrangian_radius",
+        series_name="lagrangian_radii",
     )
 
+
+def compute_number_radius_expansion_rate(
+    simulation: CatalogueSimulation,
+    choices: dict[str, str],
+) -> dict[str, float | int]:
+    """Compute one expansion rate fitted to a number-based Lagrangian radius.
+
+    Args:
+        simulation: Catalogue simulation containing completed
+            ``lagrangian_number_radii v1`` results.
+        choices: Concrete ``center`` and ``lagrangian_number_radius``
+            selections.
+
+    Returns:
+        Scalar expansion-rate fields in their declared canonical units.
+    """
+    return compute_lagrangian_expansion_rate(
+        simulation,
+        choices,
+        radius_choice_name="lagrangian_number_radius",
+        series_name="lagrangian_number_radii",
+    )
+
+
+def compute_lagrangian_expansion_rate(
+    simulation: CatalogueSimulation,
+    choices: dict[str, str],
+    *,
+    radius_choice_name: str,
+    series_name: str,
+) -> dict[str, float | int]:
+    """Fit one expansion rate from either family of Lagrangian radii.
+
+    Args:
+        simulation: Catalogue simulation containing the requested completed
+            Lagrangian-radius time series.
+        choices: Concrete centre and radius-choice values.
+        radius_choice_name: Registered choice key holding the selected radius
+            field name.
+        series_name: Source time-series diagnostic name at version 1.
+
+    Returns:
+        Scalar expansion-rate fields in their declared canonical units.
+
+    Raises:
+        KeyError: If the source series or selected radius field is unavailable.
+        ValueError: If choices do not contain exactly a centre and the requested
+            radius-choice key.
+    """
+    if set(choices) != {"center", radius_choice_name}:
+        raise ValueError(
+            f"Expansion rate requires center and {radius_choice_name} choices."
+        )
+    radius_name = choices[radius_choice_name]
+    # The core interface validates the complete HDF5 result and exposes only
+    # the selected arrays, independent of which Lagrangian family produced it.
+    radii = simulation.diagnostics.time_series[(series_name, "v1")]
+    data = radii.read(
+        choices={"center": choices["center"]},
+        fields=(radius_name, "n_stars"),
+    )
     return fit_expansion_rate(
         np.asarray(data["time"], dtype=float),
         np.asarray(data[radius_name], dtype=float),
@@ -186,5 +242,19 @@ EXPANSION_RATE_V1 = ScalarDiagnostic(
 )
 
 
-DIAGNOSTICS = (EXPANSION_RATE_V1,)
+NUMBER_RADIUS_EXPANSION_RATE_V1 = ScalarDiagnostic(
+    name="number_radius_expansion_rate",
+    version=1,
+    description=(
+        "Late-time linear expansion rates fitted to number-based Lagrangian radii."
+    ),
+    evaluate=compute_number_radius_expansion_rate,
+    fields=EXPANSION_RATE_V1.fields,
+    choice_names=("center", "lagrangian_number_radius"),
+    requires=(DiagnosticRequirement("lagrangian_number_radii", "v1"),),
+)
+"""Expansion-rate diagnostic for the standard number-radius choices."""
+
+
+DIAGNOSTICS = (EXPANSION_RATE_V1, NUMBER_RADIUS_EXPANSION_RATE_V1)
 """Every supported expansion-rate diagnostic version in this module."""
