@@ -1395,6 +1395,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.NUMBER_RADIUS_EXPANSION_RATE_V1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NUMBER_RADIUS_EXPANSION_RATE_V1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.DIAGNOSTICS" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1421,6 +1432,28 @@
     <span class="md-ellipsis">
       
         compute_expansion_rate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_number_radius_expansion_rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_number_radius_expansion_rate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_lagrangian_expansion_rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_lagrangian_expansion_rate
       
     </span>
   </a>
@@ -1554,6 +1587,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1590,6 +1651,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -1911,6 +2000,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.NUMBER_RADIUS_EXPANSION_RATE_V1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NUMBER_RADIUS_EXPANSION_RATE_V1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.DIAGNOSTICS" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1937,6 +2037,28 @@
     <span class="md-ellipsis">
       
         compute_expansion_rate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_number_radius_expansion_rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_number_radius_expansion_rate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_lagrangian_expansion_rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_lagrangian_expansion_rate
       
     </span>
   </a>
@@ -2008,6 +2130,22 @@
                 </div>
               </td>
             </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="            compute_number_radius_expansion_rate(simulation, choices) (csfdata_analysis.diagnostics.scalar.expansion_rate.compute_number_radius_expansion_rate)" href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_number_radius_expansion_rate">compute_number_radius_expansion_rate</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Compute one expansion rate fitted to a number-based Lagrangian radius.</p>
+                </div>
+              </td>
+            </tr>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="            compute_lagrangian_expansion_rate(simulation, choices, *, radius_choice_name, series_name) (csfdata_analysis.diagnostics.scalar.expansion_rate.compute_lagrangian_expansion_rate)" href="#csfdata_analysis.diagnostics.scalar.expansion_rate.compute_lagrangian_expansion_rate">compute_lagrangian_expansion_rate</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Fit one expansion rate from either family of Lagrangian radii.</p>
+                </div>
+              </td>
+            </tr>
       </tbody>
     </table>
 
@@ -2026,8 +2164,30 @@
 
 
 
+<h2 id="csfdata_analysis.diagnostics.scalar.expansion_rate.NUMBER_RADIUS_EXPANSION_RATE_V1" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">NUMBER_RADIUS_EXPANSION_RATE_V1</span> <span class="o">=</span> <span class="n">ScalarDiagnostic</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;number_radius_expansion_rate&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Late-time linear expansion rates fitted to number-based Lagrangian radii.&#39;</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="n">compute_number_radius_expansion_rate</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">EXPANSION_RATE_V1</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="n">choice_names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;lagrangian_number_radius&#39;</span><span class="p">),</span> <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="n">DiagnosticRequirement</span><span class="p">(</span><span class="s1">&#39;lagrangian_number_radii&#39;</span><span class="p">,</span> <span class="s1">&#39;v1&#39;</span><span class="p">),))</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Expansion-rate diagnostic for the standard number-radius choices.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h2 id="csfdata_analysis.diagnostics.scalar.expansion_rate.DIAGNOSTICS" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">DIAGNOSTICS</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXPANSION_RATE_V1</span><span class="p">,)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <code class="highlight language-python"><span class="n">DIAGNOSTICS</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXPANSION_RATE_V1</span><span class="p">,</span> <span class="n">NUMBER_RADIUS_EXPANSION_RATE_V1</span><span class="p">)</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
@@ -2667,18 +2827,7 @@ unavailable.</p>
 <span class="normal">151</span>
 <span class="normal">152</span>
 <span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compute_expansion_rate</span><span class="p">(</span>
+<span class="normal">154</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compute_expansion_rate</span><span class="p">(</span>
     <span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">,</span>
     <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
@@ -2697,18 +2846,385 @@ unavailable.</p>
 <span class="sd">            unavailable.</span>
 <span class="sd">        ValueError: If the choices do not match the diagnostic contract.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span> <span class="o">!=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="s2">&quot;lagrangian_radius&quot;</span><span class="p">}:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expansion rate requires center and lagrangian_radius choices.&quot;</span><span class="p">)</span>
-    <span class="n">center</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">]</span>
-    <span class="n">radius_name</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;lagrangian_radius&quot;</span><span class="p">]</span>
-    <span class="c1"># The core simulation interface resolves paths, validates completion, and</span>
-    <span class="c1"># returns only the selected stored datasets without exposing HDF5 layout.</span>
-    <span class="n">radii</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">diagnostics</span><span class="o">.</span><span class="n">time_series</span><span class="p">[(</span><span class="s2">&quot;lagrangian_radii&quot;</span><span class="p">,</span> <span class="s2">&quot;v1&quot;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">compute_lagrangian_expansion_rate</span><span class="p">(</span>
+        <span class="n">simulation</span><span class="p">,</span>
+        <span class="n">choices</span><span class="p">,</span>
+        <span class="n">radius_choice_name</span><span class="o">=</span><span class="s2">&quot;lagrangian_radius&quot;</span><span class="p">,</span>
+        <span class="n">series_name</span><span class="o">=</span><span class="s2">&quot;lagrangian_radii&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="csfdata_analysis.diagnostics.scalar.expansion_rate.compute_number_radius_expansion_rate" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">compute_number_radius_expansion_rate</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute one expansion rate fitted to a number-based Lagrangian radius.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>simulation</code>
+            </td>
+            <td>
+                  <code><span title="csfdata.catalogue.CatalogueSimulation">CatalogueSimulation</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Catalogue simulation containing completed
+<code>lagrangian_number_radii v1</code> results.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>choices</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Concrete <code>center</code> and <code>lagrangian_number_radius</code>
+selections.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span> | <span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Scalar expansion-rate fields in their declared canonical units.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>csfdata_analysis/diagnostics/scalar/expansion_rate.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compute_number_radius_expansion_rate</span><span class="p">(</span>
+    <span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">,</span>
+    <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute one expansion rate fitted to a number-based Lagrangian radius.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        simulation: Catalogue simulation containing completed</span>
+<span class="sd">            ``lagrangian_number_radii v1`` results.</span>
+<span class="sd">        choices: Concrete ``center`` and ``lagrangian_number_radius``</span>
+<span class="sd">            selections.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Scalar expansion-rate fields in their declared canonical units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">compute_lagrangian_expansion_rate</span><span class="p">(</span>
+        <span class="n">simulation</span><span class="p">,</span>
+        <span class="n">choices</span><span class="p">,</span>
+        <span class="n">radius_choice_name</span><span class="o">=</span><span class="s2">&quot;lagrangian_number_radius&quot;</span><span class="p">,</span>
+        <span class="n">series_name</span><span class="o">=</span><span class="s2">&quot;lagrangian_number_radii&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="csfdata_analysis.diagnostics.scalar.expansion_rate.compute_lagrangian_expansion_rate" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">compute_lagrangian_expansion_rate</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">choices</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radius_choice_name</span><span class="p">,</span> <span class="n">series_name</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Fit one expansion rate from either family of Lagrangian radii.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>simulation</code>
+            </td>
+            <td>
+                  <code><span title="csfdata.catalogue.CatalogueSimulation">CatalogueSimulation</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Catalogue simulation containing the requested completed
+Lagrangian-radius time series.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>choices</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Concrete centre and radius-choice values.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>radius_choice_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Registered choice key holding the selected radius
+field name.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>series_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Source time-series diagnostic name at version 1.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span> | <span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Scalar expansion-rate fields in their declared canonical units.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="KeyError">KeyError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the source series or selected radius field is unavailable.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If choices do not contain exactly a centre and the requested
+radius-choice key.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>csfdata_analysis/diagnostics/scalar/expansion_rate.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compute_lagrangian_expansion_rate</span><span class="p">(</span>
+    <span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">,</span>
+    <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">radius_choice_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">series_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit one expansion rate from either family of Lagrangian radii.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        simulation: Catalogue simulation containing the requested completed</span>
+<span class="sd">            Lagrangian-radius time series.</span>
+<span class="sd">        choices: Concrete centre and radius-choice values.</span>
+<span class="sd">        radius_choice_name: Registered choice key holding the selected radius</span>
+<span class="sd">            field name.</span>
+<span class="sd">        series_name: Source time-series diagnostic name at version 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Scalar expansion-rate fields in their declared canonical units.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        KeyError: If the source series or selected radius field is unavailable.</span>
+<span class="sd">        ValueError: If choices do not contain exactly a centre and the requested</span>
+<span class="sd">            radius-choice key.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span> <span class="o">!=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">radius_choice_name</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Expansion rate requires center and </span><span class="si">{</span><span class="n">radius_choice_name</span><span class="si">}</span><span class="s2"> choices.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">radius_name</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="n">radius_choice_name</span><span class="p">]</span>
+    <span class="c1"># The core interface validates the complete HDF5 result and exposes only</span>
+    <span class="c1"># the selected arrays, independent of which Lagrangian family produced it.</span>
+    <span class="n">radii</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">diagnostics</span><span class="o">.</span><span class="n">time_series</span><span class="p">[(</span><span class="n">series_name</span><span class="p">,</span> <span class="s2">&quot;v1&quot;</span><span class="p">)]</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">radii</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
-        <span class="n">choices</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">center</span><span class="p">},</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">]},</span>
         <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="n">radius_name</span><span class="p">,</span> <span class="s2">&quot;n_stars&quot;</span><span class="p">),</span>
     <span class="p">)</span>
-
     <span class="k">return</span> <span class="n">fit_expansion_rate</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
         <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">radius_name</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>

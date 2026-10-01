@@ -1550,6 +1550,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1586,6 +1614,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2101,6 +2157,23 @@
                 <em>required</em>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>changed_collection_ids</code>
+            </td>
+            <td>
+                  <code><span title="tuple">tuple</span>[<span title="str">str</span>, ...]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Destination collections whose derived files or
+diagnostic declarations changed during this import.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -2127,7 +2200,10 @@
 <span class="normal">36</span>
 <span class="normal">37</span>
 <span class="normal">38</span>
-<span class="normal">39</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DerivedImportReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Summary of one derived-data import attempt.</span>
 
@@ -2135,11 +2211,14 @@
 <span class="sd">        copied_paths: Destination files copied into the full catalogue.</span>
 <span class="sd">        skipped_paths: Existing destination files left unchanged.</span>
 <span class="sd">        issues: Human-readable missing, incomplete, or incompatible results.</span>
+<span class="sd">        changed_collection_ids: Destination collections whose derived files or</span>
+<span class="sd">            diagnostic declarations changed during this import.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">copied_paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">skipped_paths</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">issues</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">changed_collection_ids</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2371,10 +2450,7 @@ replace them.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/derived.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
-<span class="normal"> 43</span>
-<span class="normal"> 44</span>
-<span class="normal"> 45</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 45</span>
 <span class="normal"> 46</span>
 <span class="normal"> 47</span>
 <span class="normal"> 48</span>
@@ -2641,7 +2717,19 @@ replace them.</p>
 <span class="normal">309</span>
 <span class="normal">310</span>
 <span class="normal">311</span>
-<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived</span><span class="p">(</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived</span><span class="p">(</span>
     <span class="n">source_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">destination_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2716,6 +2804,7 @@ replace them.</p>
     <span class="n">copied_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">skipped_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">issues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">changed_collection_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">collections</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">current_collection_id</span> <span class="ow">in</span> <span class="n">collection_ids</span><span class="p">:</span>
         <span class="n">source_collection</span> <span class="o">=</span> <span class="n">source_collections_root</span> <span class="o">/</span> <span class="n">current_collection_id</span>
@@ -2790,6 +2879,7 @@ replace them.</p>
                 <span class="p">)</span>
                 <span class="n">write_collection_diagnostics</span><span class="p">(</span><span class="n">destination_diagnostics</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
                 <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_diagnostics_path</span><span class="p">)</span>
+                <span class="n">changed_collection_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">current_collection_id</span><span class="p">)</span>
         <span class="n">collections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">(</span>
                 <span class="n">current_collection_id</span><span class="p">,</span>
@@ -2847,6 +2937,7 @@ replace them.</p>
                             <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">result_path</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
                             <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
                         <span class="n">copied_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_path</span><span class="p">)</span>
+                        <span class="n">changed_collection_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">current_collection_id</span><span class="p">)</span>
 
                     <span class="n">source_scalar_path</span> <span class="o">=</span> <span class="n">simulation_scalar_diagnostics_path</span><span class="p">(</span><span class="n">source_simulation</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">source_scalar_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -2904,6 +2995,7 @@ replace them.</p>
                                         <span class="n">staging_path</span><span class="p">,</span>
                                     <span class="p">)</span>
                                     <span class="n">staging_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
+                                <span class="n">changed_collection_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">current_collection_id</span><span class="p">)</span>
                                 <span class="n">copied_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
                             <span class="k">elif</span> <span class="n">skipped_scalar</span><span class="p">:</span>
                                 <span class="n">skipped_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_scalar_path</span><span class="p">)</span>
@@ -2911,7 +3003,12 @@ replace them.</p>
                         <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No completed derived result: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">progress</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">DerivedImportReport</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">copied_paths</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">skipped_paths</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">issues</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">DerivedImportReport</span><span class="p">(</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="n">copied_paths</span><span class="p">),</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="n">skipped_paths</span><span class="p">),</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="n">issues</span><span class="p">),</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">changed_collection_ids</span><span class="p">)),</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3036,19 +3133,7 @@ replace them.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/derived.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">327</span>
 <span class="normal">328</span>
 <span class="normal">329</span>
 <span class="normal">330</span>
@@ -3081,7 +3166,19 @@ replace them.</p>
 <span class="normal">357</span>
 <span class="normal">358</span>
 <span class="normal">359</span>
-<span class="normal">360</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_derived_result</span><span class="p">(</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_derived_result</span><span class="p">(</span>
     <span class="n">result_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">simulation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

@@ -1550,6 +1550,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1586,6 +1614,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2100,8 +2156,7 @@ arguments supplied by the shell.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/cli.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 34</span>
-<span class="normal"> 35</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 35</span>
 <span class="normal"> 36</span>
 <span class="normal"> 37</span>
 <span class="normal"> 38</span>
@@ -2527,7 +2582,8 @@ arguments supplied by the shell.</p>
 <span class="normal">458</span>
 <span class="normal">459</span>
 <span class="normal">460</span>
-<span class="normal">461</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">arguments</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="normal">461</span>
+<span class="normal">462</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">arguments</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the CSFData analysis command-line interface.</span>
 
 <span class="sd">    Args:</span>
@@ -3102,7 +3158,7 @@ every source collection.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Zero after reporting copied, skipped, and unsafe results.</p>
+                <p>Zero after reporting copied, skipped, unsafe, and re-indexed results.</p>
               </div>
             </td>
           </tr>
@@ -3112,8 +3168,7 @@ every source collection.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/cli.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">464</span>
-<span class="normal">465</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">465</span>
 <span class="normal">466</span>
 <span class="normal">467</span>
 <span class="normal">468</span>
@@ -3165,7 +3220,32 @@ every source collection.</p>
 <span class="normal">514</span>
 <span class="normal">515</span>
 <span class="normal">516</span>
-<span class="normal">517</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived_command</span><span class="p">(</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">import_derived_command</span><span class="p">(</span>
     <span class="n">source_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">destination_catalogue</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3185,7 +3265,7 @@ every source collection.</p>
 <span class="sd">        parser: Optional CLI parser used to present validation errors.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Zero after reporting copied, skipped, and unsafe results.</span>
+<span class="sd">        Zero after reporting copied, skipped, unsafe, and re-indexed results.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
@@ -3209,7 +3289,7 @@ every source collection.</p>
                 <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span>
                 <span class="n">progress</span><span class="o">=</span><span class="n">update_progress</span><span class="p">,</span>
             <span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">parser</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
@@ -3218,6 +3298,30 @@ every source collection.</p>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">changed_collection_id</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">changed_collection_ids</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+                <span class="n">total</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Indexing </span><span class="si">{</span><span class="n">changed_collection_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span>
+                <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">progress_bar</span><span class="p">:</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">update_progress</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Advance the index bar after one destination simulation.&quot;&quot;&quot;</span>
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="n">total</span>
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_postfix_str</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">index_report</span> <span class="o">=</span> <span class="n">index_catalogue</span><span class="p">(</span>
+                    <span class="n">destination_catalogue</span><span class="p">,</span>
+                    <span class="n">changed_collection_id</span><span class="p">,</span>
+                    <span class="n">update_progress</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Indexed: </span><span class="si">{</span><span class="n">changed_collection_id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">index_report</span><span class="o">.</span><span class="n">simulation_count</span><span class="si">}</span><span class="s2"> simulations)&quot;</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="mi">0</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3324,32 +3428,7 @@ A blank range bound, such as <code>tff=:3.0</code>, means unbounded.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/cli.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">520</span>
-<span class="normal">521</span>
-<span class="normal">522</span>
-<span class="normal">523</span>
-<span class="normal">524</span>
-<span class="normal">525</span>
-<span class="normal">526</span>
-<span class="normal">527</span>
-<span class="normal">528</span>
-<span class="normal">529</span>
-<span class="normal">530</span>
-<span class="normal">531</span>
-<span class="normal">532</span>
-<span class="normal">533</span>
-<span class="normal">534</span>
-<span class="normal">535</span>
-<span class="normal">536</span>
-<span class="normal">537</span>
-<span class="normal">538</span>
-<span class="normal">539</span>
-<span class="normal">540</span>
-<span class="normal">541</span>
-<span class="normal">542</span>
-<span class="normal">543</span>
-<span class="normal">544</span>
-<span class="normal">545</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">545</span>
 <span class="normal">546</span>
 <span class="normal">547</span>
 <span class="normal">548</span>
@@ -3372,7 +3451,32 @@ A blank range bound, such as <code>tff=:3.0</code>, means unbounded.</p>
 <span class="normal">565</span>
 <span class="normal">566</span>
 <span class="normal">567</span>
-<span class="normal">568</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parse_filters</span><span class="p">(</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parse_filters</span><span class="p">(</span>
     <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse command-line catalogue filters into registry query values.</span>

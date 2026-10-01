@@ -1601,6 +1601,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../reference/csfdata_analysis/diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/csfdata_analysis/diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1637,6 +1665,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/csfdata_analysis/diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2217,9 +2273,9 @@ query them. A lite source is additionally restricted to the full catalogue
 recorded in its <code>lite.yaml</code> provenance file. Existing destination results are
 skipped by default. Use <code>--dry-run</code> to inspect actions, or <code>--overwrite</code> to
 explicitly replace existing compatible results.</p>
-<p>Rebuild the destination index after importing scalar diagnostics:</p>
-<pre><code class="language-bash">csfdata index-catalogue /path/to/destination-catalogue
-</code></pre>
+<p>After a non-dry-run import that changes a destination collection,
+<code>import-derived</code> automatically refreshes that collection's SQLite index.
+No separate <code>csfdata index-catalogue</code> command is needed.</p>
 <h2 id="one-simulation">One Simulation</h2>
 <p>Use the direct command while developing or debugging one imported simulation:</p>
 <pre><code class="language-bash">csfdata analysis compute-simulation \

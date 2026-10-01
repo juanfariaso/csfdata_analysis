@@ -1656,6 +1656,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../reference/csfdata_analysis/diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/csfdata_analysis/diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1692,6 +1720,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/csfdata_analysis/diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2233,6 +2289,9 @@ series = simulations.series(&quot;lagrangian_radii&quot;)
 scalars = simulations.scalars(&quot;expansion_rate&quot;)
 snapshots = simulations.snapshot_slice(time=1.5, normalization=&quot;tff&quot;)
 </code></pre>
+<p>Scalar loading retains selected simulations when a diagnostic is unavailable.
+The requested scalar fields are then <code>NaN</code>. Pass <code>allow_missing=False</code> to
+require a completed scalar result for every selected simulation.</p>
 <p>These methods delegate to the specialized modules described above; the set
 itself does not load snapshot particles or diagnostic arrays until requested.</p>
 <p>Select one existing DataFrame row per represented simulation without
@@ -2277,22 +2336,18 @@ must contain <code>collection_id</code>, <code>simulation_id</code>, and <code>t
 <pre><code class="language-python">snapshot_paths = simulations.get_snapshot_paths(data_slice, tolerance=0.5)
 </code></pre>
 <p>The result records the requested time, nearest stored snapshot time, offset,
-and the model identity. <code>local_paths</code> and <code>source_paths</code> are lists of
-<code>Path</code> objects, allowing one selection to represent every file required by a
-snapshot. Source paths are relative to <code>source_catalogue_root</code> and retain the
-existing manifest convention; <code>source_hostname</code> identifies the source host.</p>
-<p>Iterate over individual local files while retaining their simulation IDs with
-ordinary Pandas <code>explode</code>:</p>
-<pre><code class="language-python">individual_paths = snapshot_paths.explode(&quot;local_paths&quot;)
-
-for row in individual_paths.itertuples():
-    print(row.collection_id, row.simulation_id, row.local_paths)
+and the model identity. <code>local_path</code> and <code>source_path</code> each contain one
+<code>Path</code> or <code>None</code>. Source paths are relative to <code>source_catalogue_root</code>;
+<code>source_hostname</code> identifies the source host.</p>
+<p>Iterate over locally available snapshots while retaining their simulation IDs:</p>
+<pre><code class="language-python">for row in snapshot_paths.dropna(subset=[&quot;local_path&quot;]).itertuples():
+    print(row.collection_id, row.simulation_id, row.local_path)
 </code></pre>
 <p>A request outside the tolerance or a snapshot unavailable on the local
-filesystem remains in the table with an empty <code>local_paths</code> list and an
+filesystem remains in the table with <code>local_path</code> set to <code>None</code> and an
 explanatory <code>issue</code>. Remote source paths remain available when the snapshot
-selection itself is valid. This operation reads <code>snapshot-times.yaml</code> and
-does not reopen particle files.</p>
+selection itself is valid. This operation queries the collection's
+<code>snapshot-times.sqlite</code> inventory and does not reopen particle files.</p>
 <h2 id="inspect-available-diagnostics">Inspect Available Diagnostics</h2>
 <p><a href="../reference/csfdata_analysis/datamodel/simulations/#csfdata_analysis.datamodel.simulations.SimulationSet.inventory"><code>SimulationSet.inventory</code></a>
 returns a
@@ -2436,6 +2491,19 @@ their selected field names do not collide:</p>
 </code></pre>
 <p>Use ordinary Pandas filtering on configuration or scalar columns before
 plotting, for example <code>rates[rates["dRdt"] &gt; 0.1]</code>.</p>
+<p>To retain every stored value of one scalar choice, use <code>expand_choices</code>. The
+result is a long table with the expanded choice as an ordinary column:</p>
+<pre><code class="language-python">rates = simulations.scalars(
+    &quot;expansion_rate&quot;,
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    expand_choices={&quot;expansion_rate&quot;: (&quot;lagrangian_radius&quot;,)},
+    fields={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
+)
+</code></pre>
+<p>Each simulation then has one row for each Lagrangian radius. Fixed choices,
+such as <code>center</code> above, cannot also be expanded. This initial interface
+expands one scalar diagnostic per call; use ordinary Pandas <code>pivot</code> when a
+wide table is useful.</p>
 <h2 id="compile-a-time-series-dataframe">Compile A Time-Series DataFrame</h2>
 <p><a href="../reference/csfdata_analysis/datamodel/simulations/#csfdata_analysis.datamodel.simulations.SimulationSet.compile_dataframe"><code>SimulationSet.compile_dataframe</code></a>
 builds one long time-series table with selected scalar values repeated across

@@ -1856,6 +1856,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1892,6 +1920,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2687,7 +2743,7 @@ evolving series, scalar values, and fixed-time selections separate.</p>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            load_collection_scalars(simulations, diagnostics, allow_missing=False, *, choices=None, diagnostic_choices=None, fields=None, catalogue_root=None) (csfdata_analysis.datamodel.load_collection_scalars)" href="#csfdata_analysis.datamodel.load_collection_scalars">load_collection_scalars</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            load_collection_scalars(simulations, diagnostics, allow_missing=True, *, choices=None, diagnostic_choices=None, expand_choices=None, fields=None, catalogue_root=None) (csfdata_analysis.datamodel.load_collection_scalars)" href="#csfdata_analysis.datamodel.load_collection_scalars">load_collection_scalars</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Load scalar diagnostic values from selected catalogue simulations.</p>
@@ -2878,7 +2934,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            scalars(diagnostics, allow_missing=False, *, choices=None, diagnostic_choices=None, fields=None) (csfdata_analysis.datamodel.SimulationSet.scalars)" href="#csfdata_analysis.datamodel.SimulationSet.scalars">scalars</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            scalars(diagnostics, allow_missing=True, *, choices=None, diagnostic_choices=None, expand_choices=None, fields=None) (csfdata_analysis.datamodel.SimulationSet.scalars)" href="#csfdata_analysis.datamodel.SimulationSet.scalars">scalars</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Load selected scalar diagnostic fields into one Pandas table.</p>
@@ -3528,7 +3584,18 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="normal">613</span>
 <span class="normal">614</span>
 <span class="normal">615</span>
-<span class="normal">616</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SimulationSet</span><span class="p">(</span><span class="n">Sequence</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;One ordered, read-only selection of catalogue simulations.</span>
 
@@ -3649,19 +3716,25 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">diagnostic_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expand_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load selected scalar diagnostic fields into one Pandas table.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            diagnostics: One scalar diagnostic name or a sequence of names.</span>
-<span class="sd">            allow_missing: Whether to omit simulations without every selected result.</span>
+<span class="sd">            allow_missing: Whether to retain simulations without every selected</span>
+<span class="sd">                result, filling requested scalar fields with ``NaN``. Set this</span>
+<span class="sd">                to ``False`` to require a completed result for every selected</span>
+<span class="sd">                simulation.</span>
 <span class="sd">            choices: Optional global scientific choice selections.</span>
 <span class="sd">            diagnostic_choices: Optional per-diagnostic choice overrides.</span>
+<span class="sd">            expand_choices: Optional per-diagnostic choice names retained as</span>
+<span class="sd">                columns in a long scalar table.</span>
 <span class="sd">            fields: Optional selected fields by diagnostic name.</span>
 
 <span class="sd">        Returns:</span>
@@ -3677,6 +3750,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             <span class="n">allow_missing</span><span class="p">,</span>
             <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
             <span class="n">diagnostic_choices</span><span class="o">=</span><span class="n">diagnostic_choices</span><span class="p">,</span>
+            <span class="n">expand_choices</span><span class="o">=</span><span class="n">expand_choices</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="n">catalogue_root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
         <span class="p">)</span>
@@ -3939,8 +4013,8 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            One Pandas row per requested model time, containing stable IDs,</span>
-<span class="sd">            requested and stored times, their offset, iterable local and source</span>
-<span class="sd">            path lists, source provenance, and any selection issue.</span>
+<span class="sd">            requested and stored times, their offset, singular local and source</span>
+<span class="sd">            paths, source provenance, and any selection issue.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the selection arguments or input table are invalid,</span>
@@ -3948,9 +4022,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="sd">            FileNotFoundError: If a collection snapshot inventory is absent.</span>
 
 <span class="sd">        Notes:</span>
-<span class="sd">            Selection uses the collection ``snapshot-times.yaml`` inventory</span>
-<span class="sd">            and does not reopen particle files. In a lite catalogue, a locally</span>
-<span class="sd">            imported snapshot is preferred before the recorded source path.</span>
+<span class="sd">            Selection queries the collection ``snapshot-times.sqlite``</span>
+<span class="sd">            inventory and does not reopen particle files. In a lite catalogue,</span>
+<span class="sd">            a locally imported snapshot is preferred before the recorded</span>
+<span class="sd">            source path.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide exactly one of data or time.&quot;</span><span class="p">)</span>
@@ -4018,16 +4093,19 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                 <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_snapshot_times</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
                     <span class="n">collection_id</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="n">inventory</span> <span class="o">=</span> <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span>
+                    <span class="p">[</span>
+                        <span class="n">selected</span><span class="o">.</span><span class="n">simulation_id</span>
+                        <span class="k">for</span> <span class="n">selected</span> <span class="ow">in</span> <span class="bp">self</span>
+                        <span class="k">if</span> <span class="n">selected</span><span class="o">.</span><span class="n">collection_id</span> <span class="o">==</span> <span class="n">collection_id</span>
+                    <span class="p">],</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">snapshots</span>
             <span class="n">records</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
                 <span class="nb">sorted</span><span class="p">(</span>
-                    <span class="n">inventory</span><span class="o">.</span><span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
+                    <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
                     <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
-                <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inventory</span><span class="o">.</span><span class="n">issues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()))</span>
                 <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">{</span>
                         <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">collection_id</span><span class="p">,</span>
@@ -4035,11 +4113,11 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                         <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">requested</span><span class="p">),</span>
                         <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                        <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                        <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                         <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                        <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                        <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span> <span class="ow">or</span> <span class="s2">&quot;No readable snapshots are recorded in the inventory.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="s2">&quot;No snapshots are recorded in the collection inventory.&quot;</span><span class="p">,</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
@@ -4062,10 +4140,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                                 <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                                 <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                                 <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                                <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Missing known Myr normalization parameter: </span><span class="si">{</span><span class="n">normalization</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                             <span class="p">}</span>
                         <span class="p">)</span>
@@ -4086,13 +4164,13 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                 <span class="n">local_path</span> <span class="o">=</span> <span class="n">source_catalogue_root</span> <span class="o">/</span> <span class="n">source_path</span>
 
             <span class="n">issue</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">local_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">source_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source_path</span><span class="p">]</span>
+            <span class="n">local_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">source_path</span>
             <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
                 <span class="n">issue</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Nearest snapshot is outside the </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Myr tolerance.&quot;</span>
-                <span class="n">source_paths</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">source_result</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">elif</span> <span class="n">local_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="n">local_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">local_path</span><span class="p">]</span>
+                <span class="n">local_result</span> <span class="o">=</span> <span class="n">local_path</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;Selected snapshot is not available on the local filesystem.&quot;</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -4102,10 +4180,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                     <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                     <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="n">selected</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                     <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">,</span>
-                    <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="n">local_paths</span><span class="p">,</span>
+                    <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">local_result</span><span class="p">,</span>
                     <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                     <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                    <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="n">source_paths</span><span class="p">,</span>
+                    <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="n">source_result</span><span class="p">,</span>
                     <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
@@ -4443,7 +4521,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 
 
 <h3 id="csfdata_analysis.datamodel.SimulationSet.scalars" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">scalars</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">scalars</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expand_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -4489,11 +4567,14 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Whether to omit simulations without every selected result.</p>
+                <p>Whether to retain simulations without every selected
+result, filling requested scalar fields with <code>NaN</code>. Set this
+to <code>False</code> to require a completed result for every selected
+simulation.</p>
               </div>
             </td>
             <td>
-                  <code>False</code>
+                  <code>True</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -4522,6 +4603,23 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             <td>
               <div class="doc-md-description">
                 <p>Optional per-diagnostic choice overrides.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>expand_choices</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="collections.abc.Sequence">Sequence</span>[<span title="str">str</span>]] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional per-diagnostic choice names retained as
+columns in a long scalar table.</p>
               </div>
             </td>
             <td>
@@ -4606,22 +4704,35 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
-<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">diagnostic_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">expand_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load selected scalar diagnostic fields into one Pandas table.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        diagnostics: One scalar diagnostic name or a sequence of names.</span>
-<span class="sd">        allow_missing: Whether to omit simulations without every selected result.</span>
+<span class="sd">        allow_missing: Whether to retain simulations without every selected</span>
+<span class="sd">            result, filling requested scalar fields with ``NaN``. Set this</span>
+<span class="sd">            to ``False`` to require a completed result for every selected</span>
+<span class="sd">            simulation.</span>
 <span class="sd">        choices: Optional global scientific choice selections.</span>
 <span class="sd">        diagnostic_choices: Optional per-diagnostic choice overrides.</span>
+<span class="sd">        expand_choices: Optional per-diagnostic choice names retained as</span>
+<span class="sd">            columns in a long scalar table.</span>
 <span class="sd">        fields: Optional selected fields by diagnostic name.</span>
 
 <span class="sd">    Returns:</span>
@@ -4637,6 +4748,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
         <span class="n">allow_missing</span><span class="p">,</span>
         <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
         <span class="n">diagnostic_choices</span><span class="o">=</span><span class="n">diagnostic_choices</span><span class="p">,</span>
+        <span class="n">expand_choices</span><span class="o">=</span><span class="n">expand_choices</span><span class="p">,</span>
         <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
         <span class="n">catalogue_root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
     <span class="p">)</span>
@@ -4862,14 +4974,7 @@ Scalar identities, choices, and fields are recorded separately as
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
@@ -4947,7 +5052,14 @@ Scalar identities, choices, and fields are recorded separately as
 <span class="normal">254</span>
 <span class="normal">255</span>
 <span class="normal">256</span>
-<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compile_dataframe</span><span class="p">(</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compile_dataframe</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">series</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
@@ -5216,14 +5328,7 @@ row count.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">266</span>
 <span class="normal">267</span>
 <span class="normal">268</span>
 <span class="normal">269</span>
@@ -5335,7 +5440,14 @@ row count.</p>
 <span class="normal">375</span>
 <span class="normal">376</span>
 <span class="normal">377</span>
-<span class="normal">378</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">slice_dataframe</span><span class="p">(</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">slice_dataframe</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">],</span>
@@ -5580,14 +5692,7 @@ times before selecting the raw snapshot.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">380</span>
-<span class="normal">381</span>
-<span class="normal">382</span>
-<span class="normal">383</span>
-<span class="normal">384</span>
-<span class="normal">385</span>
-<span class="normal">386</span>
-<span class="normal">387</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">387</span>
 <span class="normal">388</span>
 <span class="normal">389</span>
 <span class="normal">390</span>
@@ -5603,7 +5708,14 @@ times before selecting the raw snapshot.</p>
 <span class="normal">400</span>
 <span class="normal">401</span>
 <span class="normal">402</span>
-<span class="normal">403</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">snapshot_slice</span><span class="p">(</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">snapshot_slice</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">],</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -5758,7 +5870,7 @@ for every simulation.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>requested and stored times, their offset, iterable local and source</p>
+                <p>requested and stored times, their offset, singular local and source</p>
               </div>
             </td>
           </tr>
@@ -5768,7 +5880,7 @@ for every simulation.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>path lists, source provenance, and any selection issue.</p>
+                <p>paths, source provenance, and any selection issue.</p>
               </div>
             </td>
           </tr>
@@ -5812,21 +5924,15 @@ or the table references simulations outside this set.</p>
 
 <details class="notes" open>
   <summary>Notes</summary>
-  <p>Selection uses the collection <code>snapshot-times.yaml</code> inventory
-and does not reopen particle files. In a lite catalogue, a locally
-imported snapshot is preferred before the recorded source path.</p>
+  <p>Selection queries the collection <code>snapshot-times.sqlite</code>
+inventory and does not reopen particle files. In a lite catalogue,
+a locally imported snapshot is preferred before the recorded
+source path.</p>
 </details>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">405</span>
-<span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span>
-<span class="normal">409</span>
-<span class="normal">410</span>
-<span class="normal">411</span>
-<span class="normal">412</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">412</span>
 <span class="normal">413</span>
 <span class="normal">414</span>
 <span class="normal">415</span>
@@ -6017,7 +6123,18 @@ imported snapshot is preferred before the recorded source path.</p>
 <span class="normal">600</span>
 <span class="normal">601</span>
 <span class="normal">602</span>
-<span class="normal">603</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_snapshot_paths</span><span class="p">(</span>
+<span class="normal">603</span>
+<span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_snapshot_paths</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -6042,8 +6159,8 @@ imported snapshot is preferred before the recorded source path.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One Pandas row per requested model time, containing stable IDs,</span>
-<span class="sd">        requested and stored times, their offset, iterable local and source</span>
-<span class="sd">        path lists, source provenance, and any selection issue.</span>
+<span class="sd">        requested and stored times, their offset, singular local and source</span>
+<span class="sd">        paths, source provenance, and any selection issue.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the selection arguments or input table are invalid,</span>
@@ -6051,9 +6168,10 @@ imported snapshot is preferred before the recorded source path.</p>
 <span class="sd">        FileNotFoundError: If a collection snapshot inventory is absent.</span>
 
 <span class="sd">    Notes:</span>
-<span class="sd">        Selection uses the collection ``snapshot-times.yaml`` inventory</span>
-<span class="sd">        and does not reopen particle files. In a lite catalogue, a locally</span>
-<span class="sd">        imported snapshot is preferred before the recorded source path.</span>
+<span class="sd">        Selection queries the collection ``snapshot-times.sqlite``</span>
+<span class="sd">        inventory and does not reopen particle files. In a lite catalogue,</span>
+<span class="sd">        a locally imported snapshot is preferred before the recorded</span>
+<span class="sd">        source path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide exactly one of data or time.&quot;</span><span class="p">)</span>
@@ -6121,16 +6239,19 @@ imported snapshot is preferred before the recorded source path.</p>
             <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_snapshot_times</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
                 <span class="n">collection_id</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="n">inventory</span> <span class="o">=</span> <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span>
+                <span class="p">[</span>
+                    <span class="n">selected</span><span class="o">.</span><span class="n">simulation_id</span>
+                    <span class="k">for</span> <span class="n">selected</span> <span class="ow">in</span> <span class="bp">self</span>
+                    <span class="k">if</span> <span class="n">selected</span><span class="o">.</span><span class="n">collection_id</span> <span class="o">==</span> <span class="n">collection_id</span>
+                <span class="p">],</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">snapshots</span>
         <span class="n">records</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
             <span class="nb">sorted</span><span class="p">(</span>
-                <span class="n">inventory</span><span class="o">.</span><span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
+                <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
                 <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
-            <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inventory</span><span class="o">.</span><span class="n">issues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">collection_id</span><span class="p">,</span>
@@ -6138,11 +6259,11 @@ imported snapshot is preferred before the recorded source path.</p>
                     <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">requested</span><span class="p">),</span>
                     <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                     <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                    <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                    <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span> <span class="ow">or</span> <span class="s2">&quot;No readable snapshots are recorded in the inventory.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="s2">&quot;No snapshots are recorded in the collection inventory.&quot;</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
             <span class="k">continue</span>
@@ -6165,10 +6286,10 @@ imported snapshot is preferred before the recorded source path.</p>
                             <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                             <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                            <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                            <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                             <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                            <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                            <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Missing known Myr normalization parameter: </span><span class="si">{</span><span class="n">normalization</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="p">}</span>
                     <span class="p">)</span>
@@ -6189,13 +6310,13 @@ imported snapshot is preferred before the recorded source path.</p>
             <span class="n">local_path</span> <span class="o">=</span> <span class="n">source_catalogue_root</span> <span class="o">/</span> <span class="n">source_path</span>
 
         <span class="n">issue</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">local_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">source_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source_path</span><span class="p">]</span>
+        <span class="n">local_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">source_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">source_path</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
             <span class="n">issue</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Nearest snapshot is outside the </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Myr tolerance.&quot;</span>
-            <span class="n">source_paths</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">source_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">local_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="n">local_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">local_path</span><span class="p">]</span>
+            <span class="n">local_result</span> <span class="o">=</span> <span class="n">local_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;Selected snapshot is not available on the local filesystem.&quot;</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -6205,10 +6326,10 @@ imported snapshot is preferred before the recorded source path.</p>
                 <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                 <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="n">selected</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                 <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">,</span>
-                <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="n">local_paths</span><span class="p">,</span>
+                <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">local_result</span><span class="p">,</span>
                 <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                 <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="n">source_paths</span><span class="p">,</span>
+                <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="n">source_result</span><span class="p">,</span>
                 <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
@@ -6271,18 +6392,18 @@ imported snapshot is preferred before the recorded source path.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">605</span>
-<span class="normal">606</span>
-<span class="normal">607</span>
-<span class="normal">608</span>
-<span class="normal">609</span>
-<span class="normal">610</span>
-<span class="normal">611</span>
-<span class="normal">612</span>
-<span class="normal">613</span>
-<span class="normal">614</span>
-<span class="normal">615</span>
-<span class="normal">616</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return declared diagnostics and their availability in this selection.</span>
 
 <span class="sd">    Returns:</span>
@@ -7149,21 +7270,21 @@ to inspect every version.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">638</span>
-<span class="normal">639</span>
-<span class="normal">640</span>
-<span class="normal">641</span>
-<span class="normal">642</span>
-<span class="normal">643</span>
-<span class="normal">644</span>
-<span class="normal">645</span>
-<span class="normal">646</span>
-<span class="normal">647</span>
-<span class="normal">648</span>
-<span class="normal">649</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">649</span>
 <span class="normal">650</span>
 <span class="normal">651</span>
-<span class="normal">652</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return every known scalar canonical parameter for one simulation.</span>
 
 <span class="sd">    Args:</span>
@@ -7291,23 +7412,23 @@ to inspect every version.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">619</span>
-<span class="normal">620</span>
-<span class="normal">621</span>
-<span class="normal">622</span>
-<span class="normal">623</span>
-<span class="normal">624</span>
-<span class="normal">625</span>
-<span class="normal">626</span>
-<span class="normal">627</span>
-<span class="normal">628</span>
-<span class="normal">629</span>
-<span class="normal">630</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">630</span>
 <span class="normal">631</span>
 <span class="normal">632</span>
 <span class="normal">633</span>
 <span class="normal">634</span>
-<span class="normal">635</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
     <span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">filters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -7434,18 +7555,7 @@ configuration differs from the lite export.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">655</span>
-<span class="normal">656</span>
-<span class="normal">657</span>
-<span class="normal">658</span>
-<span class="normal">659</span>
-<span class="normal">660</span>
-<span class="normal">661</span>
-<span class="normal">662</span>
-<span class="normal">663</span>
-<span class="normal">664</span>
-<span class="normal">665</span>
-<span class="normal">666</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">666</span>
 <span class="normal">667</span>
 <span class="normal">668</span>
 <span class="normal">669</span>
@@ -7466,7 +7576,18 @@ configuration differs from the lite export.</p>
 <span class="normal">684</span>
 <span class="normal">685</span>
 <span class="normal">686</span>
-<span class="normal">687</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the simulation directory that owns raw snapshots for analysis.</span>
 
 <span class="sd">    Args:</span>
@@ -7509,7 +7630,7 @@ configuration differs from the lite export.</p>
 
 
 <h2 id="csfdata_analysis.datamodel.load_collection_scalars" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">load_collection_scalars</span><span class="p">(</span><span class="n">simulations</span><span class="p">,</span> <span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">catalogue_root</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">load_collection_scalars</span><span class="p">(</span><span class="n">simulations</span><span class="p">,</span> <span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expand_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">catalogue_root</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
@@ -7572,12 +7693,14 @@ name resolves to its latest collection-declared version.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Whether to omit simulations without every selected
-scalar result. By default, missing results raise an error.</p>
+                <p>Whether to retain simulations without every selected
+scalar result, filling requested scalar fields with <code>NaN</code>. Set
+this to <code>False</code> to require a completed result for every selected
+simulation.</p>
               </div>
             </td>
             <td>
-                  <code>False</code>
+                  <code>True</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -7608,6 +7731,24 @@ for relevant choices not supplied here.</p>
               <div class="doc-md-description">
                 <p>Optional per-diagnostic choice overrides. These
 take precedence over <code>choices</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>expand_choices</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="collections.abc.Sequence">Sequence</span>[<span title="str">str</span>]] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional choice names to retain as DataFrame columns.
+This currently supports one scalar diagnostic at a time. Each
+selected combination produces one row per simulation.</p>
               </div>
             </td>
             <td>
@@ -7668,7 +7809,7 @@ are read from SQLite instead of per-simulation YAML files.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>One Pandas row per selected simulation, containing collection and</p>
+                <p>One Pandas row per selected simulation, or per selected simulation and</p>
               </div>
             </td>
           </tr>
@@ -7678,7 +7819,7 @@ are read from SQLite instead of per-simulation YAML files.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>simulation IDs, canonical configuration values, and selected scalar</p>
+                <p>expanded choice combination. Rows contain stable IDs, canonical</p>
               </div>
             </td>
           </tr>
@@ -7688,7 +7829,7 @@ are read from SQLite instead of per-simulation YAML files.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>fields. The table attrs record the resolved diagnostic versions,</p>
+                <p>configuration values, expanded choice columns, and selected scalar</p>
               </div>
             </td>
           </tr>
@@ -7698,7 +7839,17 @@ are read from SQLite instead of per-simulation YAML files.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>choices, and fields.</p>
+                <p>fields. The table attrs record diagnostic versions, fixed choices,</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>expanded choices, and fields.</p>
               </div>
             </td>
           </tr>
@@ -7744,8 +7895,7 @@ incompatible scalar schemas.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/scalars.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 17</span>
-<span class="normal"> 18</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 18</span>
 <span class="normal"> 19</span>
 <span class="normal"> 20</span>
 <span class="normal"> 21</span>
@@ -8200,13 +8350,159 @@ incompatible scalar schemas.</p>
 <span class="normal">470</span>
 <span class="normal">471</span>
 <span class="normal">472</span>
-<span class="normal">473</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_collection_scalars</span><span class="p">(</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span>
+<span class="normal">562</span>
+<span class="normal">563</span>
+<span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
+<span class="normal">595</span>
+<span class="normal">596</span>
+<span class="normal">597</span>
+<span class="normal">598</span>
+<span class="normal">599</span>
+<span class="normal">600</span>
+<span class="normal">601</span>
+<span class="normal">602</span>
+<span class="normal">603</span>
+<span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_collection_scalars</span><span class="p">(</span>
     <span class="n">simulations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">],</span>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">diagnostic_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">expand_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
@@ -8216,12 +8512,17 @@ incompatible scalar schemas.</p>
 <span class="sd">        simulations: Catalogue simulations selected by ``load_simulations``.</span>
 <span class="sd">        diagnostics: One scalar diagnostic name or a sequence of names. Each</span>
 <span class="sd">            name resolves to its latest collection-declared version.</span>
-<span class="sd">        allow_missing: Whether to omit simulations without every selected</span>
-<span class="sd">            scalar result. By default, missing results raise an error.</span>
+<span class="sd">        allow_missing: Whether to retain simulations without every selected</span>
+<span class="sd">            scalar result, filling requested scalar fields with ``NaN``. Set</span>
+<span class="sd">            this to ``False`` to require a completed result for every selected</span>
+<span class="sd">            simulation.</span>
 <span class="sd">        choices: Optional global choice values. Registered defaults are used</span>
 <span class="sd">            for relevant choices not supplied here.</span>
 <span class="sd">        diagnostic_choices: Optional per-diagnostic choice overrides. These</span>
 <span class="sd">            take precedence over ``choices``.</span>
+<span class="sd">        expand_choices: Optional choice names to retain as DataFrame columns.</span>
+<span class="sd">            This currently supports one scalar diagnostic at a time. Each</span>
+<span class="sd">            selected combination produces one row per simulation.</span>
 <span class="sd">        fields: Optional selected fields by diagnostic name. Omitted entries</span>
 <span class="sd">            load every declared field for that diagnostic.</span>
 <span class="sd">        catalogue_root: Optional indexed catalogue root. When its</span>
@@ -8229,10 +8530,11 @@ incompatible scalar schemas.</p>
 <span class="sd">            are read from SQLite instead of per-simulation YAML files.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        One Pandas row per selected simulation, containing collection and</span>
-<span class="sd">        simulation IDs, canonical configuration values, and selected scalar</span>
-<span class="sd">        fields. The table attrs record the resolved diagnostic versions,</span>
-<span class="sd">        choices, and fields.</span>
+<span class="sd">        One Pandas row per selected simulation, or per selected simulation and</span>
+<span class="sd">        expanded choice combination. Rows contain stable IDs, canonical</span>
+<span class="sd">        configuration values, expanded choice columns, and selected scalar</span>
+<span class="sd">        fields. The table attrs record diagnostic versions, fixed choices,</span>
+<span class="sd">        expanded choices, and fields.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If selections are malformed, scalar fields collide with</span>
@@ -8253,6 +8555,103 @@ incompatible scalar schemas.</p>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;diagnostics must contain one or more non-empty diagnostic names.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;diagnostics must contain non-empty unique names.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">expand_choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expand_choices</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choice_names</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choice_names</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">choice_names</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">choice_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">choice_name</span> <span class="k">for</span> <span class="n">choice_name</span> <span class="ow">in</span> <span class="n">choice_names</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">choice_names</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">choice_names</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">choice_names</span> <span class="ow">in</span> <span class="n">expand_choices</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;expand_choices must map diagnostic names to non-empty unique choice-name sequences.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">expand_choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">expand_choices</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expand_choices contains diagnostics that were not selected.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">expand_choices</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expand_choices currently supports one scalar diagnostic at a time.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">simulations</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No simulations were selected.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Read the registered choice values once, then reuse the normal scalar</span>
+        <span class="c1"># loader for every concrete combination. This keeps indexed and direct</span>
+        <span class="c1"># file reads on exactly the same validation path.</span>
+        <span class="n">diagnostic_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">collection_diagnostics</span> <span class="o">=</span> <span class="n">simulations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">diagnostics</span><span class="o">.</span><span class="n">scalar</span><span class="o">.</span><span class="n">collection_diagnostics</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">candidate</span>
+                <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">collection_diagnostics</span><span class="o">.</span><span class="n">diagnostics</span>
+                <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">diagnostic_name</span> <span class="ow">and</span> <span class="n">candidate</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;scalar&quot;</span>
+            <span class="p">),</span>
+            <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown scalar diagnostic: </span><span class="si">{</span><span class="n">diagnostic_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">expanded_names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">expand_choices</span><span class="p">[</span><span class="n">diagnostic_name</span><span class="p">])</span>
+        <span class="n">unknown_expanded</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">expanded_names</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">definition</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unknown_expanded</span><span class="p">:</span>
+            <span class="n">choices_text</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">unknown_expanded</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">diagnostic_name</span><span class="si">}</span><span class="s2"> has irrelevant expanded choices: </span><span class="si">{</span><span class="n">choices_text</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">fixed_global</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">choices</span> <span class="ow">or</span> <span class="p">{})</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">expanded_names</span><span class="p">)</span>
+        <span class="n">fixed_diagnostic</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">diagnostic_choices</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">diagnostic_name</span><span class="p">,</span> <span class="p">{}))</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">expanded_names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fixed_global</span> <span class="ow">or</span> <span class="n">fixed_diagnostic</span><span class="p">:</span>
+            <span class="n">choices_text</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fixed_global</span> <span class="o">|</span> <span class="n">fixed_diagnostic</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expanded choices cannot also be fixed: </span><span class="si">{</span><span class="n">choices_text</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">choices_by_name</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">choice</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">choice</span>
+            <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">collection_diagnostics</span><span class="o">.</span><span class="n">choices</span>
+        <span class="p">}</span>
+        <span class="n">tables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">choices_by_name</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">expanded_names</span><span class="p">)):</span>
+            <span class="n">overrides</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">diagnostic_choices</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">diagnostic_name</span><span class="p">,</span> <span class="p">{}))</span>
+            <span class="n">overrides</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">expanded_names</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">table</span> <span class="o">=</span> <span class="n">load_collection_scalars</span><span class="p">(</span>
+                    <span class="n">simulations</span><span class="p">,</span>
+                    <span class="n">diagnostic_name</span><span class="p">,</span>
+                    <span class="n">allow_missing</span><span class="o">=</span><span class="n">allow_missing</span><span class="p">,</span>
+                    <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
+                    <span class="n">diagnostic_choices</span><span class="o">=</span><span class="p">{</span><span class="n">diagnostic_name</span><span class="p">:</span> <span class="n">overrides</span><span class="p">},</span>
+                    <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+                    <span class="n">catalogue_root</span><span class="o">=</span><span class="n">catalogue_root</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="c1"># A fully absent choice combination is expected when callers</span>
+                <span class="c1"># allow incomplete scalar coverage; leave it absent from the</span>
+                <span class="c1"># long table so Pandas can represent it as NaN after a pivot.</span>
+                <span class="k">if</span> <span class="n">allow_missing</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;No selected simulations have completed scalar results.&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">raise</span>
+            <span class="k">for</span> <span class="n">choice_name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">expanded_names</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">choice_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tables</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No selected simulations have completed scalar results.&quot;</span><span class="p">)</span>
+        <span class="n">expanded</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">expanded</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expanded</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+        <span class="n">expanded</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expanded</span><span class="p">[</span><span class="s2">&quot;simulation_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+        <span class="n">expanded</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;diagnostics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;diagnostics&quot;</span><span class="p">]</span>
+        <span class="n">expanded</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">diagnostic_name</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span><span class="p">:</span> <span class="n">value</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="n">diagnostic_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">expanded_names</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">expanded</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;expanded_choices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">diagnostic_name</span><span class="p">:</span> <span class="n">expanded_names</span><span class="p">}</span>
+        <span class="n">expanded</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">expanded</span>
     <span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
         <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
         <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">choices</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
@@ -8497,6 +8896,26 @@ incompatible scalar schemas.</p>
                         <span class="s2">&quot;Selected simulations have no completed scalar result: &quot;</span>
                         <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
                     <span class="p">)</span>
+                <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                    <span class="n">missing_keys</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">missing</span>
+                    <span class="p">}</span>
+                    <span class="n">missing_fields</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">field</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">selected_fields</span> <span class="ow">in</span> <span class="n">selected_definitions</span>
+                        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">selected_fields</span>
+                    <span class="p">}</span>
+                    <span class="k">for</span> <span class="n">simulation</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">)</span> <span class="ow">in</span> <span class="n">missing_keys</span><span class="p">:</span>
+                            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="p">{</span>
+                                    <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span>
+                                    <span class="s2">&quot;simulation_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">,</span>
+                                    <span class="o">**</span><span class="n">configurations</span><span class="p">[</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">],</span>
+                                    <span class="o">**</span><span class="n">missing_fields</span><span class="p">,</span>
+                                <span class="p">}</span>
+                            <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No selected simulations have completed scalar results.&quot;</span><span class="p">)</span>
@@ -8647,6 +9066,26 @@ incompatible scalar schemas.</p>
 
     <span class="k">if</span> <span class="n">missing</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">allow_missing</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Selected simulations have no completed scalar result: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">missing</span> <span class="ow">and</span> <span class="n">reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">missing_keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">missing</span>
+        <span class="p">}</span>
+        <span class="n">missing_fields</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">field</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">selected_fields</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">selected_fields</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">simulation</span> <span class="ow">in</span> <span class="n">simulations</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">)</span> <span class="ow">in</span> <span class="n">missing_keys</span><span class="p">:</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">collection_id</span><span class="p">,</span>
+                        <span class="s2">&quot;simulation_id&quot;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simulation_id</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">),</span>
+                        <span class="o">**</span><span class="n">missing_fields</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No selected simulations have completed scalar results.&quot;</span><span class="p">)</span>
 

@@ -1657,6 +1657,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../diagnostics/time_series/lagrangian_number_radii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.lagrangian_number_radii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../diagnostics/time_series/lagrangian_radii/" class="md-nav__link">
         
   
@@ -1693,6 +1721,34 @@
     
   
     csfdata_analysis.diagnostics.time_series.radial_velocity_3d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diagnostics/time_series/velocity_dispersion_1d/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    csfdata_analysis.diagnostics.time_series.velocity_dispersion_1d
   
 
     
@@ -2352,7 +2408,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="            scalars(diagnostics, allow_missing=False, *, choices=None, diagnostic_choices=None, fields=None) (csfdata_analysis.datamodel.simulations.SimulationSet.scalars)" href="#csfdata_analysis.datamodel.simulations.SimulationSet.scalars">scalars</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="            scalars(diagnostics, allow_missing=True, *, choices=None, diagnostic_choices=None, expand_choices=None, fields=None) (csfdata_analysis.datamodel.simulations.SimulationSet.scalars)" href="#csfdata_analysis.datamodel.simulations.SimulationSet.scalars">scalars</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Load selected scalar diagnostic fields into one Pandas table.</p>
@@ -3002,7 +3058,18 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="normal">613</span>
 <span class="normal">614</span>
 <span class="normal">615</span>
-<span class="normal">616</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SimulationSet</span><span class="p">(</span><span class="n">Sequence</span><span class="p">[</span><span class="n">CatalogueSimulation</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;One ordered, read-only selection of catalogue simulations.</span>
 
@@ -3123,19 +3190,25 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">diagnostic_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expand_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load selected scalar diagnostic fields into one Pandas table.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            diagnostics: One scalar diagnostic name or a sequence of names.</span>
-<span class="sd">            allow_missing: Whether to omit simulations without every selected result.</span>
+<span class="sd">            allow_missing: Whether to retain simulations without every selected</span>
+<span class="sd">                result, filling requested scalar fields with ``NaN``. Set this</span>
+<span class="sd">                to ``False`` to require a completed result for every selected</span>
+<span class="sd">                simulation.</span>
 <span class="sd">            choices: Optional global scientific choice selections.</span>
 <span class="sd">            diagnostic_choices: Optional per-diagnostic choice overrides.</span>
+<span class="sd">            expand_choices: Optional per-diagnostic choice names retained as</span>
+<span class="sd">                columns in a long scalar table.</span>
 <span class="sd">            fields: Optional selected fields by diagnostic name.</span>
 
 <span class="sd">        Returns:</span>
@@ -3151,6 +3224,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             <span class="n">allow_missing</span><span class="p">,</span>
             <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
             <span class="n">diagnostic_choices</span><span class="o">=</span><span class="n">diagnostic_choices</span><span class="p">,</span>
+            <span class="n">expand_choices</span><span class="o">=</span><span class="n">expand_choices</span><span class="p">,</span>
             <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
             <span class="n">catalogue_root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
         <span class="p">)</span>
@@ -3413,8 +3487,8 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            One Pandas row per requested model time, containing stable IDs,</span>
-<span class="sd">            requested and stored times, their offset, iterable local and source</span>
-<span class="sd">            path lists, source provenance, and any selection issue.</span>
+<span class="sd">            requested and stored times, their offset, singular local and source</span>
+<span class="sd">            paths, source provenance, and any selection issue.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the selection arguments or input table are invalid,</span>
@@ -3422,9 +3496,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="sd">            FileNotFoundError: If a collection snapshot inventory is absent.</span>
 
 <span class="sd">        Notes:</span>
-<span class="sd">            Selection uses the collection ``snapshot-times.yaml`` inventory</span>
-<span class="sd">            and does not reopen particle files. In a lite catalogue, a locally</span>
-<span class="sd">            imported snapshot is preferred before the recorded source path.</span>
+<span class="sd">            Selection queries the collection ``snapshot-times.sqlite``</span>
+<span class="sd">            inventory and does not reopen particle files. In a lite catalogue,</span>
+<span class="sd">            a locally imported snapshot is preferred before the recorded</span>
+<span class="sd">            source path.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide exactly one of data or time.&quot;</span><span class="p">)</span>
@@ -3492,16 +3567,19 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                 <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_snapshot_times</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
                     <span class="n">collection_id</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="n">inventory</span> <span class="o">=</span> <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span>
+                    <span class="p">[</span>
+                        <span class="n">selected</span><span class="o">.</span><span class="n">simulation_id</span>
+                        <span class="k">for</span> <span class="n">selected</span> <span class="ow">in</span> <span class="bp">self</span>
+                        <span class="k">if</span> <span class="n">selected</span><span class="o">.</span><span class="n">collection_id</span> <span class="o">==</span> <span class="n">collection_id</span>
+                    <span class="p">],</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">snapshots</span>
             <span class="n">records</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
                 <span class="nb">sorted</span><span class="p">(</span>
-                    <span class="n">inventory</span><span class="o">.</span><span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
+                    <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
                     <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
-                <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inventory</span><span class="o">.</span><span class="n">issues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()))</span>
                 <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">{</span>
                         <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">collection_id</span><span class="p">,</span>
@@ -3509,11 +3587,11 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                         <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">requested</span><span class="p">),</span>
                         <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                        <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                        <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                         <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                        <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                        <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span> <span class="ow">or</span> <span class="s2">&quot;No readable snapshots are recorded in the inventory.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="s2">&quot;No snapshots are recorded in the collection inventory.&quot;</span><span class="p">,</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
@@ -3536,10 +3614,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                                 <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                                 <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                                <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                                 <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                                <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                                 <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Missing known Myr normalization parameter: </span><span class="si">{</span><span class="n">normalization</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                             <span class="p">}</span>
                         <span class="p">)</span>
@@ -3560,13 +3638,13 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                 <span class="n">local_path</span> <span class="o">=</span> <span class="n">source_catalogue_root</span> <span class="o">/</span> <span class="n">source_path</span>
 
             <span class="n">issue</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">local_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">source_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source_path</span><span class="p">]</span>
+            <span class="n">local_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">source_path</span>
             <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
                 <span class="n">issue</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Nearest snapshot is outside the </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Myr tolerance.&quot;</span>
-                <span class="n">source_paths</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">source_result</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">elif</span> <span class="n">local_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="n">local_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">local_path</span><span class="p">]</span>
+                <span class="n">local_result</span> <span class="o">=</span> <span class="n">local_path</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;Selected snapshot is not available on the local filesystem.&quot;</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -3576,10 +3654,10 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
                     <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                     <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="n">selected</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                     <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">,</span>
-                    <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="n">local_paths</span><span class="p">,</span>
+                    <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">local_result</span><span class="p">,</span>
                     <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                     <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                    <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="n">source_paths</span><span class="p">,</span>
+                    <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="n">source_result</span><span class="p">,</span>
                     <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
@@ -3917,7 +3995,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 
 
 <h3 id="csfdata_analysis.datamodel.simulations.SimulationSet.scalars" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">scalars</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">scalars</span><span class="p">(</span><span class="n">diagnostics</span><span class="p">,</span> <span class="n">allow_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diagnostic_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expand_choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -3963,11 +4041,14 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Whether to omit simulations without every selected result.</p>
+                <p>Whether to retain simulations without every selected
+result, filling requested scalar fields with <code>NaN</code>. Set this
+to <code>False</code> to require a completed result for every selected
+simulation.</p>
               </div>
             </td>
             <td>
-                  <code>False</code>
+                  <code>True</code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -3996,6 +4077,23 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
             <td>
               <div class="doc-md-description">
                 <p>Optional per-diagnostic choice overrides.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>expand_choices</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="collections.abc.Sequence">Sequence</span>[<span title="str">str</span>]] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional per-diagnostic choice names retained as
+columns in a long scalar table.</p>
               </div>
             </td>
             <td>
@@ -4080,22 +4178,35 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
-<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">scalars</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">diagnostics</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">allow_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">diagnostic_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">expand_choices</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load selected scalar diagnostic fields into one Pandas table.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        diagnostics: One scalar diagnostic name or a sequence of names.</span>
-<span class="sd">        allow_missing: Whether to omit simulations without every selected result.</span>
+<span class="sd">        allow_missing: Whether to retain simulations without every selected</span>
+<span class="sd">            result, filling requested scalar fields with ``NaN``. Set this</span>
+<span class="sd">            to ``False`` to require a completed result for every selected</span>
+<span class="sd">            simulation.</span>
 <span class="sd">        choices: Optional global scientific choice selections.</span>
 <span class="sd">        diagnostic_choices: Optional per-diagnostic choice overrides.</span>
+<span class="sd">        expand_choices: Optional per-diagnostic choice names retained as</span>
+<span class="sd">            columns in a long scalar table.</span>
 <span class="sd">        fields: Optional selected fields by diagnostic name.</span>
 
 <span class="sd">    Returns:</span>
@@ -4111,6 +4222,7 @@ provides convenient wrappers for Pandas-oriented analysis views.</p>
         <span class="n">allow_missing</span><span class="p">,</span>
         <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
         <span class="n">diagnostic_choices</span><span class="o">=</span><span class="n">diagnostic_choices</span><span class="p">,</span>
+        <span class="n">expand_choices</span><span class="o">=</span><span class="n">expand_choices</span><span class="p">,</span>
         <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
         <span class="n">catalogue_root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
     <span class="p">)</span>
@@ -4336,14 +4448,7 @@ Scalar identities, choices, and fields are recorded separately as
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
@@ -4421,7 +4526,14 @@ Scalar identities, choices, and fields are recorded separately as
 <span class="normal">254</span>
 <span class="normal">255</span>
 <span class="normal">256</span>
-<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compile_dataframe</span><span class="p">(</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compile_dataframe</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">series</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
@@ -4690,14 +4802,7 @@ row count.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">266</span>
 <span class="normal">267</span>
 <span class="normal">268</span>
 <span class="normal">269</span>
@@ -4809,7 +4914,14 @@ row count.</p>
 <span class="normal">375</span>
 <span class="normal">376</span>
 <span class="normal">377</span>
-<span class="normal">378</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">slice_dataframe</span><span class="p">(</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">slice_dataframe</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">],</span>
@@ -5054,14 +5166,7 @@ times before selecting the raw snapshot.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">380</span>
-<span class="normal">381</span>
-<span class="normal">382</span>
-<span class="normal">383</span>
-<span class="normal">384</span>
-<span class="normal">385</span>
-<span class="normal">386</span>
-<span class="normal">387</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">387</span>
 <span class="normal">388</span>
 <span class="normal">389</span>
 <span class="normal">390</span>
@@ -5077,7 +5182,14 @@ times before selecting the raw snapshot.</p>
 <span class="normal">400</span>
 <span class="normal">401</span>
 <span class="normal">402</span>
-<span class="normal">403</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">snapshot_slice</span><span class="p">(</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">snapshot_slice</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">],</span>
     <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -5232,7 +5344,7 @@ for every simulation.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>requested and stored times, their offset, iterable local and source</p>
+                <p>requested and stored times, their offset, singular local and source</p>
               </div>
             </td>
           </tr>
@@ -5242,7 +5354,7 @@ for every simulation.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>path lists, source provenance, and any selection issue.</p>
+                <p>paths, source provenance, and any selection issue.</p>
               </div>
             </td>
           </tr>
@@ -5286,21 +5398,15 @@ or the table references simulations outside this set.</p>
 
 <details class="notes" open>
   <summary>Notes</summary>
-  <p>Selection uses the collection <code>snapshot-times.yaml</code> inventory
-and does not reopen particle files. In a lite catalogue, a locally
-imported snapshot is preferred before the recorded source path.</p>
+  <p>Selection queries the collection <code>snapshot-times.sqlite</code>
+inventory and does not reopen particle files. In a lite catalogue,
+a locally imported snapshot is preferred before the recorded
+source path.</p>
 </details>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">405</span>
-<span class="normal">406</span>
-<span class="normal">407</span>
-<span class="normal">408</span>
-<span class="normal">409</span>
-<span class="normal">410</span>
-<span class="normal">411</span>
-<span class="normal">412</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">412</span>
 <span class="normal">413</span>
 <span class="normal">414</span>
 <span class="normal">415</span>
@@ -5491,7 +5597,18 @@ imported snapshot is preferred before the recorded source path.</p>
 <span class="normal">600</span>
 <span class="normal">601</span>
 <span class="normal">602</span>
-<span class="normal">603</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_snapshot_paths</span><span class="p">(</span>
+<span class="normal">603</span>
+<span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_snapshot_paths</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -5516,8 +5633,8 @@ imported snapshot is preferred before the recorded source path.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One Pandas row per requested model time, containing stable IDs,</span>
-<span class="sd">        requested and stored times, their offset, iterable local and source</span>
-<span class="sd">        path lists, source provenance, and any selection issue.</span>
+<span class="sd">        requested and stored times, their offset, singular local and source</span>
+<span class="sd">        paths, source provenance, and any selection issue.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the selection arguments or input table are invalid,</span>
@@ -5525,9 +5642,10 @@ imported snapshot is preferred before the recorded source path.</p>
 <span class="sd">        FileNotFoundError: If a collection snapshot inventory is absent.</span>
 
 <span class="sd">    Notes:</span>
-<span class="sd">        Selection uses the collection ``snapshot-times.yaml`` inventory</span>
-<span class="sd">        and does not reopen particle files. In a lite catalogue, a locally</span>
-<span class="sd">        imported snapshot is preferred before the recorded source path.</span>
+<span class="sd">        Selection queries the collection ``snapshot-times.sqlite``</span>
+<span class="sd">        inventory and does not reopen particle files. In a lite catalogue,</span>
+<span class="sd">        a locally imported snapshot is preferred before the recorded</span>
+<span class="sd">        source path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide exactly one of data or time.&quot;</span><span class="p">)</span>
@@ -5595,16 +5713,19 @@ imported snapshot is preferred before the recorded source path.</p>
             <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_snapshot_times</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">catalogue_root</span><span class="p">,</span>
                 <span class="n">collection_id</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="n">inventory</span> <span class="o">=</span> <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span>
+                <span class="p">[</span>
+                    <span class="n">selected</span><span class="o">.</span><span class="n">simulation_id</span>
+                    <span class="k">for</span> <span class="n">selected</span> <span class="ow">in</span> <span class="bp">self</span>
+                    <span class="k">if</span> <span class="n">selected</span><span class="o">.</span><span class="n">collection_id</span> <span class="o">==</span> <span class="n">collection_id</span>
+                <span class="p">],</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">snapshots</span>
         <span class="n">records</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
             <span class="nb">sorted</span><span class="p">(</span>
-                <span class="n">inventory</span><span class="o">.</span><span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
+                <span class="n">inventories</span><span class="p">[</span><span class="n">collection_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()),</span>
                 <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
-            <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inventory</span><span class="o">.</span><span class="n">issues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simulation_id</span><span class="p">,</span> <span class="p">()))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span> <span class="n">collection_id</span><span class="p">,</span>
@@ -5612,11 +5733,11 @@ imported snapshot is preferred before the recorded source path.</p>
                     <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">requested</span><span class="p">),</span>
                     <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                     <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                    <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                    <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span> <span class="ow">or</span> <span class="s2">&quot;No readable snapshots are recorded in the inventory.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="s2">&quot;No snapshots are recorded in the collection inventory.&quot;</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
             <span class="k">continue</span>
@@ -5639,10 +5760,10 @@ imported snapshot is preferred before the recorded source path.</p>
                             <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                             <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                            <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                            <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                             <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                            <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                            <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Missing known Myr normalization parameter: </span><span class="si">{</span><span class="n">normalization</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="p">}</span>
                     <span class="p">)</span>
@@ -5663,13 +5784,13 @@ imported snapshot is preferred before the recorded source path.</p>
             <span class="n">local_path</span> <span class="o">=</span> <span class="n">source_catalogue_root</span> <span class="o">/</span> <span class="n">source_path</span>
 
         <span class="n">issue</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">local_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">source_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source_path</span><span class="p">]</span>
+        <span class="n">local_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">source_result</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">source_path</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
             <span class="n">issue</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Nearest snapshot is outside the </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> Myr tolerance.&quot;</span>
-            <span class="n">source_paths</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">source_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">local_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="n">local_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">local_path</span><span class="p">]</span>
+            <span class="n">local_result</span> <span class="o">=</span> <span class="n">local_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">issue</span> <span class="o">=</span> <span class="s2">&quot;Selected snapshot is not available on the local filesystem.&quot;</span>
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -5679,10 +5800,10 @@ imported snapshot is preferred before the recorded source path.</p>
                 <span class="s2">&quot;requested_time&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
                 <span class="s2">&quot;snapshot_time&quot;</span><span class="p">:</span> <span class="n">selected</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
                 <span class="s2">&quot;time_offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">,</span>
-                <span class="s2">&quot;local_paths&quot;</span><span class="p">:</span> <span class="n">local_paths</span><span class="p">,</span>
+                <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">local_result</span><span class="p">,</span>
                 <span class="s2">&quot;source_hostname&quot;</span><span class="p">:</span> <span class="n">source_hostname</span><span class="p">,</span>
                 <span class="s2">&quot;source_catalogue_root&quot;</span><span class="p">:</span> <span class="n">source_catalogue_root</span><span class="p">,</span>
-                <span class="s2">&quot;source_paths&quot;</span><span class="p">:</span> <span class="n">source_paths</span><span class="p">,</span>
+                <span class="s2">&quot;source_path&quot;</span><span class="p">:</span> <span class="n">source_result</span><span class="p">,</span>
                 <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
@@ -5745,18 +5866,18 @@ imported snapshot is preferred before the recorded source path.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">605</span>
-<span class="normal">606</span>
-<span class="normal">607</span>
-<span class="normal">608</span>
-<span class="normal">609</span>
-<span class="normal">610</span>
-<span class="normal">611</span>
-<span class="normal">612</span>
-<span class="normal">613</span>
-<span class="normal">614</span>
-<span class="normal">615</span>
-<span class="normal">616</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return declared diagnostics and their availability in this selection.</span>
 
 <span class="sd">    Returns:</span>
@@ -5890,23 +6011,23 @@ imported snapshot is preferred before the recorded source path.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">619</span>
-<span class="normal">620</span>
-<span class="normal">621</span>
-<span class="normal">622</span>
-<span class="normal">623</span>
-<span class="normal">624</span>
-<span class="normal">625</span>
-<span class="normal">626</span>
-<span class="normal">627</span>
-<span class="normal">628</span>
-<span class="normal">629</span>
-<span class="normal">630</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">630</span>
 <span class="normal">631</span>
 <span class="normal">632</span>
 <span class="normal">633</span>
 <span class="normal">634</span>
-<span class="normal">635</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_simulations</span><span class="p">(</span>
     <span class="n">catalogue_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">collection_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">filters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -5999,21 +6120,21 @@ imported snapshot is preferred before the recorded source path.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">638</span>
-<span class="normal">639</span>
-<span class="normal">640</span>
-<span class="normal">641</span>
-<span class="normal">642</span>
-<span class="normal">643</span>
-<span class="normal">644</span>
-<span class="normal">645</span>
-<span class="normal">646</span>
-<span class="normal">647</span>
-<span class="normal">648</span>
-<span class="normal">649</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">649</span>
 <span class="normal">650</span>
 <span class="normal">651</span>
-<span class="normal">652</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configuration_values</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return every known scalar canonical parameter for one simulation.</span>
 
 <span class="sd">    Args:</span>
@@ -6138,18 +6259,7 @@ configuration differs from the lite export.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>csfdata_analysis/datamodel/simulations.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">655</span>
-<span class="normal">656</span>
-<span class="normal">657</span>
-<span class="normal">658</span>
-<span class="normal">659</span>
-<span class="normal">660</span>
-<span class="normal">661</span>
-<span class="normal">662</span>
-<span class="normal">663</span>
-<span class="normal">664</span>
-<span class="normal">665</span>
-<span class="normal">666</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">666</span>
 <span class="normal">667</span>
 <span class="normal">668</span>
 <span class="normal">669</span>
@@ -6170,7 +6280,18 @@ configuration differs from the lite export.</p>
 <span class="normal">684</span>
 <span class="normal">685</span>
 <span class="normal">686</span>
-<span class="normal">687</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">source_simulation</span><span class="p">(</span><span class="n">simulation</span><span class="p">:</span> <span class="n">CatalogueSimulation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the simulation directory that owns raw snapshots for analysis.</span>
 
 <span class="sd">    Args:</span>
