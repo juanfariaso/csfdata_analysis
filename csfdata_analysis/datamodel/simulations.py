@@ -7,13 +7,17 @@ from dataclasses import dataclass
 import math
 from pathlib import Path
 import socket
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import pandas
 from csfdata.catalogue import CatalogueSimulation, file_sha256, find_simulations, is_lite_catalogue, read_lite_source
 from csfdata.catalogue.configuration import read_simulation_configuration
 from csfdata.catalogue.metadata import read_simulation_metadata
 from csfdata.catalogue.snapshots import read_snapshot_times
+
+if TYPE_CHECKING:
+    from csfdata_analysis.datamodel.scalars import DataScalars
+    from csfdata_analysis.datamodel.series import DataSeries
 
 
 @dataclass(frozen=True)
@@ -108,8 +112,8 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         choices: dict[str, str] | None = None,
         diagnostic_choices: dict[str, dict[str, str]] | None = None,
         fields: dict[str, Sequence[str]] | None = None,
-    ) -> pandas.DataFrame:
-        """Load selected evolving diagnostic fields into one Pandas table.
+    ) -> DataSeries:
+        """Load selected evolving diagnostic fields into a data-series view.
 
         Args:
             diagnostics: One time-series diagnostic name or a sequence of names.
@@ -119,13 +123,17 @@ class SimulationSet(Sequence[CatalogueSimulation]):
             fields: Optional selected fields by diagnostic name.
 
         Returns:
-            Long time-series table with simulation and configuration columns.
+            Research-facing time-series view. Its ``dataframe`` attribute is
+            the long Pandas table with simulation and configuration columns.
         """
         # Import locally because series.py depends on this foundational module
         # for common configuration access.
-        from csfdata_analysis.datamodel.series import load_collection_time_series
+        from csfdata_analysis.datamodel.series import (
+            DataSeries,
+            load_collection_time_series,
+        )
 
-        return load_collection_time_series(
+        table = load_collection_time_series(
             self,
             diagnostics,
             allow_missing,
@@ -133,6 +141,8 @@ class SimulationSet(Sequence[CatalogueSimulation]):
             diagnostic_choices=diagnostic_choices,
             fields=fields,
         )
+        table.attrs["catalogue_root"] = str(self.catalogue_root)
+        return DataSeries(table)
 
     def scalars(
         self,
@@ -143,8 +153,8 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         diagnostic_choices: dict[str, dict[str, str]] | None = None,
         expand_choices: dict[str, Sequence[str]] | None = None,
         fields: dict[str, Sequence[str]] | None = None,
-    ) -> pandas.DataFrame:
-        """Load selected scalar diagnostic fields into one Pandas table.
+    ) -> DataScalars:
+        """Load selected scalar diagnostic fields into a scalar-data view.
 
         Args:
             diagnostics: One scalar diagnostic name or a sequence of names.
@@ -159,21 +169,27 @@ class SimulationSet(Sequence[CatalogueSimulation]):
             fields: Optional selected fields by diagnostic name.
 
         Returns:
-            One table row per simulation with configuration and scalar fields.
+            Research-facing scalar view. Its ``dataframe`` attribute contains
+            one row per simulation or expanded diagnostic choice.
         """
         # Import locally because scalars.py uses the shared configuration
         # access defined below in this foundational module.
-        from csfdata_analysis.datamodel.scalars import load_collection_scalars
+        from csfdata_analysis.datamodel.scalars import (
+            DataScalars,
+            load_collection_scalars,
+        )
 
-        return load_collection_scalars(
-            self,
-            diagnostics,
-            allow_missing,
-            choices=choices,
-            diagnostic_choices=diagnostic_choices,
-            expand_choices=expand_choices,
-            fields=fields,
-            catalogue_root=self.catalogue_root,
+        return DataScalars(
+            load_collection_scalars(
+                self,
+                diagnostics,
+                allow_missing,
+                choices=choices,
+                diagnostic_choices=diagnostic_choices,
+                expand_choices=expand_choices,
+                fields=fields,
+                catalogue_root=self.catalogue_root,
+            )
         )
 
     def compile_dataframe(
@@ -185,8 +201,8 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         series_choices: dict[str, dict[str, str]] | None = None,
         scalar_choices: dict[str, dict[str, str]] | None = None,
         missing_scalars: Literal["error", "nan"] = "nan",
-    ) -> pandas.DataFrame:
-        """Build one time-series table enriched with scalar diagnostic values.
+    ) -> DataSeries:
+        """Build one time-series view enriched with scalar diagnostic values.
 
         Args:
             series: Required time-series fields by diagnostic name.
@@ -200,9 +216,9 @@ class SimulationSet(Sequence[CatalogueSimulation]):
                 ``"error"`` instead requires every requested scalar.
 
         Returns:
-            Long Pandas table containing the selected series fields and, when
-            requested, scalar fields repeated for every snapshot of their
-            containing simulation.
+            Research-facing time-series view whose ``dataframe`` contains the
+            selected series fields and scalar fields repeated for every
+            snapshot of their containing simulation.
 
         Raises:
             ValueError: If no time-series diagnostic is selected or a scalar
@@ -221,22 +237,24 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         if missing_scalars not in {"error", "nan"}:
             raise ValueError("missing_scalars must be 'error' or 'nan'.")
 
-        series_table = self.series(
+        series_data = self.series(
             tuple(series),
             choices=choices,
             diagnostic_choices=series_choices,
             fields=series,
         )
         if not scalars:
-            return series_table
+            return series_data
 
-        scalar_table = self.scalars(
+        scalar_data = self.scalars(
             tuple(scalars),
             allow_missing=missing_scalars == "nan",
             choices=choices,
             diagnostic_choices=scalar_choices,
             fields=scalars,
         )
+        series_table = series_data.dataframe
+        scalar_table = scalar_data.dataframe
         scalar_fields = tuple(
             field
             for fields in scalar_table.attrs["fields"].values()
@@ -261,7 +279,9 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         compiled.attrs["scalar_fields"] = scalar_table.attrs["fields"]
         compiled["collection_id"] = compiled["collection_id"].astype("category")
         compiled["simulation_id"] = compiled["simulation_id"].astype("category")
-        return compiled
+        from csfdata_analysis.datamodel.series import DataSeries
+
+        return DataSeries(compiled)
 
     def slice_dataframe(
         self,
@@ -416,6 +436,7 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         time: float | Literal["first", "last"] | None = None,
         tolerance: float | None = None,
         normalization: str | None = None,
+        include_parameters: bool = False,
     ) -> pandas.DataFrame:
         """Return raw snapshot paths for explicit model-time requests.
 
@@ -431,6 +452,9 @@ class SimulationSet(Sequence[CatalogueSimulation]):
             normalization: Optional known Myr-valued configuration parameter.
                 A numeric ``time`` is multiplied by this value independently
                 for every simulation.
+            include_parameters: Include every canonical simulation parameter
+                in the result. The default avoids reading simulation
+                configuration files and returns snapshot information only.
 
         Returns:
             One Pandas row per requested model time, containing stable IDs,
@@ -611,6 +635,14 @@ class SimulationSet(Sequence[CatalogueSimulation]):
         table = pandas.DataFrame(rows)
         table["collection_id"] = table["collection_id"].astype("category")
         table["simulation_id"] = table["simulation_id"].astype("category")
+        if include_parameters:
+            # Snapshot requests may contain several times for one simulation,
+            # while parameters contain exactly one row per simulation.
+            table = table.merge(
+                self.parameters(),
+                on=["collection_id", "simulation_id"],
+                validate="many_to_one",
+            )
         return table
 
     def inventory(self) -> pandas.DataFrame:

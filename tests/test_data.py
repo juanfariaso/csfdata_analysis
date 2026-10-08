@@ -30,8 +30,9 @@ from csfdata.catalogue.diagnostics import (
     write_simulation_scalar_diagnostics,
 )
 from csfdata.catalogue.snapshots import SnapshotTime, SnapshotTimeInventory
-from csfdata_analysis.datamodel.scalars import load_collection_scalars
+from csfdata_analysis.datamodel.scalars import DataScalars, load_collection_scalars
 from csfdata_analysis.datamodel.series import (
+    DataSeries,
     aggregate_time_series,
     interpolate_time_series,
     load_collection_time_series,
@@ -193,7 +194,8 @@ def test_scalar_loading_fills_missing_results_with_nan_by_default(tmp_path: Path
     _write_scalar(first, "expansion_rate", 0.12)
     selection = SimulationSet(tmp_path / "catalogue", (first, second))
 
-    table = selection.scalars("expansion_rate", fields={"expansion_rate": ("dRdt",)})
+    scalars = selection.scalars("expansion_rate", fields={"expansion_rate": ("dRdt",)})
+    table = scalars.dataframe
 
     assert list(table["simulation_id"]) == ["0001", "0002"]
     assert table.loc[table["simulation_id"] == "0001", "dRdt"].item() == 0.12
@@ -279,11 +281,220 @@ def test_simulation_set_wraps_selected_simulations_and_data_views(tmp_path: Path
     scalars = selection.scalars("expansion_rate")
     assert str(parameters["collection_id"].dtype) == "category"
     assert str(parameters["simulation_id"].dtype) == "category"
-    assert str(series["simulation_id"].dtype) == "category"
-    assert str(scalars["simulation_id"].dtype) == "category"
+    assert isinstance(series, DataSeries)
+    assert isinstance(scalars, DataScalars)
+    assert str(series.dataframe["simulation_id"].dtype) == "category"
+    assert str(scalars.dataframe["simulation_id"].dtype) == "category"
     assert list(parameters["tff"]) == [1.0, 2.0]
-    assert list(series["r50"]) == [1.0, 3.0, 1.0, 3.0]
-    assert list(scalars["dRdt"]) == [0.12, 0.25]
+    assert list(series.dataframe["r50"]) == [1.0, 3.0, 1.0, 3.0]
+    assert list(scalars.dataframe["dRdt"]) == [0.12, 0.25]
+    assert series.diagnostics == ("radii",)
+    assert scalars.diagnostics == ("expansion_rate",)
+    assert "DataSeries(rows=4" in repr(series)
+    assert "DataScalars(rows=2" in repr(scalars)
+
+
+def test_data_views_select_exact_list_and_range_filters() -> None:
+    """Research-facing views retain their type and metadata after selection."""
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid", "grid", "grid", "grid"],
+            "simulation_id": ["0001", "0001", "0002", "0002"],
+            "tff": [0.5, 0.5, 1.0, 1.0],
+            "time": [0.0, 1.0, 0.0, 1.0],
+            "value": [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+    table.attrs["diagnostics"] = (("example", "v1"),)
+    table.attrs["fields"] = {"example": ("value",)}
+    series = DataSeries(table)
+    scalars = DataScalars(table.drop(columns="time"))
+
+    selected_series = series.select(
+        {"simulation_id": ["0001"], "time": (0.5, None)}
+    )
+    selected_scalars = scalars.select(
+        {"tff": (0.5, 1.0), "value": [1.0, 4.0]}
+    )
+
+    assert isinstance(selected_series, DataSeries)
+    assert isinstance(selected_scalars, DataScalars)
+    assert list(selected_series.dataframe["value"]) == [2.0]
+    assert list(selected_scalars.dataframe["value"]) == [1.0, 4.0]
+    assert selected_series.fields == {"example": ("value",)}
+    assert selected_scalars.diagnostics == ("example",)
+
+
+def test_data_views_report_invalid_filter_columns_and_ranges() -> None:
+    """Selection mistakes identify the unsupported column or range."""
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid"],
+            "simulation_id": ["0001"],
+            "time": [0.0],
+        }
+    )
+
+    with raises(KeyError, match="Unknown DataSeries filter column 'sfe'"):
+        DataSeries(table).select({"sfe": 0.1})
+    with raises(ValueError, match="exactly two bounds"):
+        DataScalars(table.drop(columns="time")).select({"simulation_id": ("0001",)})
+
+
+def test_time_series_aligns_before_seed_aggregation(tmp_path: Path) -> None:
+    """Series aggregation requires and preserves one explicit shared time grid."""
+    collection_root = tmp_path / "catalogue" / "collections" / "grid"
+    collection_root.mkdir(parents=True)
+    (collection_root / "collection.yaml").write_text(
+        """schema_version: 1
+id: grid
+importer: dcaf
+config_schema_version: 1
+required_parameters: [tff, seed_index]
+optional_parameters: []
+grid_axes:
+  tff: [0.5]
+  seed_index: [0, 1]
+lite:
+  include: []
+""",
+        encoding="utf-8",
+    )
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid"] * 5,
+            "simulation_id": ["0001", "0001", "0002", "0002", "0002"],
+            "tff": [0.5] * 5,
+            "seed_index": [0, 0, 1, 1, 1],
+            "time": [0.0, 2.0, 0.0, 1.0, 2.0],
+            "radius": [0.0, 2.0, 0.0, 2.0, 4.0],
+        }
+    )
+    table.attrs["catalogue_root"] = str(tmp_path / "catalogue")
+    table.attrs["diagnostics"] = (("radius", "v1"),)
+    table.attrs["fields"] = {"radius": ("radius",)}
+    table.attrs["data_fields"] = ("radius",)
+    series = DataSeries(table)
+
+    with raises(ValueError, match="Call align_time"):
+        series.aggregate_over()
+
+    aligned = series.align_time((0.0, 1.0, 2.0))
+    summary = aligned.aggregate_over()
+    middle = summary.loc[summary["time"] == 1.0].iloc[0]
+
+    assert isinstance(aligned, DataSeries)
+    assert aligned.dataframe.attrs["aligned_times"] == (0.0, 1.0, 2.0)
+    assert middle["radius_mean"] == approx(1.5)
+    assert middle["radius_median"] == approx(1.5)
+    assert middle["radius_std"] == approx(2.0**-0.5)
+    assert middle["n_simulations"] == 2
+    assert "seed_index" not in summary.columns
+
+
+def test_scalar_aggregation_discovers_grid_axes_and_preserves_expanded_choices(
+    tmp_path: Path,
+) -> None:
+    """Seed aggregation uses the collection grid and keeps diagnostic choices."""
+    collection_root = tmp_path / "catalogue" / "collections" / "grid"
+    collection_root.mkdir(parents=True)
+    (collection_root / "collection.yaml").write_text(
+        """schema_version: 1
+id: grid
+importer: dcaf
+config_schema_version: 1
+required_parameters: [tff, seed_index]
+optional_parameters: []
+grid_axes:
+  tff: [0.5, 1.0]
+  seed_index: [0, 1]
+lite:
+  include: []
+""",
+        encoding="utf-8",
+    )
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid"] * 8,
+            "simulation_id": ["0001", "0001", "0002", "0002", "0003", "0003", "0004", "0004"],
+            "tff": [0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0],
+            "seed_index": [0, 0, 1, 1, 0, 0, 1, 1],
+            "lagrangian_number_radius": ["r_n10", "r_n50"] * 4,
+            "dRdt": [0.1, 0.3, 0.3, 0.5, 0.2, 0.4, float("nan"), 0.8],
+        }
+    )
+    table.attrs["catalogue_root"] = str(tmp_path / "catalogue")
+    table.attrs["diagnostics"] = (("number_radius_expansion_rate", "v1"),)
+    table.attrs["fields"] = {"number_radius_expansion_rate": ("dRdt",)}
+    table.attrs["expanded_choices"] = {
+        "number_radius_expansion_rate": ("lagrangian_number_radius",)
+    }
+    values = DataScalars(table)
+
+    summary = values.aggregate_over()
+
+    first = summary.loc[
+        (summary["tff"] == 0.5)
+        & (summary["lagrangian_number_radius"] == "r_n10")
+    ].iloc[0]
+    incomplete = summary.loc[
+        (summary["tff"] == 1.0)
+        & (summary["lagrangian_number_radius"] == "r_n10")
+    ].iloc[0]
+    assert len(summary) == 4
+    assert first["dRdt_mean"] == approx(0.2)
+    assert first["dRdt_median"] == approx(0.2)
+    assert first["dRdt_std"] == approx(2.0**0.5 * 0.1)
+    assert first["n_simulations"] == 2
+    assert incomplete["dRdt_mean"] == approx(0.2)
+    assert incomplete["n_simulations"] == 1
+    assert "seed_index" not in summary.columns
+    assert list(summary["lagrangian_number_radius"][:2]) == ["r_n10", "r_n50"]
+
+
+def test_scalar_aggregation_accepts_explicit_grid_axes() -> None:
+    """Explicit axes allow aggregation without catalogue provenance."""
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid", "grid"],
+            "simulation_id": ["0001", "0002"],
+            "tff": [0.5, 0.5],
+            "seed_index": [0, 1],
+            "dRdt": [0.1, 0.3],
+        }
+    )
+    table.attrs["fields"] = {"expansion_rate": ("dRdt",)}
+
+    summary = DataScalars(table).aggregate_over(grid_axes=("tff", "seed_index"))
+
+    assert list(summary["tff"]) == [0.5]
+    assert list(summary["dRdt_mean"]) == [approx(0.2)]
+    assert list(summary["n_simulations"]) == [2]
+
+
+def test_scalar_aggregation_accepts_named_and_custom_statistics() -> None:
+    """Statistic names define columns and custom reducers receive clean values."""
+    table = pandas.DataFrame(
+        {
+            "collection_id": ["grid", "grid", "grid"],
+            "simulation_id": ["0001", "0002", "0003"],
+            "seed_index": [0, 1, 2],
+            "dRdt": [0.1, float("nan"), 0.5],
+        }
+    )
+    table.attrs["fields"] = {"expansion_rate": ("dRdt",)}
+
+    summary = DataScalars(table).aggregate_over(
+        statistics={
+            "minimum": "min",
+            "span": lambda values: values.max() - values.min(),
+        },
+        grid_axes=("seed_index",),
+    )
+
+    assert list(summary["dRdt_minimum"]) == [0.1]
+    assert list(summary["dRdt_span"]) == [0.4]
+    assert list(summary["n_simulations"]) == [2]
 
 
 def test_simulation_set_compiles_series_and_scalar_fields(tmp_path: Path) -> None:
@@ -296,11 +507,13 @@ def test_simulation_set_compiles_series_and_scalar_fields(tmp_path: Path) -> Non
     _write_scalar(second, "expansion_rate", 0.25)
     selection = SimulationSet(tmp_path / "catalogue", (first, second))
 
-    data = selection.compile_dataframe(
+    series = selection.compile_dataframe(
         series={"radii": ("r50",)},
         scalars={"expansion_rate": ("dRdt",)},
     )
+    data = series.dataframe
 
+    assert isinstance(series, DataSeries)
     assert list(data["dRdt"]) == [0.12, 0.12, 0.25, 0.25]
     assert data.attrs["scalar_diagnostics"] == (("expansion_rate", "v1"),)
     assert data.attrs["scalar_fields"] == {"expansion_rate": ("dRdt",)}
@@ -368,7 +581,7 @@ def test_select_time_slice_returns_one_compiled_row_per_simulation(tmp_path: Pat
     data = selection.compile_dataframe(
         series={"radii": ("r50",)},
         scalars={"expansion_rate": ("dRdt",)},
-    )
+    ).dataframe
 
     selected = select_time_slice(data, 0.5, normalization="tff")
 
@@ -389,7 +602,7 @@ def test_compiled_dataframe_keeps_series_with_missing_scalar_as_nan(tmp_path: Pa
     data = selection.compile_dataframe(
         series={"radii": ("r50",)},
         scalars={"expansion_rate": ("dRdt",)},
-    )
+    ).dataframe
 
     assert list(data["dRdt"][:2]) == [0.12, 0.12]
     assert all(math.isnan(value) for value in data["dRdt"][2:])
@@ -427,7 +640,7 @@ def test_simulation_set_scalars_reads_indexed_values(tmp_path: Path) -> None:
     )
     selection = SimulationSet(tmp_path / "catalogue", (first, second))
 
-    values = selection.scalars("expansion_rate")
+    values = selection.scalars("expansion_rate").dataframe
 
     assert list(values["tff"]) == [1.0, 2.0]
     assert list(values["dRdt"]) == [0.12, 0.25]
@@ -598,6 +811,10 @@ def test_simulation_set_gets_snapshot_paths_from_time_or_dataframe(
 
     normalized = selection.get_snapshot_paths(time=1.4, normalization="tff", tolerance=0.5)
     last = selection.get_snapshot_paths(time="last")
+    last_with_parameters = selection.get_snapshot_paths(
+        time="last",
+        include_parameters=True,
+    )
     prepared = selection.get_snapshot_paths(
         pandas.DataFrame(
             {
@@ -611,6 +828,8 @@ def test_simulation_set_gets_snapshot_paths_from_time_or_dataframe(
 
     assert normalized.iloc[0]["requested_time"] == 2.8
     assert normalized.iloc[0]["snapshot_time"] == 3.0
+    assert "tff" not in last.columns
+    assert last_with_parameters.iloc[0]["tff"] == 2.0
     assert last.iloc[0]["local_path"] == paths[1]
     assert last.iloc[0]["source_catalogue_root"] == tmp_path / "catalogue"
     assert last.iloc[0]["source_path"] == Path(

@@ -5,9 +5,10 @@ from pathlib import Path
 from pytest import CaptureFixture, MonkeyPatch
 
 import csfdata_analysis.cli as cli
-from csfdata.catalogue import CatalogueSimulation
+from csfdata.catalogue import CatalogueSimulation, IndexReport
 from csfdata_analysis.catalogue_runner import SimulationResult
 from csfdata_analysis.cli import parse_filters
+from csfdata_analysis.derived import DerivedImportReport
 
 
 def test_parse_filters_handles_collection_scalars_and_ranges() -> None:
@@ -191,3 +192,30 @@ def test_clear_derived_all_dispatches_every_builtin_time_series(
     )
 
     assert cleared == sorted(cli.TIME_SERIES_DIAGNOSTICS)
+
+
+def test_import_derived_reindexes_only_changed_destination_collections(
+    monkeypatch: MonkeyPatch,
+    capsys: CaptureFixture[str],
+) -> None:
+    """A successful import refreshes only its changed destination collection."""
+    destination = Path("/tmp/destination")
+    indexed: list[tuple[Path, str | None]] = []
+    monkeypatch.setattr(
+        cli,
+        "import_derived",
+        lambda *args, **kwargs: DerivedImportReport((), (), (), ("example-grid",)),
+    )
+
+    def index(root: Path, collection_id: str | None, progress):
+        """Record the targeted index request without reading a catalogue."""
+        indexed.append((root, collection_id))
+        progress(1, 1, "example-grid/0001")
+        return IndexReport(root, root / "registry.sqlite", (collection_id,), 1, 0)
+
+    monkeypatch.setattr(cli, "index_catalogue", index)
+
+    assert cli.main(["import-derived", "/tmp/source", str(destination)]) == 0
+
+    assert indexed == [(destination, "example-grid")]
+    assert "Indexed: example-grid (1 simulations)" in capsys.readouterr().out

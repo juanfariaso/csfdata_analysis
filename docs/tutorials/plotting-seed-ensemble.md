@@ -29,9 +29,6 @@ it out selects the full seed ensemble.
 import numpy as np
 
 from csfdata_analysis.datamodel import (
-    aggregate_time_series,
-    interpolate_time_series,
-    load_collection_time_series,
     load_simulations,
 )
 
@@ -40,29 +37,24 @@ simulations = load_simulations(
     collection_id="collection-id",
 )
 
-series = load_collection_time_series(
-    simulations,
-    diagnostics="lagrangian_radii",
+series = simulations.series(
+    "lagrangian_radii",
     choices={"center": "stellar_com"},
     fields={"lagrangian_radii": ("r_l50",)},
 )
 
-aligned = interpolate_time_series(
-    series,
-    times=np.arange(0.0, 30.0, 0.1),
+aligned = series.align_time(
+    np.arange(0.0, 30.0, 0.1),
 )
 
-summary = aggregate_time_series(
-    aligned,
-    group_by=("Mstars", "tff", "sfe", "fret_max", "texp_over_tff"),
-)
+summary = aligned.aggregate_over()
 ```
 
 Every `summary` row now represents one model-parameter combination at one
-shared time. It contains `r_l50_mean`, `r_l50_std`, and `n_simulations`.
-The listed `group_by` parameters must include every parameter that defines a
-physically distinct model. `seed_index` is omitted so those realizations are
-averaged together.
+shared time. It contains `r_l50_mean`, `r_l50_median`, `r_l50_std`, and
+`n_simulations`. The collection's declared grid axes define physically
+distinct models; `seed_index` is averaged while every other axis remains a
+grouping column.
 
 ## Plot One Model Family
 

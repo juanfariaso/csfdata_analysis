@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from itertools import product
 import json
 from pathlib import Path
@@ -10,9 +10,338 @@ import sqlite3
 
 import pandas
 
-from csfdata.catalogue import CatalogueSimulation, SimulationDiagnosticResults
+from csfdata.catalogue import CatalogueSimulation, SimulationDiagnosticResults, read_collection
 from csfdata.catalogue.diagnostics import collection_diagnostics_path, read_collection_diagnostics
 from csfdata_analysis.datamodel.simulations import configuration_values
+
+
+class DataScalars:
+    """Research-facing view of one scalar diagnostic table.
+
+    Args:
+        dataframe: Pandas table containing ``collection_id`` and
+            ``simulation_id``. It may contain one row per simulation or one
+            row per simulation and expanded diagnostic choice.
+
+    Attributes:
+        dataframe: The ordinary Pandas table containing the loaded values.
+
+    Notes:
+        This class uses composition rather than subclassing
+        :class:`pandas.DataFrame`. Access the table through ``dataframe`` for
+        normal Pandas filtering, grouping, plotting, and merging.
+    """
+
+    def __init__(self, dataframe: pandas.DataFrame) -> None:
+        if not isinstance(dataframe, pandas.DataFrame):
+            raise TypeError("dataframe must be a pandas DataFrame.")
+        required = {"collection_id", "simulation_id"}
+        if not required <= set(dataframe.columns):
+            missing = ", ".join(sorted(required - set(dataframe.columns)))
+            raise ValueError(f"A scalar DataFrame is missing columns: {missing}.")
+        self.dataframe = dataframe
+
+    @property
+    def diagnostics(self) -> tuple[str, ...]:
+        """Return diagnostic names represented by this table."""
+        return tuple(
+            identity[0] if isinstance(identity, tuple) else str(identity)
+            for identity in self.dataframe.attrs.get("diagnostics", ())
+        )
+
+    @property
+    def fields(self) -> dict[str, tuple[str, ...]]:
+        """Return selected output fields grouped by diagnostic name."""
+        return dict(self.dataframe.attrs.get("fields", {}))
+
+    @property
+    def choices(self) -> dict[str, dict[str, str]]:
+        """Return fixed scientific choices grouped by diagnostic name."""
+        return {
+            name: dict(values)
+            for name, values in self.dataframe.attrs.get("choices", {}).items()
+        }
+
+    @property
+    def expanded_choices(self) -> dict[str, tuple[str, ...]]:
+        """Return choices retained as ordinary table columns."""
+        return dict(self.dataframe.attrs.get("expanded_choices", {}))
+
+    def __len__(self) -> int:
+        """Return the number of scalar rows in the table."""
+        return len(self.dataframe)
+
+    def select(self, filters: dict[str, object]) -> DataScalars:
+        """Select rows using simulation parameters or diagnostic values.
+
+        Args:
+            filters: Column selections. A scalar requires an exact match, a
+                list accepts any listed value, and a two-item tuple defines an
+                inclusive ``(minimum, maximum)`` range. Either range bound may
+                be ``None``.
+
+        Returns:
+            A new scalar-data view containing the matching rows and the same
+            diagnostic metadata. An unmatched selection returns an empty view.
+
+        Raises:
+            KeyError: If a selected column is absent.
+            ValueError: If ``filters`` is malformed or a tuple does not contain
+                exactly two range bounds.
+        """
+        if not isinstance(filters, dict) or not all(
+            isinstance(name, str) and name for name in filters
+        ):
+            raise ValueError("filters must be a dictionary with non-empty string keys.")
+
+        mask = pandas.Series(True, index=self.dataframe.index, dtype=bool)
+        for name, selection in filters.items():
+            if name not in self.dataframe.columns:
+                available = ", ".join(str(column) for column in self.dataframe.columns)
+                raise KeyError(
+                    f"Unknown DataScalars filter column {name!r}. Available: {available}."
+                )
+            values = self.dataframe[name]
+            if isinstance(selection, list):
+                condition = values.isin(selection)
+            elif isinstance(selection, tuple):
+                if len(selection) != 2:
+                    raise ValueError(
+                        f"Range filter {name!r} must contain exactly two bounds."
+                    )
+                minimum, maximum = selection
+                condition = pandas.Series(True, index=self.dataframe.index, dtype=bool)
+                if minimum is not None:
+                    condition &= values >= minimum
+                if maximum is not None:
+                    condition &= values <= maximum
+            else:
+                condition = values == selection
+            mask &= condition.fillna(False)
+
+        selected = self.dataframe.loc[mask].copy()
+        selected.attrs.update(self.dataframe.attrs)
+        return DataScalars(selected)
+
+    def aggregate_over(
+        self,
+        over: str | Sequence[str] = "seed_index",
+        *,
+        statistics: dict[str, str | Callable[[pandas.Series], object]] | None = None,
+        grid_axes: Sequence[str] | None = None,
+    ) -> pandas.DataFrame:
+        """Aggregate loaded scalar fields over selected grid axes.
+
+        Args:
+            over: One grid axis or a sequence of axes to average over. The
+                default combines stochastic realizations identified by
+                ``seed_index``.
+            statistics: Optional output suffixes mapped to Pandas reducer names
+                or custom functions. The default calculates ``mean``,
+                ``median``, and ``std``. Custom functions receive the
+                non-missing values from one ensemble group.
+            grid_axes: Optional ordered grid-axis names. When omitted, axes are
+                read from each collection's ``collection.yaml`` using the
+                catalogue root recorded when this view was loaded.
+
+        Returns:
+            One ordinary Pandas table per remaining grid-point and expanded
+            diagnostic-choice combination. It contains ``n_simulations`` and
+            one ``<field>_<statistic>`` column for every loaded diagnostic
+            field and selected statistic.
+
+        Raises:
+            FileNotFoundError: If automatic grid discovery cannot read a
+                collection configuration.
+            KeyError: If a selected field or grid axis is absent from the
+                scalar table.
+            ValueError: If an argument is malformed, no grid definition is
+                available, an averaged axis is not part of the grid, or a
+                selected field is not numeric.
+
+        Notes:
+            Aggregation is performed independently for every collection.
+            Expanded diagnostic choices remain grouping coordinates and are
+            never averaged implicitly. Output rows preserve the first-observed
+            grid and expanded-choice order for direct line plotting.
+        """
+        if isinstance(over, str):
+            averaged_axes = (over,)
+        elif (
+            isinstance(over, Sequence)
+            and not isinstance(over, str)
+            and over
+            and all(isinstance(name, str) and name for name in over)
+        ):
+            averaged_axes = tuple(over)
+        else:
+            raise ValueError("over must be a non-empty grid-axis name or sequence.")
+        if len(set(averaged_axes)) != len(averaged_axes):
+            raise ValueError("over must not contain duplicate grid-axis names.")
+
+        if statistics is None:
+            selected_statistics: dict[
+                str,
+                str | Callable[[pandas.Series], object],
+            ] = {
+                "mean": "mean",
+                "median": "median",
+                "std": "std",
+            }
+        elif not isinstance(statistics, dict) or not statistics or not all(
+            isinstance(name, str)
+            and name
+            and (
+                (isinstance(reducer, str) and bool(reducer))
+                or callable(reducer)
+            )
+            for name, reducer in statistics.items()
+        ):
+            raise ValueError(
+                "statistics must map non-empty output names to Pandas reducer "
+                "names or callable functions."
+            )
+        else:
+            selected_statistics = dict(statistics)
+
+        selected_fields = tuple(
+            field
+            for diagnostic_fields in self.fields.values()
+            for field in diagnostic_fields
+        )
+        if not selected_fields or len(set(selected_fields)) != len(selected_fields):
+            raise ValueError(
+                "DataScalars must declare non-empty unique fields before aggregation."
+            )
+
+        if grid_axes is not None and (
+            not isinstance(grid_axes, Sequence)
+            or isinstance(grid_axes, str)
+            or not grid_axes
+            or not all(isinstance(name, str) and name for name in grid_axes)
+        ):
+            raise ValueError("grid_axes must be a non-empty sequence of axis names.")
+        explicit_grid_axes = tuple(grid_axes) if grid_axes is not None else None
+        if explicit_grid_axes is not None and len(set(explicit_grid_axes)) != len(explicit_grid_axes):
+            raise ValueError("grid_axes must not contain duplicate names.")
+
+        missing_fields = set(selected_fields) - set(self.dataframe.columns)
+        if missing_fields:
+            names = ", ".join(sorted(missing_fields))
+            raise KeyError(f"Scalar aggregation fields are missing: {names}.")
+        nonnumeric_fields = tuple(
+            field
+            for field in selected_fields
+            if not pandas.api.types.is_numeric_dtype(self.dataframe[field])
+        )
+        if nonnumeric_fields:
+            names = ", ".join(nonnumeric_fields)
+            raise ValueError(f"Scalar aggregation fields must be numeric: {names}.")
+
+        expanded_axes = tuple(
+            choice
+            for diagnostic_choices in self.expanded_choices.values()
+            for choice in diagnostic_choices
+        )
+        catalogue_root = self.dataframe.attrs.get("catalogue_root")
+        summaries: list[pandas.DataFrame] = []
+        for collection_id, collection_rows in self.dataframe.groupby(
+            "collection_id",
+            sort=False,
+            observed=True,
+        ):
+            if explicit_grid_axes is None:
+                if catalogue_root is None:
+                    raise ValueError(
+                        "Grid axes are unavailable. Pass grid_axes explicitly or load "
+                        "the values through SimulationSet.scalars()."
+                    )
+                collection = read_collection(catalogue_root, str(collection_id))
+                collection_grid_axes = tuple(name for name, _ in collection.grid_axes)
+                if not collection_grid_axes:
+                    raise ValueError(
+                        f"Collection does not declare grid_axes: {collection_id}."
+                    )
+            else:
+                collection_grid_axes = explicit_grid_axes
+
+            unknown_averaged_axes = set(averaged_axes) - set(collection_grid_axes)
+            if unknown_averaged_axes:
+                names = ", ".join(sorted(unknown_averaged_axes))
+                raise ValueError(
+                    f"Averaged axes are not declared for collection {collection_id}: {names}."
+                )
+            grouping_axes = tuple(
+                name for name in collection_grid_axes if name not in averaged_axes
+            )
+            grouping_columns = tuple(
+                dict.fromkeys(("collection_id", *grouping_axes, *expanded_axes))
+            )
+            missing_columns = set(grouping_columns) - set(collection_rows.columns)
+            if missing_columns:
+                names = ", ".join(sorted(missing_columns))
+                raise KeyError(
+                    f"Grid or expanded-choice columns are missing for collection "
+                    f"{collection_id}: {names}."
+                )
+
+            # Count only simulations with every requested scalar field while
+            # retaining all-NaN groups in the resulting grid summary.
+            working = collection_rows.copy()
+            complete = working[list(selected_fields)].notna().all(axis=1)
+            working["_contributing_simulation"] = working["simulation_id"].where(complete)
+            aggregations: dict[
+                str,
+                tuple[str, str | Callable[[pandas.Series], object]],
+            ] = {
+                "n_simulations": ("_contributing_simulation", "nunique")
+            }
+            for field in selected_fields:
+                for statistic, reducer in selected_statistics.items():
+                    if callable(reducer):
+                        aggregations[f"{field}_{statistic}"] = (
+                            field,
+                            lambda values, function=reducer: function(values.dropna()),
+                        )
+                    else:
+                        aggregations[f"{field}_{statistic}"] = (field, reducer)
+            summary = working.groupby(
+                list(grouping_columns),
+                sort=False,
+                observed=True,
+                dropna=False,
+                as_index=False,
+            ).agg(**aggregations)
+            summaries.append(summary)
+
+        if not summaries:
+            columns = ["collection_id", "n_simulations"]
+            columns.extend(
+                f"{field}_{statistic}"
+                for field in selected_fields
+                for statistic in selected_statistics
+            )
+            return pandas.DataFrame(columns=columns)
+
+        result = pandas.concat(summaries, ignore_index=True)
+        result["collection_id"] = result["collection_id"].astype("category")
+        result.attrs["aggregated_over"] = averaged_axes
+        result.attrs["fields"] = selected_fields
+        result.attrs["statistics"] = tuple(selected_statistics)
+        return result
+
+    def __repr__(self) -> str:
+        """Return a compact interactive description of the loaded scalars."""
+        simulation_count = len(
+            self.dataframe[["collection_id", "simulation_id"]].drop_duplicates()
+        )
+        return (
+            f"DataScalars(rows={len(self)}, simulations={simulation_count}, "
+            f"diagnostics={self.diagnostics!r}, fields={self.fields!r}, "
+            f"expanded_choices={self.expanded_choices!r})"
+        )
+
+    __str__ = __repr__
 
 
 def load_collection_scalars(
@@ -171,6 +500,8 @@ def load_collection_scalars(
         }
         expanded.attrs["expanded_choices"] = {diagnostic_name: expanded_names}
         expanded.attrs["fields"] = tables[0].attrs["fields"]
+        if "catalogue_root" in tables[0].attrs:
+            expanded.attrs["catalogue_root"] = tables[0].attrs["catalogue_root"]
         return expanded
     if choices is not None and (
         not isinstance(choices, dict)
@@ -445,6 +776,7 @@ def load_collection_scalars(
         table.attrs["diagnostics"] = reference[0] if reference is not None else ()
         table.attrs["choices"] = reference[1] if reference is not None else {}
         table.attrs["fields"] = reference[2] if reference is not None else {}
+        table.attrs["catalogue_root"] = str(root)
         return table
 
     rows: list[dict[str, str | int | float | bool]] = []
@@ -615,4 +947,6 @@ def load_collection_scalars(
     table.attrs["diagnostics"] = reference[0] if reference is not None else ()
     table.attrs["choices"] = reference[1] if reference is not None else {}
     table.attrs["fields"] = reference[2] if reference is not None else {}
+    if root is not None:
+        table.attrs["catalogue_root"] = str(root)
     return table

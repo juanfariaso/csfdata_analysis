@@ -32,11 +32,14 @@ class DerivedImportReport:
         copied_paths: Destination files copied into the full catalogue.
         skipped_paths: Existing destination files left unchanged.
         issues: Human-readable missing, incomplete, or incompatible results.
+        changed_collection_ids: Destination collections whose derived files or
+            diagnostic declarations changed during this import.
     """
 
     copied_paths: tuple[Path, ...]
     skipped_paths: tuple[Path, ...]
     issues: tuple[str, ...]
+    changed_collection_ids: tuple[str, ...]
 
 
 def import_derived(
@@ -114,6 +117,7 @@ def import_derived(
     copied_paths: list[Path] = []
     skipped_paths: list[Path] = []
     issues: list[str] = []
+    changed_collection_ids: set[str] = set()
     collections = []
     for current_collection_id in collection_ids:
         source_collection = source_collections_root / current_collection_id
@@ -188,6 +192,7 @@ def import_derived(
                 )
                 write_collection_diagnostics(destination_diagnostics, staging_path)
                 staging_path.replace(destination_diagnostics_path)
+                changed_collection_ids.add(current_collection_id)
         collections.append(
             (
                 current_collection_id,
@@ -245,6 +250,7 @@ def import_derived(
                             shutil.copy2(result_path, staging_path)
                             staging_path.replace(destination_path)
                         copied_paths.append(destination_path)
+                        changed_collection_ids.add(current_collection_id)
 
                     source_scalar_path = simulation_scalar_diagnostics_path(source_simulation)
                     if source_scalar_path.is_file():
@@ -302,6 +308,7 @@ def import_derived(
                                         staging_path,
                                     )
                                     staging_path.replace(destination_scalar_path)
+                                changed_collection_ids.add(current_collection_id)
                                 copied_paths.append(destination_scalar_path)
                             elif skipped_scalar:
                                 skipped_paths.append(destination_scalar_path)
@@ -309,7 +316,12 @@ def import_derived(
                         issues.append(f"No completed derived result: {label}")
             if progress is not None:
                 progress(completed, total, label)
-    return DerivedImportReport(tuple(copied_paths), tuple(skipped_paths), tuple(issues))
+    return DerivedImportReport(
+        tuple(copied_paths),
+        tuple(skipped_paths),
+        tuple(issues),
+        tuple(sorted(changed_collection_ids)),
+    )
 
 
 def validate_derived_result(

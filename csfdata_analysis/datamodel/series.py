@@ -2,18 +2,290 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 import numpy
 import pandas
 
-from csfdata.catalogue import CatalogueSimulation, CollectionDiagnostics, SimulationDiagnosticResults
+from csfdata.catalogue import (
+    CatalogueSimulation,
+    CollectionDiagnostics,
+    SimulationDiagnosticResults,
+    read_collection,
+)
 from csfdata_analysis.datamodel.simulations import configuration_values
 
 
 DiagnosticKey = tuple[str, str]
 """Stable ``(name, version)`` identity of one time-series diagnostic."""
+
+
+class DataSeries:
+    """Research-facing view of one time-series diagnostic table.
+
+    Args:
+        dataframe: Pandas table containing a physical ``time`` column. Tables
+            spanning multiple simulations should also contain
+            ``collection_id`` and ``simulation_id``.
+
+    Attributes:
+        dataframe: The ordinary Pandas table containing the loaded values.
+
+    Notes:
+        This class uses composition rather than subclassing
+        :class:`pandas.DataFrame`. Access the table through ``dataframe`` for
+        normal Pandas filtering, grouping, plotting, and merging.
+    """
+
+    def __init__(self, dataframe: pandas.DataFrame) -> None:
+        if not isinstance(dataframe, pandas.DataFrame):
+            raise TypeError("dataframe must be a pandas DataFrame.")
+        if "time" not in dataframe.columns:
+            raise ValueError("A time-series DataFrame must contain a 'time' column.")
+        identity_columns = {"collection_id", "simulation_id"} & set(dataframe.columns)
+        if identity_columns and identity_columns != {"collection_id", "simulation_id"}:
+            raise ValueError(
+                "A time-series DataFrame must contain both collection_id and "
+                "simulation_id when either identity column is present."
+            )
+        self.dataframe = dataframe
+
+    @property
+    def diagnostics(self) -> tuple[str, ...]:
+        """Return diagnostic names represented by this table."""
+        return tuple(
+            identity[0] if isinstance(identity, tuple) else str(identity)
+            for identity in self.dataframe.attrs.get("diagnostics", ())
+        )
+
+    @property
+    def fields(self) -> dict[str, tuple[str, ...]]:
+        """Return selected output fields grouped by diagnostic name."""
+        return dict(self.dataframe.attrs.get("fields", {}))
+
+    @property
+    def choices(self) -> dict[str, dict[str, str]]:
+        """Return resolved scientific choices grouped by diagnostic name."""
+        return {
+            name: dict(values)
+            for name, values in self.dataframe.attrs.get("choices", {}).items()
+        }
+
+    def __len__(self) -> int:
+        """Return the number of time rows in the table."""
+        return len(self.dataframe)
+
+    def select(self, filters: dict[str, object]) -> DataSeries:
+        """Select rows using simulation parameters or diagnostic values.
+
+        Args:
+            filters: Column selections. A scalar requires an exact match, a
+                list accepts any listed value, and a two-item tuple defines an
+                inclusive ``(minimum, maximum)`` range. Either range bound may
+                be ``None``.
+
+        Returns:
+            A new time-series view containing the matching rows and the same
+            diagnostic metadata. An unmatched selection returns an empty view.
+
+        Raises:
+            KeyError: If a selected column is absent.
+            ValueError: If ``filters`` is malformed or a tuple does not contain
+                exactly two range bounds.
+        """
+        if not isinstance(filters, dict) or not all(
+            isinstance(name, str) and name for name in filters
+        ):
+            raise ValueError("filters must be a dictionary with non-empty string keys.")
+
+        mask = pandas.Series(True, index=self.dataframe.index, dtype=bool)
+        for name, selection in filters.items():
+            if name not in self.dataframe.columns:
+                available = ", ".join(str(column) for column in self.dataframe.columns)
+                raise KeyError(
+                    f"Unknown DataSeries filter column {name!r}. Available: {available}."
+                )
+            values = self.dataframe[name]
+            if isinstance(selection, list):
+                condition = values.isin(selection)
+            elif isinstance(selection, tuple):
+                if len(selection) != 2:
+                    raise ValueError(
+                        f"Range filter {name!r} must contain exactly two bounds."
+                    )
+                minimum, maximum = selection
+                condition = pandas.Series(True, index=self.dataframe.index, dtype=bool)
+                if minimum is not None:
+                    condition &= values >= minimum
+                if maximum is not None:
+                    condition &= values <= maximum
+            else:
+                condition = values == selection
+            mask &= condition.fillna(False)
+
+        selected = self.dataframe.loc[mask].copy()
+        selected.attrs.update(self.dataframe.attrs)
+        return DataSeries(selected)
+
+    def align_time(self, times: Sequence[float]) -> DataSeries:
+        """Interpolate every simulation onto one physical-time grid.
+
+        Args:
+            times: Strictly increasing target model times in Myr.
+
+        Returns:
+            A new time-series view containing one row per simulation and target
+            time. Values outside a simulation's stored range are ``NaN``.
+
+        Raises:
+            ValueError: If the target grid is invalid, field metadata is
+                absent, or a simulation has duplicate source times.
+        """
+        aligned = interpolate_time_series(self.dataframe, times)
+        return DataSeries(aligned)
+
+    def aggregate_over(
+        self,
+        over: str | Sequence[str] = "seed_index",
+        *,
+        statistics: dict[str, str | Callable[[pandas.Series], object]] | None = None,
+        grid_axes: Sequence[str] | None = None,
+    ) -> pandas.DataFrame:
+        """Aggregate an aligned time series over selected grid axes.
+
+        Args:
+            over: One grid axis or a sequence of axes to average over. The
+                default combines stochastic realizations identified by
+                ``seed_index``.
+            statistics: Optional output suffixes mapped to Pandas reducer names
+                or custom functions. The default calculates ``mean``,
+                ``median``, and ``std``. Custom functions receive the
+                non-missing values from one ensemble and time.
+            grid_axes: Optional ordered grid-axis names. When omitted, axes are
+                read from each collection's ``collection.yaml`` using the
+                catalogue root recorded when this view was loaded.
+
+        Returns:
+            An ordinary Pandas table with one row per remaining grid point and
+            aligned time, plus ``n_simulations`` and named statistic columns.
+
+        Raises:
+            FileNotFoundError: If automatic grid discovery cannot read a
+                collection configuration.
+            KeyError: If a grid axis is absent from the time-series table.
+            ValueError: If this view was not produced by :meth:`align_time`,
+                an argument is malformed, no grid definition is available, or
+                an averaged axis is not part of the grid.
+        """
+        if "aligned_times" not in self.dataframe.attrs:
+            raise ValueError(
+                "Time-series aggregation requires aligned times. Call align_time() first."
+            )
+        if isinstance(over, str):
+            averaged_axes = (over,)
+        elif (
+            isinstance(over, Sequence)
+            and not isinstance(over, str)
+            and over
+            and all(isinstance(name, str) and name for name in over)
+        ):
+            averaged_axes = tuple(over)
+        else:
+            raise ValueError("over must be a non-empty grid-axis name or sequence.")
+        if len(set(averaged_axes)) != len(averaged_axes):
+            raise ValueError("over must not contain duplicate grid-axis names.")
+
+        if grid_axes is not None and (
+            not isinstance(grid_axes, Sequence)
+            or isinstance(grid_axes, str)
+            or not grid_axes
+            or not all(isinstance(name, str) and name for name in grid_axes)
+        ):
+            raise ValueError("grid_axes must be a non-empty sequence of axis names.")
+        explicit_grid_axes = tuple(grid_axes) if grid_axes is not None else None
+        if explicit_grid_axes is not None and len(set(explicit_grid_axes)) != len(explicit_grid_axes):
+            raise ValueError("grid_axes must not contain duplicate names.")
+
+        catalogue_root = self.dataframe.attrs.get("catalogue_root")
+        summaries: list[pandas.DataFrame] = []
+        for collection_id, collection_rows in self.dataframe.groupby(
+            "collection_id",
+            sort=False,
+            observed=True,
+        ):
+            if explicit_grid_axes is None:
+                if catalogue_root is None:
+                    raise ValueError(
+                        "Grid axes are unavailable. Pass grid_axes explicitly or load "
+                        "the values through SimulationSet.series()."
+                    )
+                collection = read_collection(catalogue_root, str(collection_id))
+                collection_grid_axes = tuple(name for name, _ in collection.grid_axes)
+                if not collection_grid_axes:
+                    raise ValueError(
+                        f"Collection does not declare grid_axes: {collection_id}."
+                    )
+            else:
+                collection_grid_axes = explicit_grid_axes
+
+            unknown_averaged_axes = set(averaged_axes) - set(collection_grid_axes)
+            if unknown_averaged_axes:
+                names = ", ".join(sorted(unknown_averaged_axes))
+                raise ValueError(
+                    f"Averaged axes are not declared for collection {collection_id}: {names}."
+                )
+            grouping_axes = tuple(
+                name for name in collection_grid_axes if name not in averaged_axes
+            )
+            missing_columns = set(grouping_axes) - set(collection_rows.columns)
+            if missing_columns:
+                names = ", ".join(sorted(missing_columns))
+                raise KeyError(
+                    f"Grid columns are missing for collection {collection_id}: {names}."
+                )
+
+            selected = collection_rows.copy()
+            selected.attrs.update(self.dataframe.attrs)
+            summary = aggregate_time_series(
+                selected,
+                group_by=grouping_axes,
+                statistics=statistics
+                if statistics is not None
+                else {
+                    "mean": "mean",
+                    "median": "median",
+                    "std": "std",
+                },
+            )
+            summaries.append(summary)
+
+        if not summaries:
+            raise ValueError("Cannot aggregate an empty DataSeries.")
+        result = pandas.concat(summaries, ignore_index=True)
+        result["collection_id"] = result["collection_id"].astype("category")
+        result.attrs.update(summaries[0].attrs)
+        result.attrs["aggregated_over"] = averaged_axes
+        return result
+
+    def __repr__(self) -> str:
+        """Return a compact interactive description of the loaded series."""
+        simulation_count = None
+        if {"collection_id", "simulation_id"} <= set(self.dataframe.columns):
+            simulation_count = len(
+                self.dataframe[["collection_id", "simulation_id"]].drop_duplicates()
+            )
+        simulations = (
+            f", simulations={simulation_count}"
+            if simulation_count is not None
+            else ""
+        )
+        return (
+            f"DataSeries(rows={len(self)}, diagnostics={self.diagnostics!r}"
+            f"{simulations}, fields={self.fields!r})"
+        )
+
+    __str__ = __repr__
 
 
 def load_time_series(
@@ -542,6 +814,7 @@ def interpolate_time_series(
         aligned["collection_id"] = aligned["collection_id"].astype("category")
         aligned["simulation_id"] = aligned["simulation_id"].astype("category")
         aligned.attrs.update(table.attrs)
+        aligned.attrs["aligned_times"] = tuple(float(target) for target in targets)
         aligned_tables[identity] = aligned
     return aligned_tables[None] if collection_table else aligned_tables
 
@@ -549,27 +822,55 @@ def interpolate_time_series(
 def aggregate_time_series(
     data: pandas.DataFrame | dict[DiagnosticKey, pandas.DataFrame],
     group_by: Sequence[str] = (),
+    *,
+    statistics: dict[str, str | Callable[[pandas.Series], object]] | None = None,
 ) -> pandas.DataFrame | dict[DiagnosticKey, pandas.DataFrame]:
-    """Calculate ensemble mean and standard deviation at every stored time.
+    """Calculate ensemble statistics at every aligned model time.
 
     Args:
         data: Aligned long collection table or legacy diagnostic tables
             returned by :func:`interpolate_time_series`.
         group_by: Optional configuration columns that define separate
             ensembles, such as ``("tff", "sfe")``.
+        statistics: Optional output suffixes mapped to Pandas Series reducer
+            names or custom functions. The default calculates ``mean`` and
+            ``std`` for backward compatibility. Custom functions receive the
+            non-missing values from one ensemble and time.
 
     Returns:
         One summary table, or one legacy summary table per diagnostic. Each
         has grouping columns, ``time``, ``n_simulations``, and
-        ``<field>_mean`` and ``<field>_std`` columns.
+        one ``<field>_<statistic>`` column per requested statistic.
 
     Raises:
-        ValueError: If a requested grouping column or declared field is absent.
+        ValueError: If a requested grouping column or declared field is absent,
+            or ``statistics`` is malformed.
 
     Notes:
-        Standard deviations use sample normalization (``ddof=1``), and are
-        ``NaN`` for groups with fewer than two finite values.
+        Pandas standard deviation uses sample normalization (``ddof=1``) and
+        is ``NaN`` for groups with fewer than two finite values.
     """
+    if statistics is None:
+        selected_statistics: dict[
+            str,
+            str | Callable[[pandas.Series], object],
+        ] = {"mean": "mean", "std": "std"}
+    elif not isinstance(statistics, dict) or not statistics or not all(
+        isinstance(name, str)
+        and name
+        and (
+            (isinstance(reducer, str) and bool(reducer))
+            or callable(reducer)
+        )
+        for name, reducer in statistics.items()
+    ):
+        raise ValueError(
+            "statistics must map non-empty output names to Pandas reducer "
+            "names or callable functions."
+        )
+    else:
+        selected_statistics = dict(statistics)
+
     collection_table = isinstance(data, pandas.DataFrame)
     tables = {None: data} if collection_table else data
     summaries: dict[DiagnosticKey | None, pandas.DataFrame] = {}
@@ -598,12 +899,19 @@ def aggregate_time_series(
             row["n_simulations"] = int(contributing["simulation_id"].nunique())
             for field in fields:
                 finite_values = contributing[field]
-                row[f"{field}_mean"] = float(finite_values.mean()) if not finite_values.empty else numpy.nan
-                row[f"{field}_std"] = (
-                    float(finite_values.std(ddof=1))
-                    if len(finite_values) > 1
-                    else numpy.nan
-                )
+                for statistic, reducer in selected_statistics.items():
+                    if finite_values.empty:
+                        value = numpy.nan
+                    elif callable(reducer):
+                        value = reducer(finite_values)
+                    else:
+                        method = getattr(finite_values, reducer, None)
+                        if not callable(method):
+                            raise ValueError(
+                                f"Unsupported Pandas statistic {reducer!r}."
+                            )
+                        value = method()
+                    row[f"{field}_{statistic}"] = float(value)
             rows.append(row)
         summary = pandas.DataFrame(rows)
         if "collection_id" in summary:
@@ -614,5 +922,6 @@ def aggregate_time_series(
         # Preserve the scientific grouping decision so plotting can reject a
         # figure that would otherwise mix unresolved model parameters.
         summary.attrs["group_by"] = tuple(group_by)
+        summary.attrs["statistics"] = tuple(selected_statistics)
         summaries[identity] = summary
     return summaries[None] if collection_table else summaries

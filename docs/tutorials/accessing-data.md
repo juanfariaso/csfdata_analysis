@@ -145,6 +145,32 @@ expansion_rate = values["dRdt"]
 
 ## Work Across A Collection
 
+The main `SimulationSet` interface returns small research-facing objects while
+keeping Pandas explicit:
+
+```python
+series_data = simulations.series(
+    "lagrangian_radii",
+    choices={"center": "stellar_com"},
+    fields={"lagrangian_radii": ("r_l50",)},
+)
+series = series_data.dataframe
+
+scalar_data = simulations.scalars(
+    "expansion_rate",
+    choices={"center": "stellar_com"},
+    fields={"expansion_rate": ("dRdt",)},
+)
+scalars = scalar_data.dataframe
+```
+
+[`DataSeries`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.DataSeries)
+and
+[`DataScalars`](../reference/csfdata_analysis/datamodel/scalars.md#csfdata_analysis.datamodel.scalars.DataScalars)
+record which diagnostics, fields, and choices produced the table. Their
+`dataframe` attributes remain ordinary Pandas DataFrames. The lower-level
+loaders below return those DataFrames directly when a wrapper is unnecessary.
+
 For plotting or statistics across many simulations,
 [`load_collection_time_series`](../reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.load_collection_time_series)
 loads the desired diagnostic field into a Pandas table,

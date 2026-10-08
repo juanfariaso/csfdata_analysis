@@ -6,12 +6,13 @@ import argparse
 from collections.abc import Sequence
 from inspect import getdoc
 from pathlib import Path
+import sqlite3
 
 import yaml
 from tqdm import tqdm
 
 from csfdata.adapters.dcaf import DcafAdapter
-from csfdata.catalogue import find_simulations
+from csfdata.catalogue import find_simulations, index_catalogue
 from csfdata_analysis.catalogue_runner import (
     clear_time_series,
     compute_collection,
@@ -481,7 +482,7 @@ def import_derived_command(
         parser: Optional CLI parser used to present validation errors.
 
     Returns:
-        Zero after reporting copied, skipped, and unsafe results.
+        Zero after reporting copied, skipped, unsafe, and re-indexed results.
     """
     try:
         with tqdm(
@@ -505,7 +506,7 @@ def import_derived_command(
                 dry_run=dry_run,
                 progress=update_progress,
             )
-    except (FileNotFoundError, OSError, ValueError) as error:
+    except (FileNotFoundError, OSError, ValueError, sqlite3.Error) as error:
         if parser is None:
             raise
         parser.error(str(error))
@@ -514,6 +515,30 @@ def import_derived_command(
     print(f"Issues: {len(report.issues)}")
     for issue in report.issues:
         print(f"  - {issue}")
+    if not dry_run:
+        for changed_collection_id in report.changed_collection_ids:
+            with tqdm(
+                total=0,
+                desc=f"Indexing {changed_collection_id}",
+                unit="simulation",
+                dynamic_ncols=True,
+                leave=True,
+            ) as progress_bar:
+                def update_progress(number: int, total: int, label: str) -> None:
+                    """Advance the index bar after one destination simulation."""
+                    progress_bar.total = total
+                    progress_bar.set_postfix_str(label)
+                    progress_bar.update(1)
+
+                index_report = index_catalogue(
+                    destination_catalogue,
+                    changed_collection_id,
+                    update_progress,
+                )
+            print(
+                f"Indexed: {changed_collection_id} "
+                f"({index_report.simulation_count} simulations)"
+            )
     return 0
 
 

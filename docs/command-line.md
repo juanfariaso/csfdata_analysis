@@ -219,11 +219,9 @@ recorded in its `lite.yaml` provenance file. Existing destination results are
 skipped by default. Use `--dry-run` to inspect actions, or `--overwrite` to
 explicitly replace existing compatible results.
 
-Rebuild the destination index after importing scalar diagnostics:
-
-```bash
-csfdata index-catalogue /path/to/destination-catalogue
-```
+After a non-dry-run import that changes a destination collection,
+``import-derived`` automatically refreshes that collection's SQLite index.
+No separate ``csfdata index-catalogue`` command is needed.
 
 ## One Simulation
 

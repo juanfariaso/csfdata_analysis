@@ -11,13 +11,14 @@ from csfdata_analysis.datamodel.simulations import (
     load_simulations,
     source_simulation,
 )
-from csfdata_analysis.datamodel.scalars import load_collection_scalars
+from csfdata_analysis.datamodel.scalars import DataScalars, load_collection_scalars
 from csfdata_analysis.datamodel.inventory import (
     DiagnosticInventory,
     DiagnosticKinds,
     diagnostic_inventory,
 )
 from csfdata_analysis.datamodel.series import (
+    DataSeries,
     aggregate_time_series,
     interpolate_time_series,
     load_collection_time_series,
@@ -32,6 +33,8 @@ __all__ = [
     "aggregate_time_series",
     "SimulationSet",
     "configuration_values",
+    "DataScalars",
+    "DataSeries",
     "DiagnosticInventory",
     "DiagnosticKinds",
     "diagnostic_inventory",

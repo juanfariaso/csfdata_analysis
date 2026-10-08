@@ -18,8 +18,10 @@ catalogue records to convenient Pandas views:
 
 - `simulations`: `SimulationSet`, simulation selection, configuration values, and full/lite source
   resolution.
-- `series`: time-evolving diagnostic tables, alignment, and seed aggregation.
-- `scalars`: one-row-per-simulation scalar diagnostic tables.
+- `series`: [`DataSeries`](reference/csfdata_analysis/datamodel/series.md#csfdata_analysis.datamodel.series.DataSeries),
+  time-evolving diagnostic tables, alignment, and seed aggregation.
+- `scalars`: [`DataScalars`](reference/csfdata_analysis/datamodel/scalars.md#csfdata_analysis.datamodel.scalars.DataScalars)
+  and one-row-per-simulation scalar diagnostic tables.
 - `slices`: fixed-time diagnostic and raw-snapshot selections.
 - `snapshots`: reserved for future particle-snapshot data operations.
 - `inventory`: declared diagnostic versions and their completed-result coverage.
@@ -78,6 +80,88 @@ scalars = simulations.scalars("expansion_rate")
 snapshots = simulations.snapshot_slice(time=1.5, normalization="tff")
 ```
 
+`series` and `scalars` are small research-facing objects. Their ordinary
+Pandas tables are available explicitly through `series.dataframe` and
+`scalars.dataframe`. Printing either object gives a compact summary of its
+diagnostics, fields, row count, and simulation coverage.
+
+Both views support the same in-memory row selection. Scalar values require an
+exact match, lists accept any listed value, and two-item tuples define
+inclusive ranges with optional `None` bounds:
+
+```python
+selected_series = series.select(
+    {
+        "tff": [0.5, 1.0],
+        "time": (5.0, 20.0),
+    }
+)
+
+selected_scalars = scalars.select(
+    {
+        "sfe": 0.1,
+        "dRdt": (0.0, None),
+    }
+)
+```
+
+Selection filters the already-loaded Pandas table; it does not query SQLite or
+read diagnostic files again. Each result retains the same wrapper type and
+diagnostic metadata. Use `load_simulations(..., filters=...)` first when a
+large catalogue should be reduced through its SQLite index before loading
+diagnostic values.
+
+`DataScalars.aggregate_over()` summarizes every selected grid point
+independently. By default it discovers the grid axes from each collection's
+`collection.yaml` and averages only over `seed_index`:
+
+```python
+profiles = selected_scalars.aggregate_over()
+```
+
+All other grid axes and expanded diagnostic choices remain grouping columns.
+The returned Pandas DataFrame contains `n_simulations` plus `<field>_mean`,
+`<field>_median`, and `<field>_std` columns by default. Pass axes explicitly
+when working with a manually constructed table or intentionally overriding the
+collection declaration:
+
+```python
+profiles = selected_scalars.aggregate_over(
+    over="seed_index",
+    grid_axes=(
+        "tff",
+        "sfe",
+        "Fmax",
+        "texp_over_tff",
+        "Mstars",
+        "seed_index",
+    ),
+)
+```
+
+Alternative statistics use explicit output suffixes. Values may be Pandas
+reducer names or custom functions that receive the non-missing values from one
+ensemble group:
+
+```python
+profiles = selected_scalars.aggregate_over(
+    statistics={
+        "mean": "mean",
+        "median": "median",
+        "p16": lambda values: values.quantile(0.16),
+        "p84": lambda values: values.quantile(0.84),
+    }
+)
+```
+
+For a field named `dRdt`, this produces `dRdt_mean`, `dRdt_median`,
+`dRdt_p16`, and `dRdt_p84`.
+
+Several realization dimensions can be averaged only when named explicitly,
+for example `over=("seed_index", "orientation_index")`. The aggregation
+returns an ordinary DataFrame because its rows represent ensemble statistics,
+not individual simulations.
+
 Scalar loading retains selected simulations when a diagnostic is unavailable.
 The requested scalar fields are then ``NaN``. Pass ``allow_missing=False`` to
 require a completed scalar result for every selected simulation.
@@ -132,6 +216,21 @@ snapshot_paths = simulations.get_snapshot_paths(
 first_paths = simulations.get_snapshot_paths(time="first")
 last_paths = simulations.get_snapshot_paths(time="last")
 ```
+
+Snapshot lookup omits simulation parameters by default so it does not need to
+read every simulation configuration. Include them when the snapshot table will
+be filtered, grouped, or plotted using model properties:
+
+```python
+snapshot_catalogue = simulations.get_snapshot_paths(
+    time=24.9,
+    include_parameters=True,
+)
+```
+
+This adds the canonical parameters returned by `simulations.parameters()` to
+each snapshot row. Multiple requested times for the same simulation repeat the
+same parameter values.
 
 An already prepared DataFrame may supply one or more physical model times. It
 must contain ``collection_id``, ``simulation_id``, and ``time``:
@@ -352,12 +451,13 @@ To retain every stored value of one scalar choice, use ``expand_choices``. The
 result is a long table with the expanded choice as an ordinary column:
 
 ```python
-rates = simulations.scalars(
+scalar_data = simulations.scalars(
     "expansion_rate",
     choices={"center": "stellar_com"},
     expand_choices={"expansion_rate": ("lagrangian_radius",)},
     fields={"expansion_rate": ("dRdt",)},
 )
+rates = scalar_data.dataframe
 ```
 
 Each simulation then has one row for each Lagrangian radius. Fixed choices,
@@ -373,7 +473,7 @@ the snapshots of each simulation. It is useful when scalar diagnostics should
 be used directly as filters or plot properties for evolving measurements.
 
 ```python
-data = simulations.compile_dataframe(
+series_data = simulations.compile_dataframe(
     series={
         "lagrangian_radii": ("r_l50",),
         "radial_velocity_3d": ("median_vr",),
@@ -383,6 +483,7 @@ data = simulations.compile_dataframe(
     },
     choices={"center": "stellar_com"},
 )
+data = series_data.dataframe
 
 expanding = data[data["dRdt"] > 0.1]
 ```
@@ -394,10 +495,11 @@ By default, series rows without a completed scalar fit are retained with
 explicit `NaN` values:
 
 ```python
-data = simulations.compile_dataframe(
+series_data = simulations.compile_dataframe(
     series={"lagrangian_radii": ("r_l50",)},
     scalars={"expansion_rate": ("dRdt",)},
 )
+data = series_data.dataframe
 ```
 
 Use `missing_scalars="error"` when a complete scalar sample is required.
@@ -408,16 +510,17 @@ choice is relevant. Per-diagnostic overrides remain available when one
 diagnostic needs a different scientific definition:
 
 ```python
-data = simulations.compile_dataframe(
+series_data = simulations.compile_dataframe(
     series={"lagrangian_radii": ("r_l50",)},
     scalars={"expansion_rate": ("dRdt",)},
     choices={"center": "stellar_com"},
     series_choices={"lagrangian_radii": {"center": "origin"}},
     scalar_choices={"expansion_rate": {"center": "stellar_com"}},
 )
+data = series_data.dataframe
 ```
 
-When no choice is supplied, the registered default is used. The output keeps
+When no choice is supplied, the registered default is used. The DataFrame keeps
 the ordinary time-series metadata in `data.attrs`; selected scalar identities,
 choices, and fields are available in `scalar_diagnostics`, `scalar_choices`,
 and `scalar_fields` there.
@@ -425,7 +528,35 @@ and `scalar_fields` there.
 ## Align And Summarize
 
 Different simulations may have different snapshot times. Align them explicitly
-before calculating an ensemble mean or standard deviation:
+before calculating ensemble statistics. The research-facing workflow uses the
+same grid discovery and seed convention as scalar diagnostics:
+
+```python
+import numpy as np
+
+series = simulations.series(
+    "lagrangian_radii",
+    choices={"center": "stellar_com"},
+    fields={"lagrangian_radii": ("r_l50",)},
+)
+
+aligned = series.align_time(
+    np.arange(0.0, 30.0, 0.1),
+)
+
+summary = aligned.aggregate_over()
+```
+
+`align_time()` returns another `DataSeries` and never extrapolates beyond a
+simulation's stored range. `aggregate_over()` refuses an unaligned view. By
+default it averages over `seed_index`, discovers all other axes from
+`collection.yaml`, and returns an ordinary DataFrame with `time`,
+`n_simulations`, and `<field>_mean`, `<field>_median`, and `<field>_std`.
+Custom statistics and explicit `grid_axes` use the same arguments as
+`DataScalars.aggregate_over()`.
+
+The lower-level functions remain available when grouping should be controlled
+manually:
 
 ```python
 import numpy as np
