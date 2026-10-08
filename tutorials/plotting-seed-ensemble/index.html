@@ -2031,9 +2031,6 @@ it out selects the full seed ensemble.</p>
 <pre><code class="language-python">import numpy as np
 
 from csfdata_analysis.datamodel import (
-    aggregate_time_series,
-    interpolate_time_series,
-    load_collection_time_series,
     load_simulations,
 )
 
@@ -2042,28 +2039,23 @@ simulations = load_simulations(
     collection_id=&quot;collection-id&quot;,
 )
 
-series = load_collection_time_series(
-    simulations,
-    diagnostics=&quot;lagrangian_radii&quot;,
+series = simulations.series(
+    &quot;lagrangian_radii&quot;,
     choices={&quot;center&quot;: &quot;stellar_com&quot;},
     fields={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
 )
 
-aligned = interpolate_time_series(
-    series,
-    times=np.arange(0.0, 30.0, 0.1),
+aligned = series.align_time(
+    np.arange(0.0, 30.0, 0.1),
 )
 
-summary = aggregate_time_series(
-    aligned,
-    group_by=(&quot;Mstars&quot;, &quot;tff&quot;, &quot;sfe&quot;, &quot;fret_max&quot;, &quot;texp_over_tff&quot;),
-)
+summary = aligned.aggregate_over()
 </code></pre>
 <p>Every <code>summary</code> row now represents one model-parameter combination at one
-shared time. It contains <code>r_l50_mean</code>, <code>r_l50_std</code>, and <code>n_simulations</code>.
-The listed <code>group_by</code> parameters must include every parameter that defines a
-physically distinct model. <code>seed_index</code> is omitted so those realizations are
-averaged together.</p>
+shared time. It contains <code>r_l50_mean</code>, <code>r_l50_median</code>, <code>r_l50_std</code>, and
+<code>n_simulations</code>. The collection's declared grid axes define physically
+distinct models; <code>seed_index</code> is averaged while every other axis remains a
+grouping column.</p>
 <h2 id="plot-one-model-family">Plot One Model Family</h2>
 <p>Fix the parameters that should not vary, then use one remaining model
 parameter as the line colour:</p>

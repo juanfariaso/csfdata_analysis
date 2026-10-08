@@ -2205,6 +2205,28 @@ values = rates.read(choices={&quot;center&quot;: &quot;stellar_com&quot;})
 expansion_rate = values[&quot;dRdt&quot;]
 </code></pre>
 <h2 id="work-across-a-collection">Work Across A Collection</h2>
+<p>The main <code>SimulationSet</code> interface returns small research-facing objects while
+keeping Pandas explicit:</p>
+<pre><code class="language-python">series_data = simulations.series(
+    &quot;lagrangian_radii&quot;,
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    fields={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+)
+series = series_data.dataframe
+
+scalar_data = simulations.scalars(
+    &quot;expansion_rate&quot;,
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    fields={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
+)
+scalars = scalar_data.dataframe
+</code></pre>
+<p><a href="../../reference/csfdata_analysis/datamodel/series/#csfdata_analysis.datamodel.series.DataSeries"><code>DataSeries</code></a>
+and
+<a href="../../reference/csfdata_analysis/datamodel/scalars/#csfdata_analysis.datamodel.scalars.DataScalars"><code>DataScalars</code></a>
+record which diagnostics, fields, and choices produced the table. Their
+<code>dataframe</code> attributes remain ordinary Pandas DataFrames. The lower-level
+loaders below return those DataFrames directly when a wrapper is unnecessary.</p>
 <p>For plotting or statistics across many simulations,
 <a href="../../reference/csfdata_analysis/datamodel/series/#csfdata_analysis.datamodel.series.load_collection_time_series"><code>load_collection_time_series</code></a>
 loads the desired diagnostic field into a Pandas table,

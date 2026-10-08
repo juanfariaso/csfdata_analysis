@@ -2245,8 +2245,10 @@ catalogue records to convenient Pandas views:</p>
 <ul>
 <li><code>simulations</code>: <code>SimulationSet</code>, simulation selection, configuration values, and full/lite source
   resolution.</li>
-<li><code>series</code>: time-evolving diagnostic tables, alignment, and seed aggregation.</li>
-<li><code>scalars</code>: one-row-per-simulation scalar diagnostic tables.</li>
+<li><code>series</code>: <a href="../reference/csfdata_analysis/datamodel/series/#csfdata_analysis.datamodel.series.DataSeries"><code>DataSeries</code></a>,
+  time-evolving diagnostic tables, alignment, and seed aggregation.</li>
+<li><code>scalars</code>: <a href="../reference/csfdata_analysis/datamodel/scalars/#csfdata_analysis.datamodel.scalars.DataScalars"><code>DataScalars</code></a>
+  and one-row-per-simulation scalar diagnostic tables.</li>
 <li><code>slices</code>: fixed-time diagnostic and raw-snapshot selections.</li>
 <li><code>snapshots</code>: reserved for future particle-snapshot data operations.</li>
 <li><code>inventory</code>: declared diagnostic versions and their completed-result coverage.</li>
@@ -2289,6 +2291,72 @@ series = simulations.series(&quot;lagrangian_radii&quot;)
 scalars = simulations.scalars(&quot;expansion_rate&quot;)
 snapshots = simulations.snapshot_slice(time=1.5, normalization=&quot;tff&quot;)
 </code></pre>
+<p><code>series</code> and <code>scalars</code> are small research-facing objects. Their ordinary
+Pandas tables are available explicitly through <code>series.dataframe</code> and
+<code>scalars.dataframe</code>. Printing either object gives a compact summary of its
+diagnostics, fields, row count, and simulation coverage.</p>
+<p>Both views support the same in-memory row selection. Scalar values require an
+exact match, lists accept any listed value, and two-item tuples define
+inclusive ranges with optional <code>None</code> bounds:</p>
+<pre><code class="language-python">selected_series = series.select(
+    {
+        &quot;tff&quot;: [0.5, 1.0],
+        &quot;time&quot;: (5.0, 20.0),
+    }
+)
+
+selected_scalars = scalars.select(
+    {
+        &quot;sfe&quot;: 0.1,
+        &quot;dRdt&quot;: (0.0, None),
+    }
+)
+</code></pre>
+<p>Selection filters the already-loaded Pandas table; it does not query SQLite or
+read diagnostic files again. Each result retains the same wrapper type and
+diagnostic metadata. Use <code>load_simulations(..., filters=...)</code> first when a
+large catalogue should be reduced through its SQLite index before loading
+diagnostic values.</p>
+<p><code>DataScalars.aggregate_over()</code> summarizes every selected grid point
+independently. By default it discovers the grid axes from each collection's
+<code>collection.yaml</code> and averages only over <code>seed_index</code>:</p>
+<pre><code class="language-python">profiles = selected_scalars.aggregate_over()
+</code></pre>
+<p>All other grid axes and expanded diagnostic choices remain grouping columns.
+The returned Pandas DataFrame contains <code>n_simulations</code> plus <code>&lt;field&gt;_mean</code>,
+<code>&lt;field&gt;_median</code>, and <code>&lt;field&gt;_std</code> columns by default. Pass axes explicitly
+when working with a manually constructed table or intentionally overriding the
+collection declaration:</p>
+<pre><code class="language-python">profiles = selected_scalars.aggregate_over(
+    over=&quot;seed_index&quot;,
+    grid_axes=(
+        &quot;tff&quot;,
+        &quot;sfe&quot;,
+        &quot;Fmax&quot;,
+        &quot;texp_over_tff&quot;,
+        &quot;Mstars&quot;,
+        &quot;seed_index&quot;,
+    ),
+)
+</code></pre>
+<p>Alternative statistics use explicit output suffixes. Values may be Pandas
+reducer names or custom functions that receive the non-missing values from one
+ensemble group:</p>
+<pre><code class="language-python">profiles = selected_scalars.aggregate_over(
+    statistics={
+        &quot;mean&quot;: &quot;mean&quot;,
+        &quot;median&quot;: &quot;median&quot;,
+        &quot;p16&quot;: lambda values: values.quantile(0.16),
+        &quot;p84&quot;: lambda values: values.quantile(0.84),
+    }
+)
+</code></pre>
+<p>For a field named <code>dRdt</code>, this produces <code>dRdt_mean</code>, <code>dRdt_median</code>,
+<code>dRdt_p16</code>, and <code>dRdt_p84</code>.</p>
+<p>Several realization dimensions can be averaged only when named explicitly,
+for example <code>over=("seed_index", "orientation_index")</code>. The aggregation
+returns an ordinary DataFrame because its rows represent ensemble statistics,
+not individual simulations.</p>
 <p>Scalar loading retains selected simulations when a diagnostic is unavailable.
 The requested scalar fields are then <code>NaN</code>. Pass <code>allow_missing=False</code> to
 require a completed scalar result for every selected simulation.</p>
@@ -2331,6 +2399,17 @@ memory for long time-series tables.</p>
 first_paths = simulations.get_snapshot_paths(time=&quot;first&quot;)
 last_paths = simulations.get_snapshot_paths(time=&quot;last&quot;)
 </code></pre>
+<p>Snapshot lookup omits simulation parameters by default so it does not need to
+read every simulation configuration. Include them when the snapshot table will
+be filtered, grouped, or plotted using model properties:</p>
+<pre><code class="language-python">snapshot_catalogue = simulations.get_snapshot_paths(
+    time=24.9,
+    include_parameters=True,
+)
+</code></pre>
+<p>This adds the canonical parameters returned by <code>simulations.parameters()</code> to
+each snapshot row. Multiple requested times for the same simulation repeat the
+same parameter values.</p>
 <p>An already prepared DataFrame may supply one or more physical model times. It
 must contain <code>collection_id</code>, <code>simulation_id</code>, and <code>time</code>:</p>
 <pre><code class="language-python">snapshot_paths = simulations.get_snapshot_paths(data_slice, tolerance=0.5)
@@ -2493,12 +2572,13 @@ their selected field names do not collide:</p>
 plotting, for example <code>rates[rates["dRdt"] &gt; 0.1]</code>.</p>
 <p>To retain every stored value of one scalar choice, use <code>expand_choices</code>. The
 result is a long table with the expanded choice as an ordinary column:</p>
-<pre><code class="language-python">rates = simulations.scalars(
+<pre><code class="language-python">scalar_data = simulations.scalars(
     &quot;expansion_rate&quot;,
     choices={&quot;center&quot;: &quot;stellar_com&quot;},
     expand_choices={&quot;expansion_rate&quot;: (&quot;lagrangian_radius&quot;,)},
     fields={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
 )
+rates = scalar_data.dataframe
 </code></pre>
 <p>Each simulation then has one row for each Lagrangian radius. Fixed choices,
 such as <code>center</code> above, cannot also be expanded. This initial interface
@@ -2509,7 +2589,7 @@ wide table is useful.</p>
 builds one long time-series table with selected scalar values repeated across
 the snapshots of each simulation. It is useful when scalar diagnostics should
 be used directly as filters or plot properties for evolving measurements.</p>
-<pre><code class="language-python">data = simulations.compile_dataframe(
+<pre><code class="language-python">series_data = simulations.compile_dataframe(
     series={
         &quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,),
         &quot;radial_velocity_3d&quot;: (&quot;median_vr&quot;,),
@@ -2519,6 +2599,7 @@ be used directly as filters or plot properties for evolving measurements.</p>
     },
     choices={&quot;center&quot;: &quot;stellar_com&quot;},
 )
+data = series_data.dataframe
 
 expanding = data[data[&quot;dRdt&quot;] &gt; 0.1]
 </code></pre>
@@ -2526,31 +2607,57 @@ expanding = data[data[&quot;dRdt&quot;] &gt; 0.1]
 explicit. Omit <code>scalars</code> when a plain time-series table is sufficient.</p>
 <p>By default, series rows without a completed scalar fit are retained with
 explicit <code>NaN</code> values:</p>
-<pre><code class="language-python">data = simulations.compile_dataframe(
+<pre><code class="language-python">series_data = simulations.compile_dataframe(
     series={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
     scalars={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
 )
+data = series_data.dataframe
 </code></pre>
 <p>Use <code>missing_scalars="error"</code> when a complete scalar sample is required.
 A missing requested time-series diagnostic always remains an error.</p>
 <p><code>choices</code> provides global overrides for every requested diagnostic where the
 choice is relevant. Per-diagnostic overrides remain available when one
 diagnostic needs a different scientific definition:</p>
-<pre><code class="language-python">data = simulations.compile_dataframe(
+<pre><code class="language-python">series_data = simulations.compile_dataframe(
     series={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
     scalars={&quot;expansion_rate&quot;: (&quot;dRdt&quot;,)},
     choices={&quot;center&quot;: &quot;stellar_com&quot;},
     series_choices={&quot;lagrangian_radii&quot;: {&quot;center&quot;: &quot;origin&quot;}},
     scalar_choices={&quot;expansion_rate&quot;: {&quot;center&quot;: &quot;stellar_com&quot;}},
 )
+data = series_data.dataframe
 </code></pre>
-<p>When no choice is supplied, the registered default is used. The output keeps
+<p>When no choice is supplied, the registered default is used. The DataFrame keeps
 the ordinary time-series metadata in <code>data.attrs</code>; selected scalar identities,
 choices, and fields are available in <code>scalar_diagnostics</code>, <code>scalar_choices</code>,
 and <code>scalar_fields</code> there.</p>
 <h2 id="align-and-summarize">Align And Summarize</h2>
 <p>Different simulations may have different snapshot times. Align them explicitly
-before calculating an ensemble mean or standard deviation:</p>
+before calculating ensemble statistics. The research-facing workflow uses the
+same grid discovery and seed convention as scalar diagnostics:</p>
+<pre><code class="language-python">import numpy as np
+
+series = simulations.series(
+    &quot;lagrangian_radii&quot;,
+    choices={&quot;center&quot;: &quot;stellar_com&quot;},
+    fields={&quot;lagrangian_radii&quot;: (&quot;r_l50&quot;,)},
+)
+
+aligned = series.align_time(
+    np.arange(0.0, 30.0, 0.1),
+)
+
+summary = aligned.aggregate_over()
+</code></pre>
+<p><code>align_time()</code> returns another <code>DataSeries</code> and never extrapolates beyond a
+simulation's stored range. <code>aggregate_over()</code> refuses an unaligned view. By
+default it averages over <code>seed_index</code>, discovers all other axes from
+<code>collection.yaml</code>, and returns an ordinary DataFrame with <code>time</code>,
+<code>n_simulations</code>, and <code>&lt;field&gt;_mean</code>, <code>&lt;field&gt;_median</code>, and <code>&lt;field&gt;_std</code>.
+Custom statistics and explicit <code>grid_axes</code> use the same arguments as
+<code>DataScalars.aggregate_over()</code>.</p>
+<p>The lower-level functions remain available when grouping should be controlled
+manually:</p>
 <pre><code class="language-python">import numpy as np
 
 from csfdata_analysis.datamodel import aggregate_time_series, interpolate_time_series
