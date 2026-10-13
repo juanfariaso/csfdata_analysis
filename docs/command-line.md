@@ -236,8 +236,8 @@ csfdata analysis compute-simulation \
 
 ```bash
 csfdata-analysis diagnostics
-csfdata-analysis compute SIMULATION_ROOT lagrangian_radii --dry-run
-csfdata-analysis compute SIMULATION_ROOT lagrangian_radii
+csfdata-analysis compute-simulation SIMULATION_ROOT lagrangian_radii --dry-run
+csfdata-analysis compute-simulation SIMULATION_ROOT lagrangian_radii
 ```
 
 `SIMULATION_ROOT` contains `raw/` and `derived/`. A dry run validates

@@ -2,7 +2,7 @@
 
 `csfdata_analysis` is an optional, dependent package for producing derived
 analysis products from catalogues managed by
-[CSFData](../csfdata/README.md).
+[CSFData](https://github.com/juanfariaso/csfdata).
 
 The core `csfdata` package remains responsible for importing, validating, and
 preserving raw simulation data. This package will read an imported simulation
@@ -24,5 +24,5 @@ cd /path/to/csfdata_analysis
 pip install -e .
 ```
 
-The design boundary and planned workflow are described in
-[docs/architecture.md](docs/architecture.md).
+The design boundary and current workflow are described in the
+[documentation home](docs/index.md).
