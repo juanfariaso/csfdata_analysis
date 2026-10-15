@@ -241,15 +241,35 @@ def import_derived(
                         if destination_path.exists() and not overwrite:
                             skipped_paths.append(destination_path)
                             continue
+                        product_paths = derived_product_paths(result_path)
                         if not dry_run:
                             destination_path.parent.mkdir(parents=True, exist_ok=True)
-                            staging_path = (
-                                destination_path.parent
-                                / f".{destination_path.name}.{uuid4().hex}.tmp"
-                            )
-                            shutil.copy2(result_path, staging_path)
-                            staging_path.replace(destination_path)
-                        copied_paths.append(destination_path)
+                            staged_paths = []
+                            try:
+                                for source_product_path in product_paths:
+                                    destination_product_path = (
+                                        destination_path.parent / source_product_path.name
+                                    )
+                                    staging_path = (
+                                        destination_path.parent
+                                        / f".{destination_product_path.name}.{uuid4().hex}.tmp"
+                                    )
+                                    shutil.copy2(source_product_path, staging_path)
+                                    staged_paths.append(
+                                        (staging_path, destination_product_path)
+                                    )
+                                # series.h5 is last and remains the bundle's
+                                # completion marker at the destination.
+                                for staging_path, destination_product_path in staged_paths:
+                                    staging_path.replace(destination_product_path)
+                            except Exception:
+                                for staging_path, _ in staged_paths:
+                                    staging_path.unlink(missing_ok=True)
+                                raise
+                        copied_paths.extend(
+                            destination_path.parent / product_path.name
+                            for product_path in product_paths
+                        )
                         changed_collection_ids.add(current_collection_id)
 
                     source_scalar_path = simulation_scalar_diagnostics_path(source_simulation)
@@ -367,6 +387,43 @@ def validate_derived_result(
                 or result_path.parent.name != f"v{parsed_version}"
             ):
                 return f"Derived result path differs from diagnostic metadata: {result_path}"
+            particle_series_file = attributes.get("particle_series_file")
+            if particle_series_file is not None:
+                if particle_series_file != "particles.h5":
+                    return f"Derived result particle metadata is invalid: {result_path}"
+                particle_path = result_path.with_name(particle_series_file)
+                if not particle_path.is_file():
+                    return f"Derived result particle sidecar is missing: {particle_path}"
+                with h5py.File(particle_path, "r") as particle_file:
+                    particle_attributes = particle_file.attrs
+                    if particle_attributes.get("complete") != True:
+                        return f"Incomplete derived result: {particle_path}"
+                    if particle_attributes.get("format_schema_version") != 1:
+                        return f"Derived result particle schema is invalid: {particle_path}"
+                    for name, value in expected.items():
+                        if particle_attributes.get(name) != value:
+                            return f"Derived result identity differs: {particle_path} ({name})"
+                    if (
+                        particle_attributes.get("diagnostic_name") != diagnostic_name
+                        or particle_attributes.get("diagnostic_version") != parsed_version
+                        or particle_attributes.get("series_id") != attributes.get("series_id")
+                    ):
+                        return f"Derived result particle metadata differs: {particle_path}"
     except (OSError, ValueError):
         return f"Unreadable derived result: {result_path}"
     return None
+
+
+def derived_product_paths(series_path: Path) -> tuple[Path, ...]:
+    """Return one validated diagnostic bundle in publication order.
+
+    Existing scalar-only time series remain one-file products. Particle-level
+    diagnostics publish their sidecar first and ``series.h5`` last.
+    """
+    with h5py.File(series_path, "r") as output_file:
+        particle_series_file = output_file.attrs.get("particle_series_file")
+    if particle_series_file is None:
+        return (series_path,)
+    if particle_series_file != "particles.h5":
+        raise ValueError(f"Invalid particle-series filename: {series_path}")
+    return (series_path.with_name(particle_series_file), series_path)

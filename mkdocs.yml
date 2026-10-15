@@ -46,6 +46,7 @@ nav:
   - Readers: readers.md
   - Runner: runner.md
   - Time-Series Format: time-series-format.md
+  - Particle-Series Format: particle-series-format.md
   - Tutorials:
       - Accessing The Data: tutorials/accessing-data.md
       - Plotting A Seed Ensemble: tutorials/plotting-seed-ensemble.md

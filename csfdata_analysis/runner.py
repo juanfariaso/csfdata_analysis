@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import h5py
+import numpy as np
 from amuse.datamodel import Particles
 from amuse.units import units
 
@@ -24,11 +25,19 @@ from csfdata.catalogue.diagnostics import (
     write_simulation_scalar_diagnostics,
 )
 from csfdata_analysis.diagnostics import (
+    ParticleSnapshotResult,
     ScalarDiagnostic,
+    SnapshotDiagnosticResult,
     TimeSeriesDiagnostic,
     diagnostic_directories,
     ensure_collection_diagnostics,
     load_diagnostics,
+)
+from csfdata_analysis._particle_series import (
+    ParticleSeriesWriter,
+    hdf5_dtype,
+    particle_series_path,
+    read_particle_series,
 )
 
 
@@ -43,6 +52,8 @@ class SimulationReport:
         first_time: First snapshot model time in Myr.
         last_time: Final snapshot model time in Myr.
         dry_run: Whether this report describes a plan that created no file.
+        particle_output_path: Optional particle-level sidecar created beside
+            the scalar time series.
     """
 
     simulation_root: Path
@@ -51,6 +62,7 @@ class SimulationReport:
     first_time: float
     last_time: float
     dry_run: bool
+    particle_output_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -88,6 +100,80 @@ def time_series_path(simulation_root: Path, diagnostic: TimeSeriesDiagnostic) ->
         / f"v{diagnostic.version}"
         / "series.h5"
     )
+
+
+def _normalise_particle_snapshot(
+    diagnostic: TimeSeriesDiagnostic,
+    choice_name: str,
+    result: ParticleSnapshotResult,
+    canonical_units: dict[str, object],
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Validate and convert one particle-level snapshot result."""
+    choice = next(
+        choice for choice in diagnostic.evaluation_choices if choice.name == choice_name
+    )
+    fields = {field.name: field for field in choice.particle_fields}
+    if set(result.values) != set(fields):
+        raise ValueError(
+            f"Time-series diagnostic {diagnostic.name!r} choice {choice_name!r} "
+            f"returned particle fields {sorted(result.values)}, but declares "
+            f"{sorted(fields)}."
+        )
+
+    particle_key = np.asarray(result.particle_key)
+    if particle_key.ndim != 1 or particle_key.dtype.kind not in "iu":
+        raise ValueError(
+            f"Time-series diagnostic {diagnostic.name!r} choice {choice_name!r} "
+            "returned particle keys that are not a one-dimensional integer array."
+        )
+    if np.any(particle_key < 0) or len(np.unique(particle_key)) != len(particle_key):
+        raise ValueError(
+            f"Time-series diagnostic {diagnostic.name!r} choice {choice_name!r} "
+            "returned negative or duplicate particle keys."
+        )
+    particle_key = particle_key.astype(np.uint64, copy=False)
+
+    values = {}
+    for name, field in fields.items():
+        raw_value = result.values[name]
+        if field.unit is not None:
+            try:
+                raw_value = raw_value.value_in(canonical_units[field.unit])
+            except (AttributeError, TypeError, ValueError) as error:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice_name!r} returned an incompatible particle field "
+                    f"{name!r}; expected {field.unit}."
+                ) from error
+        if field.dtype == "string":
+            value = np.asarray(raw_value, dtype=object)
+            if value.ndim != 1 or not all(isinstance(item, str) for item in value):
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice_name!r} returned a non-string particle field {name!r}."
+                )
+        else:
+            try:
+                value = np.asarray(raw_value).astype(np.dtype(field.dtype), copy=False)
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice_name!r} returned an incompatible particle field "
+                    f"{name!r}; expected {field.dtype}."
+                ) from error
+            if value.ndim != 1:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice_name!r} returned a non-vector particle field {name!r}."
+                )
+        if len(value) != len(particle_key):
+            raise ValueError(
+                f"Time-series diagnostic {diagnostic.name!r} choice {choice_name!r} "
+                f"returned {len(value)} values for particle field {name!r}, but "
+                f"returned {len(particle_key)} particle keys."
+            )
+        values[name] = value
+    return particle_key, values
 
 
 def compute_time_series(
@@ -198,13 +284,17 @@ def compute_time_series(
         "pc*km/s": units.pc * units.kms,
         "pc^2": units.pc**2,
         "km^2/s^2": units.kms**2,
+        "Msun/pc^3": units.MSun / units.pc**3,
         "1": units.none,
     }
     unsupported_units = sorted(
         {
             unit_name
             for choice in diagnostic.evaluation_choices
-            for unit_name in choice.outputs.values()
+            for unit_name in (
+                *choice.outputs.values(),
+                *(field.unit for field in choice.particle_fields if field.unit is not None),
+            )
             if unit_name not in canonical_units
         }
     )
@@ -214,68 +304,183 @@ def compute_time_series(
             f"{', '.join(unsupported_units)}."
         )
 
+    particle_choices = tuple(
+        choice for choice in diagnostic.evaluation_choices if choice.particle_fields
+    )
+    for choice in particle_choices:
+        particle_field_names = [field.name for field in choice.particle_fields]
+        if len(set(particle_field_names)) != len(particle_field_names):
+            raise ValueError(
+                f"Time-series diagnostic {diagnostic.name!r} choice {choice.name!r} "
+                "declares duplicate particle field names."
+            )
+        reserved_names = {"snapshot_id", "particle_key"} & set(particle_field_names)
+        if reserved_names:
+            raise ValueError(
+                f"Time-series diagnostic {diagnostic.name!r} choice {choice.name!r} "
+                f"uses reserved particle field names: {sorted(reserved_names)}."
+            )
+        for field in choice.particle_fields:
+            hdf5_dtype(field.dtype)
+            reserved_metadata = {"description", "dtype", "unit"} & set(field.metadata)
+            if reserved_metadata:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} choice "
+                    f"{choice.name!r} particle field {field.name!r} uses reserved "
+                    f"metadata names: {sorted(reserved_metadata)}."
+                )
+
     values = {
         choice.name: {name: [] for name in choice.outputs}
         for choice in diagnostic.evaluation_choices
     }
     expected_choice_names = set(choices_by_name)
-    for snapshot_path in snapshot_paths:
-        measurements = diagnostic.evaluate(read_snapshot(snapshot_path))
-        if set(measurements) != expected_choice_names:
-            raise ValueError(
-                f"Time-series diagnostic {diagnostic.name!r} returned choices "
-                f"{sorted(measurements)}, "
-                f"but declares {sorted(expected_choice_names)}."
-            )
-
-        for choice_name, choice in choices_by_name.items():
-            if set(measurements[choice_name]) != set(choice.outputs):
-                raise ValueError(
-                    f"Time-series diagnostic {diagnostic.name!r} choice "
-                    f"{choice_name!r} returned "
-                    f"{sorted(measurements[choice_name])}, but declares "
-                    f"{sorted(choice.outputs)}."
-                )
-            for name, unit_name in choice.outputs.items():
-                try:
-                    values[choice_name][name].append(
-                        float(measurements[choice_name][name].value_in(canonical_units[unit_name]))
-                    )
-                except (AttributeError, TypeError, ValueError) as error:
-                    raise ValueError(
-                        f"Time-series diagnostic {diagnostic.name!r} choice "
-                        f"{choice_name!r} returned a "
-                        f"non-scalar or incompatible value for {name!r}; expected {unit_name}."
-                    ) from error
-        if progress is not None:
-            progress(snapshot_number, len(snapshot_paths), snapshot_ids[snapshot_number - 1])
-
+    expected_particle_choices = {choice.name for choice in particle_choices}
+    identity = identity or {}
+    series_id = uuid4().hex
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging_path = destination.parent / f".{destination.name}.{uuid4().hex}.tmp"
-    with h5py.File(staging_path, "w") as output_file:
-        output_file.attrs["format_schema_version"] = 2
-        output_file.attrs["diagnostic_name"] = diagnostic.name
-        output_file.attrs["diagnostic_version"] = diagnostic.version
-        for name, value in (identity or {}).items():
-            output_file.attrs[name] = value
-        output_file.create_dataset("time", data=times)
-        output_file.create_dataset(
-            "snapshot_id",
-            data=snapshot_ids,
-            dtype=h5py.string_dtype(encoding="utf-8"),
-        )
-        choice_group = output_file.create_group("choices")
-        for choice in diagnostic.evaluation_choices:
-            output_choice_group = choice_group.create_group(choice.name)
-            for name, value in choice.metadata.items():
-                output_choice_group.attrs[name] = value
-            for name, unit_name in choice.outputs.items():
-                dataset = output_choice_group.create_dataset(name, data=values[choice.name][name])
-                dataset.attrs["unit"] = unit_name
-        output_file.attrs["complete"] = True
+    particle_destination = particle_series_path(destination) if particle_choices else None
+    particle_staging_path = (
+        destination.parent / f".{particle_destination.name}.{uuid4().hex}.tmp"
+        if particle_destination is not None
+        else None
+    )
+    particle_writer = None
+    try:
+        if particle_staging_path is not None:
+            particle_writer = ParticleSeriesWriter(
+                particle_staging_path,
+                diagnostic.name,
+                diagnostic.version,
+                series_id,
+                particle_choices,
+                identity,
+            )
+        for snapshot_number, (snapshot_path, snapshot_id) in enumerate(
+            zip(snapshot_paths, snapshot_ids, strict=True), start=1
+        ):
+            evaluated = diagnostic.evaluate(read_snapshot(snapshot_path))
+            if isinstance(evaluated, SnapshotDiagnosticResult):
+                measurements = evaluated.series
+                particle_measurements = evaluated.particles
+            else:
+                measurements = evaluated
+                particle_measurements = {}
+            if set(measurements) != expected_choice_names:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} returned choices "
+                    f"{sorted(measurements)}, but declares {sorted(expected_choice_names)}."
+                )
+            if set(particle_measurements) != expected_particle_choices:
+                raise ValueError(
+                    f"Time-series diagnostic {diagnostic.name!r} returned particle "
+                    f"choices {sorted(particle_measurements)}, but declares "
+                    f"{sorted(expected_particle_choices)}."
+                )
 
-    # The rename replaces an old completed file only after every snapshot was
-    # evaluated and the replacement HDF5 file was fully written.
+            for choice_name, choice in choices_by_name.items():
+                if set(measurements[choice_name]) != set(choice.outputs):
+                    raise ValueError(
+                        f"Time-series diagnostic {diagnostic.name!r} choice "
+                        f"{choice_name!r} returned {sorted(measurements[choice_name])}, "
+                        f"but declares {sorted(choice.outputs)}."
+                    )
+                for name, unit_name in choice.outputs.items():
+                    try:
+                        values[choice_name][name].append(
+                            float(
+                                measurements[choice_name][name].value_in(
+                                    canonical_units[unit_name]
+                                )
+                            )
+                        )
+                    except (AttributeError, TypeError, ValueError) as error:
+                        raise ValueError(
+                            f"Time-series diagnostic {diagnostic.name!r} choice "
+                            f"{choice_name!r} returned a non-scalar or incompatible "
+                            f"value for {name!r}; expected {unit_name}."
+                        ) from error
+
+            if particle_writer is not None:
+                for choice_name, particle_result in particle_measurements.items():
+                    particle_key, particle_values = _normalise_particle_snapshot(
+                        diagnostic,
+                        choice_name,
+                        particle_result,
+                        canonical_units,
+                    )
+                    particle_writer.append(
+                        choice_name,
+                        snapshot_id,
+                        particle_key,
+                        particle_values,
+                    )
+            if progress is not None:
+                progress(snapshot_number, len(snapshot_paths), snapshot_id)
+
+        if particle_writer is not None:
+            particle_writer.complete()
+            particle_writer = None
+
+        with h5py.File(staging_path, "w") as output_file:
+            output_file.attrs["format_schema_version"] = 2
+            output_file.attrs["diagnostic_name"] = diagnostic.name
+            output_file.attrs["diagnostic_version"] = diagnostic.version
+            if particle_choices:
+                output_file.attrs["particle_series_file"] = "particles.h5"
+                output_file.attrs["series_id"] = series_id
+            for name, value in identity.items():
+                output_file.attrs[name] = value
+            output_file.create_dataset("time", data=times)
+            output_file.create_dataset(
+                "snapshot_id",
+                data=snapshot_ids,
+                dtype=h5py.string_dtype(encoding="utf-8"),
+            )
+            choice_group = output_file.create_group("choices")
+            for choice in diagnostic.evaluation_choices:
+                output_choice_group = choice_group.create_group(choice.name)
+                for name, value in choice.metadata.items():
+                    output_choice_group.attrs[name] = value
+                for name, unit_name in choice.outputs.items():
+                    dataset = output_choice_group.create_dataset(
+                        name, data=values[choice.name][name]
+                    )
+                    dataset.attrs["unit"] = unit_name
+            output_file.attrs["complete"] = True
+
+        if particle_staging_path is not None:
+            stored_particles = read_particle_series(particle_staging_path)
+            stored_fields = {
+                choice_name: set(choice.values)
+                for choice_name, choice in stored_particles.choices.items()
+            }
+            expected_fields = {
+                choice.name: {field.name for field in choice.particle_fields}
+                for choice in particle_choices
+            }
+            if (
+                stored_particles.diagnostic_name != diagnostic.name
+                or stored_particles.diagnostic_version != diagnostic.version
+                or stored_particles.series_id != series_id
+                or stored_fields != expected_fields
+            ):
+                raise ValueError(
+                    f"Particle-series round-trip validation failed: {particle_staging_path}"
+                )
+    except Exception:
+        if particle_writer is not None:
+            particle_writer.close()
+        staging_path.unlink(missing_ok=True)
+        if particle_staging_path is not None:
+            particle_staging_path.unlink(missing_ok=True)
+        raise
+
+    # Publish the optional sidecar first and series.h5 last. The latter is the
+    # completion marker and carries the matching series_id.
+    if particle_destination is not None and particle_staging_path is not None:
+        particle_staging_path.replace(particle_destination)
     staging_path.replace(destination)
     return SimulationReport(
         simulation_root=simulation_root,
@@ -284,6 +489,7 @@ def compute_time_series(
         first_time=times[0],
         last_time=times[-1],
         dry_run=False,
+        particle_output_path=particle_destination,
     )
 
 

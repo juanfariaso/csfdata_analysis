@@ -1,0 +1,157 @@
+"""Tests for the instantaneous bound-fraction diagnostic."""
+
+from pathlib import Path
+from types import SimpleNamespace
+
+import h5py
+import numpy as np
+import pytest
+from amuse.datamodel import Particles
+from amuse.units import units
+
+from csfdata_analysis.diagnostics.time_series.bound_fraction import (
+    BOUND_FRACTION_V1,
+    calculate_bound_fraction,
+    measure_bound_fraction,
+)
+from csfdata_analysis.runner import compute_time_series
+
+
+def two_star_system(speed: float = 0.0) -> Particles:
+    """Return two equal stars separated by one parsec in their COM frame."""
+    particles = Particles(2)
+    particles.mass = [1.0, 1.0] | units.MSun
+    particles.x = [-0.5, 0.5] | units.pc
+    particles.y = 0.0 | units.pc
+    particles.z = 0.0 | units.pc
+    particles.vx = [-speed, speed] | units.kms
+    particles.vy = 0.0 | units.kms
+    particles.vz = 0.0 | units.kms
+    return particles
+
+
+def test_stationary_pair_is_bound() -> None:
+    """A stationary equal-mass pair has negative specific energy."""
+    result = calculate_bound_fraction(two_star_system())
+
+    assert result.bound.tolist() == [1, 1]
+    assert result.n_bound == 2
+    assert result.bound_number_fraction == pytest.approx(1.0)
+    assert result.bound_mass_fraction == pytest.approx(1.0)
+    assert result.n_iterations == 1
+    assert result.converged is True
+    assert result.centre_position.value_in(units.pc).tolist() == pytest.approx(
+        [0.0, 0.0, 0.0]
+    )
+
+
+def test_fast_pair_converges_to_an_empty_bound_set() -> None:
+    """Stars moving above their mutual escape speed become self-unbound."""
+    result = calculate_bound_fraction(two_star_system(speed=1.0))
+
+    assert result.bound.tolist() == [0, 0]
+    assert result.n_bound == 0
+    assert result.bound_mass.value_in(units.MSun) == pytest.approx(0.0)
+    assert result.n_iterations == 2
+    assert result.converged is True
+    assert np.all(np.isnan(result.centre_position.value_in(units.pc)))
+
+
+def test_invalid_particle_is_labelled_and_excluded_from_fractions() -> None:
+    """An invalid present particle receives -1 without changing denominators."""
+    particles = Particles(3)
+    particles.mass = [1.0, 1.0, np.nan] | units.MSun
+    particles.x = [-0.5, 0.5, 0.0] | units.pc
+    particles.y = 0.0 | units.pc
+    particles.z = 0.0 | units.pc
+    particles.velocity = [0.0, 0.0, 0.0] | units.kms
+
+    result = calculate_bound_fraction(particles)
+
+    assert result.bound.tolist() == [1, 1, -1]
+    assert result.n_present == 3
+    assert result.n_valid == 2
+    assert result.bound_number_fraction == pytest.approx(1.0)
+    assert result.stellar_mass.value_in(units.MSun) == pytest.approx(2.0)
+
+
+def test_dense_and_blocked_potentials_give_the_same_membership() -> None:
+    """The memory backend changes storage only, not the exact classification."""
+    particles = Particles(4)
+    particles.mass = [1.0, 2.0, 1.5, 1.0] | units.MSun
+    particles.x = [-1.0, -0.2, 0.3, 2.0] | units.pc
+    particles.y = [0.0, 0.1, -0.1, 0.0] | units.pc
+    particles.z = 0.0 | units.pc
+    particles.vx = [0.0, 0.01, -0.01, 1.0] | units.kms
+    particles.vy = 0.0 | units.kms
+    particles.vz = 0.0 | units.kms
+
+    dense = calculate_bound_fraction(particles, max_matrix_bytes=1024)
+    blocked = calculate_bound_fraction(particles, max_matrix_bytes=8)
+
+    assert blocked.bound.tolist() == dense.bound.tolist()
+    assert blocked.n_iterations == dense.n_iterations
+    assert blocked.converged == dense.converged
+    assert blocked.bound_mass.value_in(units.MSun) == pytest.approx(
+        dense.bound_mass.value_in(units.MSun)
+    )
+
+
+def test_iteration_limit_returns_latest_membership_without_claiming_convergence() -> None:
+    """The safety ceiling preserves the latest labels and reports its status."""
+    result = calculate_bound_fraction(
+        two_star_system(speed=1.0),
+        max_iterations=1,
+    )
+
+    assert result.bound.tolist() == [0, 0]
+    assert result.n_iterations == 1
+    assert result.converged is False
+
+
+def test_measurement_exposes_scalars_and_labels_for_storage() -> None:
+    """The registered evaluator returns aligned scalar and particle results."""
+    particles = two_star_system()
+
+    measured = measure_bound_fraction(particles)
+    scalars = measured.series["stellar_self_potential"]
+    particle_result = measured.particles["stellar_self_potential"]
+
+    assert scalars["n_present"].value_in(units.none) == 2
+    assert scalars["n_bound"].value_in(units.none) == 2
+    assert scalars["bound_mass_fraction"].value_in(units.none) == pytest.approx(1.0)
+    assert particle_result.particle_key.tolist() == particles.key.tolist()
+    assert particle_result.values["bound"].tolist() == [1, 1]
+
+
+def test_registered_diagnostic_writes_scalar_and_particle_products(
+    tmp_path: Path,
+) -> None:
+    """The complete version-1 definition passes the generic runner contract."""
+    simulation_root = tmp_path / "0001"
+    raw_root = simulation_root / "raw"
+    snapshot_path = raw_root / "stars.amuse"
+    snapshot_path.parent.mkdir(parents=True)
+    snapshot_path.touch()
+    adapter = SimpleNamespace(
+        run_root=raw_root,
+        snapshot_paths=lambda: (snapshot_path,),
+        snapshot_time=lambda path: 1.0,
+    )
+
+    report = compute_time_series(
+        simulation_root,
+        BOUND_FRACTION_V1,
+        adapter,
+        lambda path: two_star_system(),
+    )
+
+    assert report.particle_output_path is not None
+    with h5py.File(report.output_path) as scalar_file:
+        assert scalar_file[
+            "choices/stellar_self_potential/bound_number_fraction"
+        ][0] == pytest.approx(1.0)
+    with h5py.File(report.particle_output_path) as particle_file:
+        assert particle_file[
+            "choices/stellar_self_potential/bound"
+        ][:].tolist() == [1, 1]

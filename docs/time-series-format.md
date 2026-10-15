@@ -2,13 +2,17 @@
 
 ## Purpose
 
-Each completed time-series diagnostic writes one HDF5 file for one simulation and
-one diagnostic version. The file contains only derived scalar measurements and
-their provenance. It never duplicates raw particle data.
+Each completed time-series diagnostic writes one scalar HDF5 file for one
+simulation and one diagnostic version. Diagnostics may also write an optional
+particle-series sidecar containing derived per-particle values. Neither file
+duplicates raw phase-space particle data.
 
 ```text
 derived/diagnostics/<diagnostic-name>/v<version>/series.h5
 ```
+
+See [Particle-Series Format](particle-series-format.md) for the optional
+`particles.h5` sidecar.
 
 This is deliberately the file boundary: one file per simulation, diagnostic,
 and version. A collection is never stored in one shared HDF5 file, and a

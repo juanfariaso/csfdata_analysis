@@ -9,6 +9,7 @@ from pathlib import Path
 
 from csfdata.adapters.dcaf import DcafAdapter
 from csfdata.catalogue import CatalogueSimulation, file_sha256, is_lite_catalogue
+from csfdata_analysis._particle_series import particle_series_path
 from csfdata_analysis.datamodel.simulations import source_simulation
 from csfdata_analysis.diagnostics import (
     TIME_SERIES_DIAGNOSTICS,
@@ -421,17 +422,16 @@ def clear_time_series(
             ``collection_id/simulation_id`` label.
 
     Returns:
-        Tuple[Path, ...]: Exact ``series.h5`` files removed from the lite
-            catalogue. Simulations without that file are omitted.
+        Tuple[Path, ...]: Exact diagnostic product files removed from the lite
+            catalogue. Simulations without ``series.h5`` are omitted.
 
     Raises:
         ValueError: If the root is not a lite catalogue, a diagnostic is
             unknown, or a selected simulation does not belong to the root.
 
     Notes:
-        This intentionally removes only the exact versioned HDF5 result file.
-        Empty parent directories are preserved because they are harmless and
-        make the diagnostic's standard location visible during inspection.
+        This removes the exact versioned ``series.h5`` result and its optional
+        ``particles.h5`` sidecar. Empty parent directories are preserved.
     """
     lite_root = lite_catalogue.resolve()
     if not is_lite_catalogue(lite_root):
@@ -451,6 +451,10 @@ def clear_time_series(
             ) from error
         path = time_series_path(simulation.path, diagnostic)
         if path.is_file():
+            sidecar_path = particle_series_path(path)
+            if sidecar_path.is_file():
+                sidecar_path.unlink()
+                removed_paths.append(sidecar_path)
             path.unlink()
             removed_paths.append(path)
         if progress is not None:

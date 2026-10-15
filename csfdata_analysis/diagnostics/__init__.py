@@ -17,7 +17,10 @@ from csfdata.catalogue.diagnostics import (
 from csfdata_analysis.choices import CHOICES
 from csfdata_analysis.diagnostics.base import (
     EvaluationChoice,
+    ParticleField,
+    ParticleSnapshotResult,
     ScalarDiagnostic,
+    SnapshotDiagnosticResult,
     TimeSeriesDiagnostic,
 )
 
@@ -404,9 +407,12 @@ def ensure_collection_diagnostics(
 
 __all__ = [
     "EvaluationChoice",
+    "ParticleField",
+    "ParticleSnapshotResult",
     "DIAGNOSTICS",
     "SCALAR_DIAGNOSTICS",
     "ScalarDiagnostic",
+    "SnapshotDiagnosticResult",
     "TIME_SERIES_DIAGNOSTICS",
     "TimeSeriesDiagnostic",
     "diagnostic_directories",

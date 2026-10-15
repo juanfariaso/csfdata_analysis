@@ -75,6 +75,14 @@ match the corresponding
 [`TimeSeriesDiagnostic`](reference/csfdata_analysis/diagnostics/base.md#csfdata_analysis.diagnostics.base.TimeSeriesDiagnostic)
 definition exactly.
 
+An evaluator that also produces per-particle values returns a
+`SnapshotDiagnosticResult`. Its `series` member contains the same scalar
+mapping as before. Its `particles` member maps declared choice names to
+`ParticleSnapshotResult` objects containing particle keys and field arrays.
+Declare those columns with `ParticleField` entries on the corresponding
+`EvaluationChoice`. Scalar-only evaluator return values remain supported
+unchanged. See [Particle-Series Format](particle-series-format.md).
+
 <details>
 <summary>Lagrangian-radii implementation</summary>
 
@@ -179,8 +187,9 @@ The test verifies both centre groups and checks `r_l50`, `stellar_mass`,
 ### 6. Run The Diagnostic
 
 [`compute_time_series`](reference/csfdata_analysis/runner.md#csfdata_analysis.runner.compute_time_series)
-writes one completed `series.h5` file for a simulation. The collection command
-runs the same diagnostic across a selected collection.
+writes one completed `series.h5` file for a simulation. A diagnostic that
+declares particle fields also writes `particles.h5` beside it. The collection
+command runs the same diagnostic across a selected collection.
 
 <details>
 <summary>Lagrangian-radii implementation</summary>

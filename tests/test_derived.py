@@ -64,12 +64,35 @@ optional_parameters: []
         output.attrs["config_sha256"] = file_sha256(lite_simulation / "config.yaml")
         output.attrs["diagnostic_name"] = "test"
         output.attrs["diagnostic_version"] = 1
+        output.attrs["particle_series_file"] = "particles.h5"
+        output.attrs["series_id"] = "test-series"
+    particle_result = result.with_name("particles.h5")
+    with h5py.File(particle_result, "w") as output:
+        output.attrs["complete"] = True
+        output.attrs["format_schema_version"] = 1
+        output.attrs["collection_id"] = "grid"
+        output.attrs["simulation_id"] = "0001"
+        output.attrs["config_sha256"] = file_sha256(lite_simulation / "config.yaml")
+        output.attrs["diagnostic_name"] = "test"
+        output.attrs["diagnostic_version"] = 1
+        output.attrs["series_id"] = "test-series"
     first = import_derived(lite, full)
     destination = simulation / "derived" / "diagnostics" / "test" / "v1" / "series.h5"
-    assert first.copied_paths == (destination,)
+    destination_particles = destination.with_name("particles.h5")
+    assert first.copied_paths == (destination_particles, destination)
     assert destination.is_file()
+    assert destination_particles.is_file()
     assert import_derived(lite, full).skipped_paths == (destination,)
-    assert import_derived(lite, full, overwrite=True).copied_paths == (destination,)
+    assert import_derived(lite, full, overwrite=True).copied_paths == (
+        destination_particles,
+        destination,
+    )
+    particle_result.unlink()
+    incomplete = import_derived(lite, full, overwrite=True)
+    assert incomplete.copied_paths == ()
+    assert incomplete.issues == (
+        f"Derived result particle sidecar is missing: {particle_result}",
+    )
 
 
 def test_import_derived_accepts_a_full_catalogue_source(tmp_path: Path) -> None:

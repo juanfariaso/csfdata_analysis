@@ -7,7 +7,7 @@ diagnostics combine completed diagnostic products into scalar simulation values.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 
 from amuse.datamodel import Particles
@@ -20,7 +20,55 @@ from csfdata.catalogue.diagnostics import (
 )
 
 
-SnapshotEvaluator = Callable[[Particles], dict[str, dict[str, Quantity]]]
+@dataclass(frozen=True)
+class ParticleField:
+    """One declared particle-level output column.
+
+    Args:
+        name: Stable stored column name.
+        description: Human-readable meaning of the field.
+        dtype: NumPy dtype name, or ``"string"`` for UTF-8 text.
+        unit: Optional canonical AMUSE unit string. ``None`` denotes a plain
+            value such as a label or flag.
+        metadata: Additional field semantics stored as HDF5 attributes.
+    """
+
+    name: str
+    description: str
+    dtype: str
+    unit: str | None = None
+    metadata: dict[str, str | int | float | bool] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ParticleSnapshotResult:
+    """Particle-level values produced for one choice and source snapshot.
+
+    Args:
+        particle_key: Stable particle identifiers for the rows in ``values``.
+        values: Declared particle fields, each with one value per key.
+    """
+
+    particle_key: object
+    values: dict[str, object]
+
+
+@dataclass(frozen=True)
+class SnapshotDiagnosticResult:
+    """Scalar and optional particle-level results for one source snapshot.
+
+    Existing evaluators may continue returning the scalar ``series`` mapping
+    directly. Diagnostics that declare particle fields return this object.
+    """
+
+    series: dict[str, dict[str, Quantity]]
+    particles: dict[str, ParticleSnapshotResult] = field(default_factory=dict)
+
+
+SnapshotEvaluator = Callable[
+    [Particles],
+    dict[str, dict[str, Quantity]] | SnapshotDiagnosticResult,
+]
 """Type of a function that evaluates all choices for one AMUSE particle set."""
 
 
@@ -35,13 +83,16 @@ class EvaluationChoice:
     Args:
         name: Stable result-group identifier, such as ``"stellar_com"``.
         metadata: Method details written as HDF5 attributes for this choice.
-        outputs: Dictionary from standardized output names to their canonical unit
-            strings, such as ``{"r_l50": "pc"}``.
+        outputs: Dictionary from standardized scalar output names to their
+            canonical unit strings, such as ``{"r_l50": "pc"}``.
+        particle_fields: Optional particle-level columns stored in the
+            diagnostic's ``particles.h5`` sidecar.
     """
 
     name: str
     metadata: dict[str, str]
     outputs: dict[str, str]
+    particle_fields: tuple[ParticleField, ...] = ()
 
 
 @dataclass(frozen=True)
