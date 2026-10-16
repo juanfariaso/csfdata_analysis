@@ -9,7 +9,9 @@ preserving raw simulation data. This package will read an imported simulation
 and write reproducible, versioned products under its `derived/` directory.
 
 AMUSE is a required runtime dependency, provided by the `amuse-framework`
-package.
+package. Installation also compiles the exact gravitational kernels in
+`ext/gravity`, so development installations require a C++17 compiler and
+CMake.
 
 ## Development
 

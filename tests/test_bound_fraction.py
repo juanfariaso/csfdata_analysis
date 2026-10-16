@@ -9,6 +9,7 @@ import pytest
 from amuse.datamodel import Particles
 from amuse.units import units
 
+import csfdata_analysis.diagnostics.time_series.bound_fraction as bound_fraction_module
 from csfdata_analysis.diagnostics.time_series.bound_fraction import (
     BOUND_FRACTION_V1,
     calculate_bound_fraction,
@@ -75,26 +76,28 @@ def test_invalid_particle_is_labelled_and_excluded_from_fractions() -> None:
     assert result.stellar_mass.value_in(units.MSun) == pytest.approx(2.0)
 
 
-def test_dense_and_blocked_potentials_give_the_same_membership() -> None:
-    """The memory backend changes storage only, not the exact classification."""
-    particles = Particles(4)
-    particles.mass = [1.0, 2.0, 1.5, 1.0] | units.MSun
-    particles.x = [-1.0, -0.2, 0.3, 2.0] | units.pc
-    particles.y = [0.0, 0.1, -0.1, 0.0] | units.pc
-    particles.z = 0.0 | units.pc
-    particles.vx = [0.0, 0.01, -0.01, 1.0] | units.kms
-    particles.vy = 0.0 | units.kms
-    particles.vz = 0.0 | units.kms
+def test_potential_is_calculated_once_before_membership_iteration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Membership updates reuse the fixed potential of all valid stars."""
+    original = bound_fraction_module.gravitational_potential
+    call_count = 0
 
-    dense = calculate_bound_fraction(particles, max_matrix_bytes=1024)
-    blocked = calculate_bound_fraction(particles, max_matrix_bytes=8)
+    def counted_potential(*args: object) -> np.ndarray:
+        nonlocal call_count
+        call_count += 1
+        return original(*args)
 
-    assert blocked.bound.tolist() == dense.bound.tolist()
-    assert blocked.n_iterations == dense.n_iterations
-    assert blocked.converged == dense.converged
-    assert blocked.bound_mass.value_in(units.MSun) == pytest.approx(
-        dense.bound_mass.value_in(units.MSun)
+    monkeypatch.setattr(
+        bound_fraction_module,
+        "gravitational_potential",
+        counted_potential,
     )
+
+    result = calculate_bound_fraction(two_star_system(speed=1.0))
+
+    assert result.n_iterations == 2
+    assert call_count == 1
 
 
 def test_iteration_limit_returns_latest_membership_without_claiming_convergence() -> None:

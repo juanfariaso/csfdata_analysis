@@ -31,6 +31,25 @@ each successful result to that simulation's versioned `derived/` directory,
 and skips a completed `series.h5` file by default. Re-running the command
 therefore retries only missing or failed work.
 
+Compiled numerical extensions use OpenMP threads inside each simulation
+worker when OpenMP support was available at build time. Set the standard
+environment variable before starting the command:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE \
+csfdata analysis compute bound_fraction \
+  --catalogue /path/to/catalogue \
+  --workers 3
+```
+
+This example can use approximately twelve CPU threads: three concurrent
+simulation processes with four potential-calculation threads in each process.
+Choose the product of `--workers` and `OMP_NUM_THREADS` to fit the available
+CPU resources. From Python, `openmp_enabled()` and `openmp_max_threads()` in
+`csfdata_analysis.extensions.gravity` report the compiled capability and the
+thread limit seen by the current process. `OMP_NUM_THREADS` has no effect when
+the extension reports that OpenMP is unavailable.
+
 Before starting, the command lists each selected collection and its number of
 selected simulations, then asks for confirmation. Omit `--filter` to select
 every indexed collection. In a non-interactive batch job, use `--no-prompt`:
