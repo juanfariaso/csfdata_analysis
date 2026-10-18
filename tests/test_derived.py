@@ -95,6 +95,77 @@ optional_parameters: []
     )
 
 
+def test_import_derived_rejects_filtered_results_even_with_overwrite(tmp_path: Path) -> None:
+    """A lite subset can never replace its complete catalogue source."""
+    full = tmp_path / "full"
+    simulation = full / "collections" / "grid" / "simulations" / "0001"
+    simulation.mkdir(parents=True)
+    (simulation.parent.parent / "collection.yaml").write_text(
+        """schema_version: 1
+id: grid
+importer: dcaf
+config_schema_version: 1
+required_parameters: []
+optional_parameters: []
+""",
+        encoding="utf-8",
+    )
+    write_simulation_metadata(
+        SimulationMetadata(
+            "0001",
+            "grid",
+            "dcaf",
+            "host",
+            tmp_path / "source",
+            Path("run"),
+            "2026-01-01T00:00:00Z",
+        ),
+        simulation / "metadata.yaml",
+    )
+    write_simulation_configuration(
+        SimulationConfiguration(
+            (ConfigurationParameter("tff", 1.0, "Myr", "explicit"),),
+            (),
+        ),
+        simulation / "config.yaml",
+    )
+    index_catalogue(full)
+    refresh_snapshot_times(full, "grid")
+    lite = tmp_path / "lite"
+    import_lite_collection(full, "grid", lite)
+    result = (
+        lite
+        / "collections"
+        / "grid"
+        / "simulations"
+        / "0001"
+        / "derived"
+        / "diagnostics"
+        / "test"
+        / "v1"
+        / "series.h5"
+    )
+    result.parent.mkdir(parents=True)
+    with h5py.File(result, "w") as output:
+        output.attrs["complete"] = True
+        output.attrs["format_schema_version"] = 2
+        output.attrs["collection_id"] = "grid"
+        output.attrs["simulation_id"] = "0001"
+        output.attrs["config_sha256"] = file_sha256(
+            lite / "collections" / "grid" / "simulations" / "0001" / "config.yaml"
+        )
+        output.attrs["diagnostic_name"] = "test"
+        output.attrs["diagnostic_version"] = 1
+        output.attrs["csfdata_subset"] = True
+
+    report = import_derived(lite, full, overwrite=True)
+
+    assert report.copied_paths == ()
+    assert report.issues == (
+        f"Filtered derived result cannot be imported: {result}",
+    )
+
+
 def test_import_derived_accepts_a_full_catalogue_source(tmp_path: Path) -> None:
     """A full source imports every compatible collection by default."""
     source = tmp_path / "source"

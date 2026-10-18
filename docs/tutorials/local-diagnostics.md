@@ -142,10 +142,12 @@ intentionally different:
 - A `ScalarDiagnostic` evaluator receives `simulation` and `choices`, then
   returns one dictionary of declared scalar fields.
 
-`choice_names` and `requires` are optional definition arguments for both
-types. Omit them when the diagnostic has no registered scientific choices or
-no diagnostic dependencies. A scalar diagnostic that reads a time-series
-result should declare that dependency in `requires`.
+`choice_names`, `choice_definitions`, and `requires` are optional definition
+arguments for both types. Shared choices come from `csfdata_analysis.choices`.
+Use `choice_definitions` only for choices specific to that diagnostic module.
+Omit these arguments when the diagnostic has no scientific choices or no
+diagnostic dependencies. A scalar diagnostic that reads a time-series result
+should declare that dependency in `requires`.
 
 ## 3. Run Them Across A Collection
 

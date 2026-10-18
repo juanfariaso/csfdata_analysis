@@ -364,6 +364,8 @@ def validate_derived_result(
     try:
         with h5py.File(result_path, "r") as output_file:
             attributes = output_file.attrs
+            if attributes.get("csfdata_subset") == True:
+                return f"Filtered derived result cannot be imported: {result_path}"
             if attributes.get("complete") != True:
                 return f"Incomplete derived result: {result_path}"
             expected = {

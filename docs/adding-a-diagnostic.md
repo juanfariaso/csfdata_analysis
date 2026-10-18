@@ -116,8 +116,10 @@ Declare a versioned
 with one
 [`EvaluationChoice`](reference/csfdata_analysis/diagnostics/base.md#csfdata_analysis.diagnostics.base.EvaluationChoice)
 per stored evaluation group. The `metadata` dictionary becomes HDF5 attributes.
-`choice_names` references registered global choices from
-[`csfdata_analysis.choices`](reference/csfdata_analysis/choices.md).
+`choice_names` normally references shared choices from
+[`csfdata_analysis.choices`](reference/csfdata_analysis/choices.md). A choice
+specific to one diagnostic may instead be declared in that module and supplied
+through `choice_definitions`.
 
 <details>
 <summary>Lagrangian-radii implementation</summary>

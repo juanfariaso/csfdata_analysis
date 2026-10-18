@@ -371,12 +371,37 @@ def ensure_collection_diagnostics(
                 f"analysis diagnostic: {definition.name} {definition.version}."
             )
 
-    # Choices are shared global scientific conventions, so an existing choice
-    # must agree exactly before a new diagnostic may rely on it.
+    # Shared choices are the default. A diagnostic may additionally declare
+    # choices that are meaningful only to that module. Either source must agree
+    # exactly with an already published collection choice.
     choices_by_name = {choice.name: choice for choice in existing.choices}
     for diagnostic in required_diagnostics:
+        local_choices = {
+            choice.name: choice for choice in diagnostic.choice_definitions
+        }
+        if len(local_choices) != len(diagnostic.choice_definitions):
+            raise ValueError(
+                f"Diagnostic {diagnostic.name!r} defines duplicate local choices."
+            )
+        unused_local_choices = set(local_choices) - set(diagnostic.choice_names)
+        if unused_local_choices:
+            raise ValueError(
+                f"Diagnostic {diagnostic.name!r} defines unused local choices: "
+                f"{', '.join(sorted(unused_local_choices))}."
+            )
         for choice_name in diagnostic.choice_names:
-            choice = CHOICES.get(choice_name)
+            shared_choice = CHOICES.get(choice_name)
+            local_choice = local_choices.get(choice_name)
+            if (
+                shared_choice is not None
+                and local_choice is not None
+                and shared_choice != local_choice
+            ):
+                raise ValueError(
+                    "Diagnostic-local choice conflicts with registered shared "
+                    f"analysis choice: {choice_name}."
+                )
+            choice = local_choice or shared_choice
             if choice is None:
                 raise ValueError(f"Diagnostic uses an unregistered choice: {choice_name}.")
             expected_choice = ChoiceDefinition(

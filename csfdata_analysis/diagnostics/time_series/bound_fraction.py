@@ -9,6 +9,7 @@ from amuse.datamodel import Particles
 from amuse.units import constants, units
 from amuse.units.quantities import Quantity
 
+from csfdata_analysis.choices import Choice
 from csfdata_analysis.diagnostics.base import (
     EvaluationChoice,
     ParticleField,
@@ -26,6 +27,15 @@ GRAVITATIONAL_CONSTANT = constants.G.value_in(
     units.pc * units.kms**2 / units.MSun
 )
 """Gravitational constant in the diagnostic's canonical units."""
+
+
+BINDING_POTENTIAL = Choice(
+    name="binding_potential",
+    description="Potential included when determining stellar binding.",
+    values=("stellar_self_potential",),
+    default="stellar_self_potential",
+)
+"""Potential definitions implemented by the bound-fraction diagnostic."""
 
 
 @dataclass(frozen=True)
@@ -318,6 +328,8 @@ BOUND_FRACTION_V1 = TimeSeriesDiagnostic(
         "n_iterations": "Membership updates evaluated before stopping.",
         "converged": "One when membership stabilized, otherwise zero.",
     },
+    choice_names=(BINDING_POTENTIAL.name,),
+    choice_definitions=(BINDING_POTENTIAL,),
 )
 """Version-1 instantaneous bound-fraction diagnostic."""
 

@@ -18,6 +18,7 @@ from csfdata.catalogue.diagnostics import (
     DiagnosticField,
     DiagnosticRequirement,
 )
+from csfdata_analysis.choices import Choice
 
 
 @dataclass(frozen=True)
@@ -109,11 +110,14 @@ class TimeSeriesDiagnostic:
         evaluation_choices: Concrete HDF5 result groups and their output
             schemas, such as ``"origin"`` and ``"stellar_com"``.
         field_descriptions: Human-readable descriptions keyed by output name.
-        choice_names: Global scientific choices that affect this diagnostic,
-            such as ``"center"``. Their values and defaults are registered in
-            :mod:`csfdata_analysis.choices`.
+        choice_names: Scientific choices that affect this diagnostic, such as
+            ``"center"``. Shared values and defaults are registered in
+            :mod:`csfdata_analysis.choices`; diagnostic-specific choices may
+            instead be supplied through ``choice_definitions``.
         requires: Completed diagnostic versions required before this diagnostic
             can be calculated.
+        choice_definitions: Diagnostic-specific scientific choices. Shared
+            choices should remain in :mod:`csfdata_analysis.choices`.
 
     Notes:
         A diagnostic definition contains no simulation paths, file I/O, or
@@ -121,7 +125,7 @@ class TimeSeriesDiagnostic:
         runner. Each evaluation choice is the declared schema that the runner
         uses to validate every returned measurement. It is deliberately
         separate from ``choice_names``: evaluation groups are stored values,
-        while global choices are user-facing selection dimensions.
+        while scientific choices are user-facing selection dimensions.
     """
 
     name: str
@@ -132,6 +136,7 @@ class TimeSeriesDiagnostic:
     field_descriptions: dict[str, str]
     choice_names: tuple[str, ...] = ()
     requires: tuple[DiagnosticRequirement, ...] = ()
+    choice_definitions: tuple[Choice, ...] = ()
 
     def catalogue_definition(self) -> DiagnosticDefinition:
         """Return this diagnostic's portable core-catalogue declaration.
@@ -198,9 +203,13 @@ class ScalarDiagnostic:
             their canonical units.
         fields: Scalar output fields written into
             ``derived/scalar_diagnostics.yaml``.
-        choice_names: Global scientific choices that affect the scalar result.
+        choice_names: Scientific choices that affect the scalar result. Shared
+            choices come from :mod:`csfdata_analysis.choices`; local choices
+            may instead be supplied through ``choice_definitions``.
         requires: Completed time-series or scalar diagnostic versions required
             before this scalar diagnostic can be calculated.
+        choice_definitions: Diagnostic-specific scientific choices. Shared
+            choices should remain in :mod:`csfdata_analysis.choices`.
 
     Notes:
         The generic scalar runner verifies requirements, enumerates concrete
@@ -215,6 +224,7 @@ class ScalarDiagnostic:
     fields: tuple[DiagnosticField, ...]
     choice_names: tuple[str, ...] = ()
     requires: tuple[DiagnosticRequirement, ...] = ()
+    choice_definitions: tuple[Choice, ...] = ()
 
     def catalogue_definition(self) -> DiagnosticDefinition:
         """Return this summary diagnostic's portable catalogue declaration.

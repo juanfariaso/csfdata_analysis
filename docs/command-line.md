@@ -238,6 +238,11 @@ recorded in its `lite.yaml` provenance file. Existing destination results are
 skipped by default. Use `--dry-run` to inspect actions, or `--overwrite` to
 explicitly replace existing compatible results.
 
+Time-series files filtered by `csfdata import-lite --selection` retain their
+standard paths but carry a `csfdata_subset` HDF5 marker. They are source-side
+subsets rather than new complete diagnostic results, so `import-derived`
+reports and skips them even when `--overwrite` is supplied.
+
 After a non-dry-run import that changes a destination collection,
 ``import-derived`` automatically refreshes that collection's SQLite index.
 No separate ``csfdata index-catalogue`` command is needed.

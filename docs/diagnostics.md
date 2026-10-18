@@ -61,6 +61,11 @@ recalculates the candidate centre-of-mass frame and allows stars to enter or
 leave until membership is unchanged or ten iterations have been evaluated. A
 repeated membership state stops as non-converged.
 
+The public `binding_potential` choice currently has one value,
+`stellar_self_potential`, which is also its default. The choice is declared by
+the diagnostic module so future potential definitions can be added without
+turning a diagnostic-specific convention into a package-wide default.
+
 The diagnostic stores snapshot-level number and mass fractions in `series.h5`
 and particle labels in `particles.h5`. Particle label `1` means bound, `0`
 means unbound, and `-1` means the particle was

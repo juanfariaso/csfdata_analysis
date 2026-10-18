@@ -8,8 +8,10 @@ import numpy as np
 import pytest
 from amuse.datamodel import Particles
 from amuse.units import units
+from csfdata.catalogue import CatalogueSimulation
 
 import csfdata_analysis.diagnostics.time_series.bound_fraction as bound_fraction_module
+from csfdata_analysis.diagnostics import ensure_collection_diagnostics
 from csfdata_analysis.diagnostics.time_series.bound_fraction import (
     BOUND_FRACTION_V1,
     calculate_bound_fraction,
@@ -131,7 +133,8 @@ def test_registered_diagnostic_writes_scalar_and_particle_products(
     tmp_path: Path,
 ) -> None:
     """The complete version-1 definition passes the generic runner contract."""
-    simulation_root = tmp_path / "0001"
+    collection_root = tmp_path / "example-collection"
+    simulation_root = collection_root / "simulations" / "0001"
     raw_root = simulation_root / "raw"
     snapshot_path = raw_root / "stars.amuse"
     snapshot_path.parent.mkdir(parents=True)
@@ -158,3 +161,16 @@ def test_registered_diagnostic_writes_scalar_and_particle_products(
         assert particle_file[
             "choices/stellar_self_potential/bound"
         ][:].tolist() == [1, 1]
+
+    ensure_collection_diagnostics(collection_root, (BOUND_FRACTION_V1,))
+    simulation = CatalogueSimulation(
+        collection_id="example-collection",
+        simulation_id="0001",
+        path=simulation_root,
+        importer="dcaf",
+    )
+    stored = simulation.diagnostics.time_series[("bound_fraction", "v1")].read(
+        choices={"binding_potential": "stellar_self_potential"},
+        fields=("bound_number_fraction",),
+    )
+    assert stored["bound_number_fraction"][0] == pytest.approx(1.0)
