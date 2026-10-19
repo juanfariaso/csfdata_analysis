@@ -506,8 +506,10 @@ def _load_time_series_from_results(
                 f"{name} has unavailable choice values: {choices_text}. "
                 f"Available: {available_text}."
             )
-        selected_fields = tuple((fields or {}).get(name, tuple(field.name for field in definition.fields)))
-        unknown_fields = set(selected_fields) - {field.name for field in definition.fields}
+        requested_fields = (fields or {}).get(name)
+        unknown_fields = set(requested_fields or ()) - {
+            field.name for field in definition.fields
+        }
         if unknown_fields:
             fields_text = ", ".join(sorted(unknown_fields))
             available_text = ", ".join(field.name for field in definition.fields)
@@ -515,16 +517,16 @@ def _load_time_series_from_results(
                 f"Unknown fields for time-series diagnostic {name!r}: {fields_text}. "
                 f"Available: {available_text}."
             )
+        # Name lookup deliberately resolves the latest collection-declared
+        # version, while the stored identity remains attached to the table.
+        result = results[name]
+        values = result.read(selected_choices, requested_fields)
+        times = values.pop("time")
+        selected_fields = tuple(values)
         duplicate_fields = set(columns) & set(selected_fields)
         if duplicate_fields:
             fields_text = ", ".join(sorted(duplicate_fields))
             raise ValueError(f"Selected diagnostic fields collide: {fields_text}.")
-
-        # Name lookup deliberately resolves the latest collection-declared
-        # version, while the stored identity remains attached to the table.
-        result = results[name]
-        values = result.read(selected_choices, selected_fields)
-        times = values.pop("time")
         if reference_times is None:
             reference_times = times
             columns["time"] = times

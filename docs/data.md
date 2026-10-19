@@ -406,6 +406,13 @@ data = load_collection_time_series(
 )
 ```
 
+When `fields` is omitted, each time-series diagnostic loads every declared
+field available in the selected stored group. This matters for filtered lite
+catalogues: a bare load returns the fields materialized by `import-lite`
+instead of requiring fields that remain available only in the full catalogue.
+An explicit field selection remains strict and fails when a requested field
+was not imported.
+
 The older exact-version dictionary form is still accepted for compatibility,
 but new analysis should use the concise form above.
 

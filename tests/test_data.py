@@ -143,6 +143,26 @@ def test_load_align_and_aggregate_a_collection_with_concise_selection(tmp_path: 
     assert summary.iloc[1]["n_simulations"] == 1
 
 
+def test_collection_default_fields_follow_available_lite_subset(tmp_path: Path) -> None:
+    """An omitted field selection loads all consistently stored subset fields."""
+    first = _write_simulation(tmp_path, "0001", 1.0)
+    second = _write_simulation(tmp_path, "0002", 2.0)
+    _write_time_series(first, "radii", {"r50": (1.0, 3.0)})
+    _write_time_series(second, "radii", {"r50": (2.0, 6.0)})
+
+    series = load_collection_time_series((first, second), "radii")
+
+    assert list(series.columns) == [
+        "collection_id",
+        "simulation_id",
+        "tff",
+        "time",
+        "r50",
+    ]
+    assert series.attrs["fields"] == {"radii": ("r50",)}
+    assert series.attrs["data_fields"] == ("r50",)
+
+
 def test_collection_loading_reads_each_schema_once(tmp_path: Path, monkeypatch) -> None:
     """One collection schema is parsed once during a concise collection load."""
     first = _write_simulation(tmp_path, "0001", 1.0)
