@@ -38,6 +38,7 @@ def test_diagnostic_records_its_declared_schema() -> None:
     assert diagnostic.name == "example"
     assert diagnostic.version == 1
     assert diagnostic.evaluation_choices[0].outputs == {"value": "pc"}
+    assert diagnostic.requires_stellar_ages is False
 
 
 def test_scalar_diagnostic_declares_fields_and_requirements() -> None:

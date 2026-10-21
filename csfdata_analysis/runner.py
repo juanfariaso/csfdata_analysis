@@ -39,6 +39,7 @@ from csfdata_analysis._particle_series import (
     particle_series_path,
     read_particle_series,
 )
+from csfdata_analysis.readers import read_snapshot_with_ages
 
 
 @dataclass(frozen=True)
@@ -357,10 +358,21 @@ def compute_time_series(
                 particle_choices,
                 identity,
             )
-        for snapshot_number, (snapshot_path, snapshot_id) in enumerate(
-            zip(snapshot_paths, snapshot_ids, strict=True), start=1
+        for snapshot_number, (snapshot_path, snapshot_id, snapshot_time) in enumerate(
+            zip(snapshot_paths, snapshot_ids, times, strict=True), start=1
         ):
-            evaluated = diagnostic.evaluate(read_snapshot(snapshot_path))
+            # Age-dependent diagnostics use the adapter's documented native
+            # reconstruction; all other diagnostics retain the direct reader.
+            if diagnostic.requires_stellar_ages:
+                stars = read_snapshot_with_ages(
+                    snapshot_path,
+                    snapshot_time,
+                    adapter,
+                    read_snapshot,
+                )
+            else:
+                stars = read_snapshot(snapshot_path)
+            evaluated = diagnostic.evaluate(stars)
             if isinstance(evaluated, SnapshotDiagnosticResult):
                 measurements = evaluated.series
                 particle_measurements = evaluated.particles

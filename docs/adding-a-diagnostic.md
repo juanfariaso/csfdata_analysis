@@ -121,6 +121,13 @@ per stored evaluation group. The `metadata` dictionary becomes HDF5 attributes.
 specific to one diagnostic may instead be declared in that module and supplied
 through `choice_definitions`.
 
+Set `requires_stellar_ages=True` when the evaluator reads `particles.age`.
+The runner then asks the simulation adapter for formation times and attaches
+ages before evaluation. It fails clearly when the format does not provide a
+formation time for every particle in the snapshot. See
+[Stellar Ages](readers.md#stellar-ages) for the adapter contract and a D-CAF
+validation example.
+
 <details>
 <summary>Lagrangian-radii implementation</summary>
 

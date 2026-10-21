@@ -77,6 +77,47 @@ def test_compute_time_series_writes_a_versioned_time_series(tmp_path: Path) -> N
         assert result["choices/origin/n_l50"].attrs["unit"] == "1"
 
 
+def test_compute_time_series_adds_stellar_ages_only_when_required(
+    tmp_path: Path,
+) -> None:
+    """An age-dependent diagnostic receives adapter-enriched particles."""
+    simulation_root = tmp_path / "0001"
+    raw_root = simulation_root / "raw"
+    snapshot_path = raw_root / "stars.amuse"
+    snapshot_path.parent.mkdir(parents=True)
+    snapshot_path.touch()
+
+    adapter = SimpleNamespace(
+        run_root=raw_root,
+        snapshot_paths=lambda: (snapshot_path,),
+        snapshot_time=lambda path: 2.5,
+        stellar_formation_times=lambda: {1: 1.0, 2: 0.5},
+    )
+    diagnostic = TimeSeriesDiagnostic(
+        name="mean_stellar_age",
+        version=1,
+        description="Example age-dependent diagnostic used only for tests.",
+        evaluate=lambda particles: {
+            "canonical": {"mean_age": particles.age.mean()}
+        },
+        evaluation_choices=(
+            EvaluationChoice("canonical", {}, {"mean_age": "Myr"}),
+        ),
+        field_descriptions={"mean_age": "Mean stellar age."},
+        requires_stellar_ages=True,
+    )
+
+    report = compute_time_series(
+        simulation_root,
+        diagnostic,
+        adapter,
+        lambda path: Particles(keys=(1, 2)),
+    )
+
+    with h5py.File(report.output_path) as result:
+        assert result["choices/canonical/mean_age"][:].tolist() == [1.75]
+
+
 def test_compute_time_series_never_replaces_completed_output(tmp_path: Path) -> None:
     """Re-running requires explicit permission before it replaces output."""
     simulation_root = tmp_path / "0001"

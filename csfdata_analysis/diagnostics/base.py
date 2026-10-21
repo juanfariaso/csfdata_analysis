@@ -118,6 +118,8 @@ class TimeSeriesDiagnostic:
             can be calculated.
         choice_definitions: Diagnostic-specific scientific choices. Shared
             choices should remain in :mod:`csfdata_analysis.choices`.
+        requires_stellar_ages: Whether the runner must attach an ``age``
+            attribute to every stellar snapshot before evaluation.
 
     Notes:
         A diagnostic definition contains no simulation paths, file I/O, or
@@ -137,6 +139,7 @@ class TimeSeriesDiagnostic:
     choice_names: tuple[str, ...] = ()
     requires: tuple[DiagnosticRequirement, ...] = ()
     choice_definitions: tuple[Choice, ...] = ()
+    requires_stellar_ages: bool = False
 
     def catalogue_definition(self) -> DiagnosticDefinition:
         """Return this diagnostic's portable core-catalogue declaration.

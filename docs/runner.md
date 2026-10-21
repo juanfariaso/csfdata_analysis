@@ -17,6 +17,12 @@ The adapter must be initialized with `simulation_root / "raw"`. The runner
 uses it to obtain snapshot paths and their model times, while `read_stars`
 converts D-CAF output to AMUSE particles.
 
+When a diagnostic declares `requires_stellar_ages=True`, the runner reads each
+snapshot through `read_snapshot_with_ages`. The adapter must then provide the
+formation times keyed by native particle ID; the reader attaches the standard
+`particles.age` attribute in Myr. Diagnostics without that declaration keep the
+ordinary reader path and pay no age-reconstruction cost.
+
 On success, the runner writes exactly one HDF5 file:
 
 ```text
