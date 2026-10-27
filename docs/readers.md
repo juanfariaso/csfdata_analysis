@@ -18,22 +18,26 @@ particles = read_stars(Path("raw/dcaf_output/stars_0001.amuse"))
 
 ## Stellar Ages
 
-[`read_snapshot_with_ages`](reference/csfdata_analysis/readers/index.md#csfdata_analysis.readers.read_snapshot_with_ages)
-combines an ordinary snapshot reader with an initialized simulation adapter.
-The adapter decides how its native format recovers formation times by particle
-key. The reader converts those times into the standard `particles.age`
-attribute in Myr:
+[`read_stars_with_ages`](reference/csfdata_analysis/readers/index.md#csfdata_analysis.readers.read_stars_with_ages)
+is the public D-CAF reader for age-dependent analysis. It derives the simulation
+root and snapshot time from the snapshot path, constructs the D-CAF adapter,
+and returns particles with the standard `age` attribute in Myr:
 
 ```python
-from csfdata_analysis.readers import read_snapshot_with_ages, read_stars
+from pathlib import Path
 
-particles = read_snapshot_with_ages(
-    snapshot_path,
-    snapshot_time,
-    adapter,
-    read_stars,
+from csfdata_analysis.readers import read_stars_with_ages
+
+particles = read_stars_with_ages(
+    Path("raw/dcaf_output/stars_0001.amuse")
 )
 ```
+
+Internally,
+[`read_snapshot_with_ages`](reference/csfdata_analysis/readers/index.md#csfdata_analysis.readers.read_snapshot_with_ages)
+combines a format-specific adapter and snapshot reader. Collection runners use
+this generic bridge so other simulation formats can provide their own formation
+times without placing AMUSE inside the core `csfdata` package.
 
 A time-series diagnostic requests this automatically by declaring:
 
@@ -70,34 +74,18 @@ are logged to six decimal places, so negative age differences smaller than
 
 ### Validate One D-CAF Simulation
 
-The following check reads the final snapshot and verifies that every star has
-an unambiguous formation record. Set `root` to the D-CAF run directory; for an
-imported catalogue simulation this is its `raw/` directory.
+The following check reads one snapshot and verifies that every star has an
+unambiguous formation record.
 
 ```python
 from pathlib import Path
 
 from amuse.units import units
-from csfdata.adapters.dcaf import DcafAdapter
-from csfdata_analysis.readers import read_snapshot_with_ages, read_stars
+from csfdata_analysis.readers import read_stars_with_ages
 
-root = Path("/path/to/simulation/raw")
-adapter = DcafAdapter(root)
+snapshot = Path("/path/to/simulation/raw/dcaf_output/stars_0001.amuse")
+stars = read_stars_with_ages(snapshot)
 
-formation_times = adapter.stellar_formation_times()
-snapshot = adapter.snapshot_paths()[-1]
-snapshot_time = adapter.snapshot_time(snapshot)
-if snapshot_time is None:
-    raise ValueError(f"Snapshot has no readable model time: {snapshot}")
-
-stars = read_snapshot_with_ages(
-    snapshot,
-    snapshot_time,
-    adapter,
-    read_stars,
-)
-
-print(f"Formation records: {len(formation_times)}")
 print(f"Snapshot stars: {len(stars)}")
 print(
     "Age range: "

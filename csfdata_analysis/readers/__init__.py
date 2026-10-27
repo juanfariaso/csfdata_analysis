@@ -9,6 +9,7 @@ from amuse.datamodel import Particles
 from amuse.units import units
 
 from csfdata.adapters.base import SimulationAdapter
+from csfdata.adapters.dcaf import DcafAdapter
 
 from csfdata_analysis.readers.dcaf import read_stars
 
@@ -67,4 +68,41 @@ def read_snapshot_with_ages(
     return stars
 
 
-__all__ = ["read_snapshot_with_ages", "read_stars"]
+def read_stars_with_ages(path: Path) -> Particles:
+    """Read one D-CAF stellar snapshot with reconstructed stellar ages.
+
+    Args:
+        path: Path to a D-CAF ``dcaf_output*/stars_*.amuse`` snapshot.
+
+    Returns:
+        D-CAF stellar particles with an ``age`` attribute in Myr.
+
+    Raises:
+        ValueError: If the path is not inside a D-CAF output segment or its
+            snapshot time cannot be read.
+        FileNotFoundError: If the snapshot or D-CAF formation log is missing.
+        KeyError: If any snapshot particle lacks a formation-time record.
+
+    Notes:
+        The simulation root, adapter, native reader, and snapshot time are
+        resolved automatically from ``path``. This is the public convenience
+        reader for interactive D-CAF analysis.
+    """
+    output_folder = path.parent
+    output_name = output_folder.name
+    if output_name != "dcaf_output" and not (
+        output_name.startswith("dcaf_output_")
+        and output_name.removeprefix("dcaf_output_").isdigit()
+    ):
+        raise ValueError(
+            "D-CAF stellar snapshots must be inside a dcaf_output* directory."
+        )
+
+    adapter = DcafAdapter(output_folder.parent)
+    snapshot_time = adapter.snapshot_time(path)
+    if snapshot_time is None:
+        raise ValueError(f"D-CAF snapshot has no readable model time: {path}")
+    return read_snapshot_with_ages(path, snapshot_time, adapter, read_stars)
+
+
+__all__ = ["read_snapshot_with_ages", "read_stars", "read_stars_with_ages"]

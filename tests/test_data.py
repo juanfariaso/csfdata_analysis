@@ -42,7 +42,7 @@ from csfdata_analysis.datamodel.slices import select_snapshot_slice, select_time
 from csfdata_analysis.datamodel.simulations import SimulationSet, load_simulations
 
 
-_MYR_IN_SECONDS = 365.25 * 24.0 * 60.0 * 60.0 * 1.0e6
+_MYR_IN_SECONDS = 365.242199 * 24.0 * 60.0 * 60.0 * 1.0e6
 
 
 def test_load_align_aggregate_and_slice_multiple_time_series(tmp_path: Path) -> None:
